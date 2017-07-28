@@ -2,6 +2,4 @@
 
 La versione 2 è stata adattata ad immagini con tempo di esposizione 2s -> 100s. 
 
-Utilizzo:
-
-<nome eseguibile> <path immagine FITS> <nome file di output>
+Utilizzo: ./<nome eseguibile> <path al file fits> <nome del file di log>
