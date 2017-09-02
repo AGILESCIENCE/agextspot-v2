@@ -22,12 +22,8 @@ void FileWriter::write2FileHeader(string input, string outputFile) {
     std::string str(date);
 
     resultOfAnalysis.open (outputFile, std::fstream::app);
-    resultOfAnalysis << "***************************************************************************************************\n";
-    resultOfAnalysis << "                                  RESULT OF GBR DETECTION\n";
-    resultOfAnalysis << "***************************************************************************************************\n\n";
-    resultOfAnalysis << "===================================================================================================\n";
-    resultOfAnalysis << date ;
-    resultOfAnalysis << "\nAnalisi di: " << input;
+    resultOfAnalysis << "\n------------------------------------------------------\n";
+    resultOfAnalysis << "GRB DETECTION OF" << input << " - " << date <<"\n";
     resultOfAnalysis.close();
 }
 

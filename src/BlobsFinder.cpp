@@ -5,7 +5,7 @@ BlobsFinder::BlobsFinder()
     //ctor
 }
 
-vector<Blob*> BlobsFinder::findBlobs(Mat tempImage, bool debugMode) {
+vector<Blob*> BlobsFinder::findBlobs(Mat tempImage) {
 
     Mat photonImage = tempImage.clone();
 
@@ -15,45 +15,9 @@ vector<Blob*> BlobsFinder::findBlobs(Mat tempImage, bool debugMode) {
 	tempImage = HistogramStretching::nonLinearStretch(tempImage,r);
 
 
-	/// PRINTING IMAGE
-	if(debugMode){
-        cout << "Stretching complete" <<endl;
-      //  ImagePrinter::printImageInConsole(tempImage);
-        ImagePrinter::printImageInWindow(tempImage,"Non linear stretching");
-
-	}
-
-
     /// GAUSSIAN FILTERING
 	GaussianFilterer gaussianFilter(Size(21, 21), 4); // 17x17   2.5    23x23   3
 	tempImage = gaussianFilter.filter(tempImage);
-
-
-	/// PRINTING IMAGE
-	if(debugMode){
-        cout << "Gaussian Filtering complete" << endl;
-       // ImagePrinter::printImageInConsole(tempImage);
-        ImagePrinter::printImageInWindowWithStretching(tempImage, "Gaussian smoothing");
-	}
-
-
-
-
-
-	/// COMPUTING THRESHOLD
-	//float threshold = Thresholder::getThresholdFromPeaksMethod(tempImage);
-	//int threshold = Thresholder::getThresholdFromPercentileMethod(tempImage,50); // 98.5
-
-
- 	/// DO THRESHOLDING
-	//tempImage = Thresholder::makeThresholding(tempImage, threshold);
-
-	/// PRINTING IMAGE
-	/*if(debugMode){
-        cout << "Thresholding complete." << endl;
-        //ImagePrinter::printImageInConsole(tempImage);
-        ImagePrinter::printImageInWindowWithStretching(tempImage, "Thresholding");
-	}*/
 
 
 	/// FIND THE CONTOUR OF EACH BLOB
@@ -65,16 +29,18 @@ vector<Blob*> BlobsFinder::findBlobs(Mat tempImage, bool debugMode) {
     Mat copyOfImage = tempImage.clone();
     findContours( copyOfImage, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
-
+    int indexx=0;
     for(vector<vector<Point> >::iterator i = contours.begin(); i < contours.end(); i++){
 
         vector<Point> currentBlob = *i;
-        /// CREATING A BLOB
-        blobs.push_back(new Blob(currentBlob,tempImage,photonImage,debugMode));
+        /// CREATING A BLOB (se e solo se non è un blob contenuto in un altro blob..
+        if(hierarchy[indexx][3]!=0)
+            blobs.push_back(new Blob(currentBlob,tempImage,photonImage));
+
+        indexx++;
 
     }
-    if(debugMode)
-        waitKey(0);
+
 
     return blobs;
 }

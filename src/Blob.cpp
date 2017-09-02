@@ -1,6 +1,6 @@
 #include "Blob.h"
 
-Blob::Blob(vector<Point>& c, Mat image, Mat photonImage, bool debugMode)
+Blob::Blob(vector<Point>& c, Mat image, Mat photonImage)
 {
     contour = c;
 
@@ -21,14 +21,7 @@ Blob::Blob(vector<Point>& c, Mat image, Mat photonImage, bool debugMode)
     l = 0;
     b = 0;
 
-    if(debugMode){
-        cout << "\n Creating a new Blob. Number of contours pixels: " << c.size() << endl;
-        cout << "Centroid of Blob: " << centroid << "  "<< floatingCentroid <<endl;
-        cout << "Pixels of Blob: " << numberOfPixels << endl;
-        cout << "Pixels mean: " << pixelMean << endl;
-        cout << "Photons in Blob: " << photonsInBlob << endl;
-        cout << "Photons Closeness: " << photonsCloseness << endl;
-    }
+
 }
 
 /// SETTERS
