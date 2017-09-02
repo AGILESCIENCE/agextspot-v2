@@ -1,12 +1,13 @@
 #ifndef BLOB_H
 #define BLOB_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <string>
+
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <iostream>
 
 using namespace std;
 using namespace cv;

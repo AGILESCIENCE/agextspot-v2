@@ -1,11 +1,8 @@
 #ifndef BAYESIANCLASSIFIERFORBLOBS_H
 #define BAYESIANCLASSIFIERFORBLOBS_H
 
-#include <vector>
-#include <string>
-#include <random>
-
 #include <Blob.h>
+#include <random>
 
 using namespace std;
 
