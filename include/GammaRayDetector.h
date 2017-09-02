@@ -1,15 +1,12 @@
 #pragma once
 
-#include <iostream>
-#include <stdio.h>
-
 #include "BayesianClassifierForBlobs.h"
 #include "FitsToCvMatConverter.h"
 #include "BlobsFinder.h"
 #include "FileWriter.h"
+
 //#include <AgileMap.h>
-#include <math.h>
-#define _USE_MATH_DEFINES
+
 
 using namespace std;
 

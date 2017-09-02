@@ -1,8 +1,7 @@
 #ifndef FILEWRITER_H
 #define FILEWRITER_H
-#include  <ctime>
 
-
+#include <ctime>
 #include <fstream>
 
 using namespace std;

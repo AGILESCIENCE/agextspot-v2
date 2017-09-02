@@ -1,10 +1,8 @@
 #ifndef BLOBSFINDER_H
 #define BLOBSFINDER_H
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <stdio.h>
-#include <iostream>
+
 #include <map>
+
 #include "Blob.h"
 #include "Thresholder.h"
 #include "GaussianFilterer.h"

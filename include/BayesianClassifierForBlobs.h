@@ -3,8 +3,12 @@
 
 #include <vector>
 #include <string>
+#include <random>
+
 #include <Blob.h>
+
 using namespace std;
+
 class BayesianClassifierForBlobs
 {
     public:
@@ -53,10 +57,10 @@ class BayesianClassifierForBlobs
 
         /// ADD DISTRIBUTION IF NEEDED
 
-        int countBgBlobs = 2091;
-        int countFluxBlobs = 4039;
-        double bgFrequency = 0.5;
-        double fluxFrequency = 0.5;
+        int countBgBlobs;
+        int countFluxBlobs;
+        double bgFrequency;
+        double fluxFrequency;
 
 };
 

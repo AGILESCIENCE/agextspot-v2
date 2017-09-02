@@ -3,7 +3,10 @@
 
 
 BayesianClassifierForBlobs::BayesianClassifierForBlobs(){
-
+    countBgBlobs = 2091;
+    countFluxBlobs = 4039;
+    bgFrequency = 0.5;
+    fluxFrequency = 0.5;
 }
 
 
