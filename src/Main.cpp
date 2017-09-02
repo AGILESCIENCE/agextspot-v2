@@ -20,11 +20,8 @@ int main(int argc, char*argv[]){
         string outputLogName = (string)argv[2];
         float classificationThreshold = atof(argv[3]);
 
-        cout << "**********************************************************************" << endl;
-        cout << "* WELCOME TO AGILE GAMMA RAY BURST (IN SHORT TERM ANALYSIS) DETECTOR *" << endl;
-        cout << "**********************************************************************" << endl;
 
-
+        cout << "\n* AGILE GAMMA RAY BURST DETECTOR *" << endl;
 
         clock_t tStart = clock();
 
@@ -32,7 +29,7 @@ int main(int argc, char*argv[]){
 
         grd.detect();
 
-        printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+        printf("\nTime taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 
 
     }
