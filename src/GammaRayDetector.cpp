@@ -6,7 +6,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
     classificationThreshold = _classificationThreshold/100;
 
 	reverendBayes = new BayesianClassifierForBlobs();
-	//agileMapUtils = new AgileMap(imagePath.c_str());
+	agileMapUtils = new AgileMap(imagePath.c_str());
 
  }
 
@@ -69,11 +69,11 @@ void GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage)
             //double bgProbability   = predicted[0].second;
             double fluxProbability = predicted[1].second;
 
-            /// double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
-            /// double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-            /// string information2Print = "["+to_string(gaLong)+","+to_string(gaLat)+"],"+to_string(fluxProbability*100)+"%";
+            double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
+            double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
+            string information2Print = "["+to_string(gaLong)+","+to_string(gaLat)+"],"+to_string(fluxProbability*100)+"%";
 
-            string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"],"+to_string(fluxProbability*100)+"%";
+            ///string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"],"+to_string(fluxProbability*100)+"%";
 
 
             if(fluxProbability >= classificationThreshold)

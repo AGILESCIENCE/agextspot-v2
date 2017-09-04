@@ -5,7 +5,7 @@
 #include "BlobsFinder.h"
 #include "FileWriter.h"
 
-//#include <AgileMap.h>
+#include <AgileMap.h>
 
 
 using namespace std;
@@ -45,5 +45,5 @@ private:
 	float classificationThreshold;
 
  	BayesianClassifierForBlobs* reverendBayes;
-	//AgileMap* agileMapUtils;
+        AgileMap* agileMapUtils;
  };
