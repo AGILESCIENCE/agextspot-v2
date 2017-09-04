@@ -40,8 +40,8 @@ vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
 
 
     /// THE LIKELYHOOD CALCULUS .. MODIFY THIS TO CHANGE ATTRIBUTES OF ANALYSIS
-    double likelyHoodOfBackground = bgA*bgP*bgPM*bgFrequency;
-    double likelyHoodOfFlux = fluxA*fluxP*fluxPM*fluxFrequency;
+    double likelyHoodOfBackground = bgP*bgPC*bgFrequency;
+    double likelyHoodOfFlux = fluxP*fluxPC*fluxFrequency;
 
 
     /// NORMALIZATION STEP TO GET A PROBABILITY
