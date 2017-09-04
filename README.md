@@ -9,7 +9,7 @@ AGEXTSPOT-V2
 
 UTILIZZO
 
-	./nome_eseguibile path_al_file_fits nome_file_di_log soglia_di_classificazione
+	./nome_eseguibile     path_al_file_fits     nome_file_di_log     soglia_di_classificazione
 
 
 
