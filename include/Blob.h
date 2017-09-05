@@ -67,6 +67,9 @@ class Blob
         */
         float getPhotonsCloseness();
 
+        /**
+            Check if the blob's centroid is included in a range
+        */
         bool isCentered();
 
 
@@ -88,8 +91,7 @@ class Blob
         Point floatingCentroid;
         Point computeFloatingCentroid();
 
-        double l;
-        double b;
+
 
         float pixelMean;
         float computePixelMean();
@@ -99,8 +101,7 @@ class Blob
 
         float getDistanceFromCentroid(Point p);
 
-        void setGalacticCoords(double l, double b);
-//        string getGalCoords();
+
 };
 
 #endif // BLOB_H

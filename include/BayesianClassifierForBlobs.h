@@ -11,7 +11,7 @@ class BayesianClassifierForBlobs
     public:
 
         /**
-            Uses already computed distribution values, hardcoded into this constructor.
+            Uses already computed distribution values, hard-coded as class attributes.
         */
         BayesianClassifierForBlobs();
 
@@ -24,11 +24,6 @@ class BayesianClassifierForBlobs
 
 
     private:
-
-        string simulatedBackgroundFitsFilesPath;
-        string simulatedFluxFitsFilesPath;
-
-
 
 
         /**

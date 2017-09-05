@@ -17,9 +17,10 @@ class BlobsFinder
     public:
 
         /**
-            Return a list of Blobs. In order to find a Blob it does:
+            Return a list of Blobs. In order to find one or more Blob it uses:
                 - non linear stretching
                 - gaussian filtering
+                - find contours procedure
          */
         static vector<Blob*> findBlobs(Mat image);
 

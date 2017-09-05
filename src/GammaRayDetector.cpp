@@ -24,27 +24,11 @@ void GammaRayDetector::detect()
 	Mat tempImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
 
     /// tira fuori una lista con tutti i BLOBS
-    vector<Blob*> blobs = extractBlobs(imagePath,tempImage);
-
-    int blobsCount = blobs.size();
+    vector<Blob*> blobs = BlobsFinder::findBlobs(tempImage);
 
     classifyBlobs(blobs,tempImage);
 
 }
-
-
-
-vector<Blob*> GammaRayDetector::extractBlobs(string imagePath,Mat tempImage)
-{
-
-
-    /// stretching, gaussian filtering, find contours
-    vector<Blob*> blobs = BlobsFinder::findBlobs(tempImage);
-
-    return blobs;
-}
-
-
 
 
 

@@ -15,28 +15,22 @@ class GammaRayDetector
 public:
 
     /**
-
+        User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
     */
 	GammaRayDetector(string imagePath, string outputLogName, float classificationThreshold);
 
 	/**
-        Open the fits file, convert it to Mat image, finds blobs, classify them with bayesian classifier, compute the
-        centroid of the blob in galactic coordinate. Return the blob if found, eturn null_ptr instead.
+        Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
     */
-
     void detect();
-
-
-
 
 
 private:
 
 
-    vector<Blob*> extractBlobs(string imagePath,Mat tempImage);
-
     /**
-        Given a blob list, for each blob, call Reverend Bayes to predict the probabilities and write them to an output file.
+        Given a blob list, for each blob, call Reverend Bayes to predict the probabilities and write them to an output file with the
+        galactic coordinates of the blob.
     */
     void classifyBlobs(vector<Blob*> blobs,Mat tempImage);
 
@@ -45,5 +39,5 @@ private:
 	float classificationThreshold;
 
  	BayesianClassifierForBlobs* reverendBayes;
-        AgileMap* agileMapUtils;
+    AgileMap* agileMapUtils;
  };

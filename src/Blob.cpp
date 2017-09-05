@@ -10,25 +10,19 @@ Blob::Blob(vector<Point>& c, Mat image, Mat photonImage)
 
     blobPixels = computePixelsOfBlob(c,image);
 
-    numberOfPixels = blobPixels.size();
+    //numberOfPixels = blobPixels.size();
 
-    pixelMean = computePixelMean();
+    //pixelMean = computePixelMean();
 
     photonsInBlob = computePhotonsBlob(photonImage);
 
     photonsCloseness = computePhotonsCloseness(photonImage);
 
-    l = 0;
-    b = 0;
 
 
 }
 
-/// SETTERS
-void setGalacticCoords(double _l, double _b){
-    //l = _l;
-  //  b = _b;
-}
+
 
 /// GETTERS
 vector<Point> Blob::getContour(){
@@ -52,10 +46,6 @@ float Blob::getPixelsMean(){
 float Blob::getPhotonsCloseness(){
     return photonsCloseness;
 }
-/*
-string Blob::getGalCoords(){
-    return "["+to_string(l)+","+to_string(b)+"]";
-}*/
 
 Point Blob::computeCentroid(){
     int sumX=0;

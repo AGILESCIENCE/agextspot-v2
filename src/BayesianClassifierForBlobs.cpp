@@ -5,7 +5,7 @@
 BayesianClassifierForBlobs::BayesianClassifierForBlobs(){
     countBgBlobs = 2091;
     countFluxBlobs = 4039;
-    bgFrequency = 0.5;
+    bgFrequency = 0.5;      /// WE ASSUME THAT THE FREQUENCIES OF THE CLASSES ARE THE SAME
     fluxFrequency = 0.5;
 }
 
@@ -15,21 +15,21 @@ vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
 
     vector<pair<string,double> > prediction;
 
-    double pixelMean = b->getPixelsMean();
-    double area = b->getNumberOfPixels();
+    //double pixelMean = b->getPixelsMean();
+    //double area = b->getNumberOfPixels();
     double photons = b->getPhotonsInBlob();
     double photonsCloseness = b->getPhotonsCloseness();
     /// ADD ATTRIBUTE
 
-    double bgPM = computeProbabilityFromDistribution(pixelMean,bgPixelMeanDistribution);
-    double bgA = computeProbabilityFromDistribution(area, bgAreaDistribution);
+    //double bgPM = computeProbabilityFromDistribution(pixelMean,bgPixelMeanDistribution);
+    //double bgA = computeProbabilityFromDistribution(area, bgAreaDistribution);
     double bgP = computeProbabilityFromDistribution(photons, bgPhotonsInBlobDistribution);
     double bgPC = computeProbabilityFromDistribution(photonsCloseness, bgPhotonsClosenessDistribution);
     /// ADD DISTR VALUE
 
 
-    double fluxPM = computeProbabilityFromDistribution(pixelMean,fluxPixelMeanDistribution);
-    double fluxA = computeProbabilityFromDistribution(area, fluxAreaDistribution);
+    //double fluxPM = computeProbabilityFromDistribution(pixelMean,fluxPixelMeanDistribution);
+    //double fluxA = computeProbabilityFromDistribution(area, fluxAreaDistribution);
     double fluxP = computeProbabilityFromDistribution(photons, fluxPhotonsInBlobDistribution);
     double fluxPC = computeProbabilityFromDistribution(photonsCloseness, fluxPhotonsClosenessDistribution);
     /// ADD DISTR VALUE
