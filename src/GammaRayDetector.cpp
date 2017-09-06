@@ -17,7 +17,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
 
 void GammaRayDetector::detect()
 {
-    FileWriter::write2FileHeader(imagePath, outputLogName);
+    FileWriter::write2FileHeader(imagePath, outputLogName, classificationThreshold);
     cout<<"\nAnalysis of: " << imagePath << endl;
 
     /// converte un file fits in un'immagine Mat di opencv

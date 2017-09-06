@@ -7,7 +7,7 @@ FileWriter::FileWriter()
 
 
 
-void FileWriter::write2FileHeader(string input, string outputFile) {
+void FileWriter::write2FileHeader(string input, string outputFile,float classificationThreshold) {
     ofstream resultOfAnalysis;
 
 
@@ -23,7 +23,7 @@ void FileWriter::write2FileHeader(string input, string outputFile) {
 
     resultOfAnalysis.open (outputFile, std::fstream::app);
     resultOfAnalysis << "\n------------------------------------------------------\n";
-    resultOfAnalysis << "GRB DETECTION OF" << input << " - " << date <<"\n";
+    resultOfAnalysis << "GRB DETECTION OF: " << input << " - Date: " << date <<" - Threshold: "<<classificationThreshold<<"\n";
     resultOfAnalysis.close();
 }
 
