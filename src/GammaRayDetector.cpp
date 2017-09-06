@@ -6,7 +6,7 @@ GammaRayDetector::GammaRayDetector(string _fitsFilePath, string _outputLogName,f
     classificationThreshold = _classificationThreshold/100;
 
 	reverendBayes = new BayesianClassifierForBlobs();
-	agileMapUtils = new AgileMap(imagePath.c_str());
+	agileMapUtils = new AgileMap(fitsFilePath.c_str());
 
  }
 
@@ -33,7 +33,7 @@ void GammaRayDetector::detect()
 string GammaRayDetector::classifyBlobs(vector<Blob*> blobs, DateObsEnd observationDates)
 {
 
-    FileWriter::write2FileHeader(imagePath, outputLogName, classificationThreshold);
+    FileWriter::write2FileHeader(fitsFilePath, outputLogName, classificationThreshold);
 
 
     vector<pair<string, Blob* > > labelledBlobs;
@@ -64,7 +64,7 @@ string GammaRayDetector::classifyBlobs(vector<Blob*> blobs, DateObsEnd observati
             {
                  information2Print = "SOURCE, "+information2Print;
                  FileWriter::write2FileBody(information2Print,outputLogName);
-                 FileWriter::write2SourcesFile(imagePath,information2Print,outputLogName);
+                 FileWriter::write2SourcesFile(fitsFilePath,information2Print,outputLogName);
 
             }
             else
