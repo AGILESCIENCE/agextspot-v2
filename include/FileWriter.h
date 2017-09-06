@@ -14,6 +14,8 @@ class FileWriter
         static void write2FileHeader(string input, string outputFile,float classificationThreshold);
         static void write2FileBody(string input, string outputFile);
 
+        static void write2SourcesFile(string filename, string input, string outputFile);
+
     protected:
     private:
 
