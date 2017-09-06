@@ -16,7 +16,7 @@ int main(int argc, char*argv[]){
 
 
 
-        string imagePath = (string)argv[1];
+        string fitsFilePath = (string)argv[1];
         string outputLogName = (string)argv[2];
         float classificationThreshold = atof(argv[3]);
 
@@ -25,7 +25,7 @@ int main(int argc, char*argv[]){
 
         clock_t tStart = clock();
 
-        GammaRayDetector grd(imagePath,outputLogName,classificationThreshold);
+        GammaRayDetector grd(fitsFilePath,outputLogName,classificationThreshold);
 
         grd.detect();
 

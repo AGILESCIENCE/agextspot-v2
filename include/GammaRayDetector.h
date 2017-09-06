@@ -32,9 +32,9 @@ private:
         Given a blob list, for each blob, call Reverend Bayes to predict the probabilities and write them to an output file with the
         galactic coordinates of the blob.
     */
-    string classifyBlobs(vector<Blob*> blobs,Mat tempImage, DateObsEnd observationDates);
+    string classifyBlobs(vector<Blob*> blobs, DateObsEnd observationDates);
 
-	string imagePath;
+	string fitsFilePath;
 	string outputLogName;
 	float classificationThreshold;
 

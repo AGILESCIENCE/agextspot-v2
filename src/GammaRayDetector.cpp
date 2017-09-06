@@ -1,7 +1,7 @@
 #include "GammaRayDetector.h"
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,float _classificationThreshold){
-    imagePath = _imagePath;
+GammaRayDetector::GammaRayDetector(string _fitsFilePath, string _outputLogName,float _classificationThreshold){
+    fitsFilePath = _fitsFilePath;
     outputLogName = _outputLogName;
     classificationThreshold = _classificationThreshold/100;
 
@@ -22,7 +22,7 @@ void GammaRayDetector::detect()
 
     vector<Blob*> blobs = BlobsFinder::findBlobs(fitsData.image);
 
-    classifyBlobs(blobs,tempImage,fitsData.observationDates);
+    classifyBlobs(blobs,fitsData.image,fitsData.observationDates);
 
 
 }
@@ -30,7 +30,7 @@ void GammaRayDetector::detect()
 
 
 
-string GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage, DateObsEnd observationDates)
+string GammaRayDetector::classifyBlobs(vector<Blob*> blobs, DateObsEnd observationDates)
 {
 
     FileWriter::write2FileHeader(imagePath, outputLogName, classificationThreshold);
