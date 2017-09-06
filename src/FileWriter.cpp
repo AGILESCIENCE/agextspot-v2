@@ -42,7 +42,7 @@ void FileWriter::write2SourcesFile(string filename, string input, string outputF
 
 
 
-void FileWriter::write2FileBody(string input, string outputFile) {
+void FileWriter::write2FileBody(string input, string outputFile, DateObsEnd observationDates) {
     ofstream resultOfAnalysis;
 
     ofstream resultOfAnalysisOnlySources;
