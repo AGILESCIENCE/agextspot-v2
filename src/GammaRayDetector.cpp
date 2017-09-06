@@ -22,7 +22,7 @@ void GammaRayDetector::detect()
 
     vector<Blob*> blobs = BlobsFinder::findBlobs(fitsData.image);
 
-    classifyBlobs(blobs,fitsData.image,fitsData.observationDates);
+    classifyBlobs(blobs,fitsData.observationDates);
 
 
 }
