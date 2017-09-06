@@ -17,23 +17,24 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
 
 void GammaRayDetector::detect()
 {
+    FileWriter::write2FileHeader(imagePath, outputLogName, classificationThreshold);
+    cout<<"\nAnalysis of: " << imagePath << endl;
 
-	FitsData fitsData = FitsToCvMatConverter::extractImageAndObsDateFromFitsFile(fitsFilePath);
+    /// converte un file fits in un'immagine Mat di opencv
+	Mat tempImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
 
-    vector<Blob*> blobs = BlobsFinder::findBlobs(fitsData.image);
+    /// tira fuori una lista con tutti i BLOBS
+    vector<Blob*> blobs = BlobsFinder::findBlobs(tempImage);
 
-    classifyBlobs(blobs,tempImage,fitsData.observationDates);
-
+    classifyBlobs(blobs,tempImage);
 
 }
 
 
 
 
-string GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage, DateObsEnd observationDates)
+void GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage)
 {
-
-    FileWriter::write2FileHeader(imagePath, outputLogName, classificationThreshold);
 
 
     vector<pair<string, Blob* > > labelledBlobs;
@@ -54,24 +55,21 @@ string GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage, DateOb
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
+            string information2Print = "["+to_string(gaLong)+","+to_string(gaLat)+"],"+to_string(fluxProbability*100)+"%";
 
-            string information2Print = "["+to_string(gaLong)+","+to_string(gaLat)+"], "+to_string(fluxProbability*100)+"%, "+observationDates.dateObs;
-
-            //string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"],"+to_string(fluxProbability*100)+"%";
+            ///string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"],"+to_string(fluxProbability*100)+"%";
 
 
             if(fluxProbability >= classificationThreshold)
             {
-                 information2Print = "SOURCE, "+information2Print;
-                 FileWriter::write2FileBody(information2Print,outputLogName);
-                 FileWriter::write2SourcesFile(imagePath,information2Print,outputLogName);
+                cout << "SOURCE,"+information2Print << endl;
+                FileWriter::write2FileBody("SOURCE,"+information2Print,outputLogName);
 
             }
             else
             {
-                 information2Print = "BG, "+information2Print;
-                 FileWriter::write2FileBody(information2Print,outputLogName);
-
+                cout << "BG,"+information2Print << endl;
+                FileWriter::write2FileBody("BG,"+information2Print,outputLogName);
             }
 
 
@@ -79,8 +77,8 @@ string GammaRayDetector::classifyBlobs(vector<Blob*> blobs,Mat tempImage, DateOb
     }
     else
     {
-        FileWriter::write2FileBody("No blob was found",outputLogName);
-
+        cout << "No blobs has been found!" << endl;
+        FileWriter::write2FileBody("No blobs has been found!",outputLogName);
     }
 
 
