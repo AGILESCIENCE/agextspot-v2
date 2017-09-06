@@ -72,6 +72,48 @@ int FitsToCvMatConverter::extractObservationTime(char * card){
     return atoi(num_array);
 }
 
+
+
+
+string FitsToCvMatConverter::extractDateObsEnd(char * card){
+    //cout << card << endl;
+    string str_card(card);
+
+    if(str_card.size()<10){
+        return "date not available";
+    }
+
+    int last_index;
+    int start_index;
+
+    /// DATE-OBS= '2009-04-01T08:36:30' / start date and time of the observation(TT)
+
+    //cerco il primo '
+    int index = 0;
+    while(str_card[index] != '='){
+        index++;
+    }
+    index++;
+    start_index = index;
+
+    // cerco il secondo '
+    while(str_card[index] != '/'){
+        index++;
+    }
+    last_index = index-1;
+
+    // costruisco la data
+    int size = last_index - start_index + 1;
+    char date[size];
+    for(int i = start_index; i<=last_index; i++){
+        date[i-start_index] = str_card[i];
+    }
+
+    string string_date(date);
+  //  cout <<"sd: "<< string_date << endl;
+    return string_date;
+}
+
 Mat FitsToCvMatConverter::convertFitsToCvMat(string fitsPath)
 {
 

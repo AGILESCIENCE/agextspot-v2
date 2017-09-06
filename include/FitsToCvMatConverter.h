@@ -25,8 +25,10 @@ public:
 	static Mat convertFitsToCvMat(string fitsPath);
 	static int getObservationTimeFromFits(string fitsPath);
     static int extractObservationTime(char * card);
+    static string extractDateObsEnd(char * card);
 
     static FitsData extractImageAndObsDateFromFitsFile(string fitsPath);
+
 
 
 private:
