@@ -50,10 +50,10 @@ void FileWriter::write2FileBody(string input, string outputFile) {
 
 }
 
-void FileWriter::write2SourceFile(string pathToFile, string input, string outputFile){
+void FileWriter::write2SourceFile(string pathToFile, string input){
     ofstream resultOfAnalysisSources;
 
-    string outputTextSource = outputFile+"_sources.txt";
+    string outputTextSource = "LOG_sources.txt";
 
     resultOfAnalysisSources.open (outputTextSource, std::ofstream::out | std::fstream::app);
     if(resultOfAnalysisSources.is_open()){

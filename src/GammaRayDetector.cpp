@@ -18,6 +18,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
 void GammaRayDetector::detect()
 {
 
+
     string observationDate = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
 
     /// converte un file fits in un'immagine Mat di opencv
@@ -26,19 +27,7 @@ void GammaRayDetector::detect()
     /// tira fuori una lista con tutti i BLOBS
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
 
-    classifyBlobs(blobs,observationDate);
-
-}
-
-
-
-
-void GammaRayDetector::classifyBlobs(vector<Blob*> blobs, string observationDate)
-{
     FileWriter::write2FileHeader(imagePath,observationDate, outputLogName, classificationThreshold);
-
-    vector<pair<string, Blob* > > labelledBlobs;
-
 
     if(blobs.size() > 0)
     {
@@ -48,10 +37,7 @@ void GammaRayDetector::classifyBlobs(vector<Blob*> blobs, string observationDate
 
             Blob* b = *i;
 
-            vector<pair<string,double> > predicted = reverendBayes->classify(b);
-
-            //double bgProbability   = predicted[0].second;
-            double fluxProbability = predicted[1].second;
+            double fluxProbability = classifyBlob(b);
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
@@ -60,32 +46,33 @@ void GammaRayDetector::classifyBlobs(vector<Blob*> blobs, string observationDate
             //string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"], "+to_string(fluxProbability*100)+"%";
 
 
-            if(fluxProbability >= classificationThreshold)
-            {
-                //cout << "SOURCE,"+information2Print << endl;
+            if(fluxProbability >= classificationThreshold){
                 FileWriter::write2FileBody("SOURCE, "+information2Print,outputLogName);
-                FileWriter::write2SourceFile(imagePath,"SOURCE, "+information2Print+", "+observationDate,outputLogName);
+                FileWriter::write2SourceFile(imagePath,"SOURCE, "+information2Print+", "+observationDate);
 
-            }
-            else
+            }else
             {
-                //cout << "BG,"+information2Print << endl;
                 FileWriter::write2FileBody("BG,"+information2Print,outputLogName);
             }
 
+        }
+    }else{
 
-        } // end for loop
+        FileWriter::write2FileBody("No blobs has been found!",outputLogName);
     }
-    else
-    {
-         FileWriter::write2FileBody("No blobs has been found!",outputLogName);
-    }
-
-
 }
 
 
 
+
+double GammaRayDetector::classifyBlob(Blob* b)
+{
+    vector<pair<string,double> > predicted = reverendBayes->classify(b);
+    //double bgProbability   = predicted[0].second;
+    double fluxProbability = predicted[1].second;
+
+    return fluxProbability;
+}
 
 
 
