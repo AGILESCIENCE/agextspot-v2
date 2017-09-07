@@ -25,7 +25,7 @@ void GammaRayDetector::detect()
     /// tira fuori una lista con tutti i BLOBS
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
 
-    classifyBlobs(blobs,photonsImage);
+    classifyBlobs(blobs);
 
 }
 
@@ -65,8 +65,8 @@ void GammaRayDetector::classifyBlobs(vector<Blob*> blobs)
             if(fluxProbability >= classificationThreshold)
             {
                 //cout << "SOURCE,"+information2Print << endl;
-                FileWriter::write2FileBody("SOURCE,"+information2Print,outputLogName);
-                FileWriter::write2SourceFile(imagePath,"SOURCE,"+information2Print,outputLogName);
+                FileWriter::write2FileBody("SOURCE, "+information2Print,outputLogName);
+                FileWriter::write2SourceFile(imagePath,"SOURCE, "+information2Print,outputLogName);
 
             }
             else

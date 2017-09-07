@@ -36,13 +36,13 @@ void FileWriter::write2FileBody(string input, string outputFile) {
     resultOfAnalysis.close();
 }
 
-void write2SourceFile(string imagePath, string input, string outputFile){
+void FileWriter::write2SourceFile(string pathToFile, string input, string outputFile){
     ofstream resultOfAnalysisSources;
 
-    string outputFile = outputFile+"_sources";
+    string outputSourcesFile = outputFile+"_sources";
 
-    resultOfAnalysisSources.open (outputFile, std::fstream::app);
-    resultOfAnalysisSources << "\n" <<imagePath <<", "input;
+    resultOfAnalysisSources.open (outputSourcesFile, std::fstream::app);
+    resultOfAnalysisSources << "\n"+ pathToFile +", "+input;
     resultOfAnalysisSources.close();
 }
 
