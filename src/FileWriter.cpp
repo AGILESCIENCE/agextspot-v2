@@ -22,10 +22,16 @@ void FileWriter::write2FileHeader(string input, string observationDate, string o
   //  std::string str(date);
 
     string outputText = outputFile+".txt";
-    resultOfAnalysis.open (outputText, std::fstream::app);
-    resultOfAnalysis << "\n------------------------------------------------------\n";
-    resultOfAnalysis << "DETECTION OF: " << input << " -OBSD: "<<observationDate<< " -T: "<<classificationThreshold*100<<"\n";
-    resultOfAnalysis.close();
+    resultOfAnalysis.open (outputText, std::ofstream::out | std::fstream::app);
+    if(resultOfAnalysis.is_open()){
+        resultOfAnalysis << "\n------------------------------------------------------\n";
+        resultOfAnalysis << "DETECTION OF: " << input << " -OBSD: "<<observationDate<< " -T: "<<classificationThreshold*100<<"\n";
+        resultOfAnalysis.close();
+    }else{
+        printf("Cant open header file ");
+
+    }
+
 }
 
 
@@ -33,9 +39,15 @@ void FileWriter::write2FileBody(string input, string outputFile) {
     ofstream resultOfAnalysis;
     string outputText = outputFile+".txt";
 
-    resultOfAnalysis.open (outputText, std::fstream::app);
-    resultOfAnalysis << "\n" + input;
-    resultOfAnalysis.close();
+    resultOfAnalysis.open (outputText, std::ofstream::out | std::fstream::app);
+    if(resultOfAnalysis.is_open()){
+        resultOfAnalysis << "\n" + input;
+        resultOfAnalysis.close();
+    }else{
+        printf("Cant open body file ");
+
+    }
+
 }
 
 void FileWriter::write2SourceFile(string pathToFile, string input, string outputFile){
@@ -43,9 +55,15 @@ void FileWriter::write2SourceFile(string pathToFile, string input, string output
 
     string outputTextSource = outputFile+"_sources.txt";
 
-    resultOfAnalysisSources.open (outputTextSource, std::fstream::app);
-    resultOfAnalysisSources << "\n"+ pathToFile +", "+input;
-    resultOfAnalysisSources.close();
+    resultOfAnalysisSources.open (outputTextSource, std::ofstream::out | std::fstream::app);
+    if(resultOfAnalysisSources.is_open()){
+        resultOfAnalysisSources << "\n"+ pathToFile +", "+input;
+        resultOfAnalysisSources.close();
+    }else{
+        printf("Cant open sources file ");
+    }
+
+
 }
 
 
