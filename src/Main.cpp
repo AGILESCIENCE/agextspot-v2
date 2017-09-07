@@ -34,11 +34,11 @@ int main(int argc, char*argv[]){
 
     }
     else if( argc > 4 ) {
-        cout << "Too many arguments supplied.\n  -the image path \n   -the name of output log file\n   -the classification threshold" << endl;
+        cout << "Too many arguments supplied.\n  -the image path \n   -the name of output log file\n   -the classification threshold\nExample: ./agextspot ../images/map.cts  results  95" << endl;
 
     }
     else {
-        cout << "Three arguments expected.\n   -the image path \n   -the name of output log file\n   -the classification threshold\n" << endl;
+        cout << "Three arguments expected.\n   -the image path \n   -the name of output log file\n   -the classification threshold\nExample: ./agextspot ../images/map.cts  results  95" << endl;
     }
     return 0;
 

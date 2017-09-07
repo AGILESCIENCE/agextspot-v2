@@ -21,7 +21,8 @@ void FileWriter::write2FileHeader(string input, string observationDate, string o
   //  strftime(date,sizeof(date),"%d-%m-%Y %I:%M:%S",timeinfo);
   //  std::string str(date);
 
-    resultOfAnalysis.open (outputFile, std::fstream::app);
+    string outputText = outputFile+".txt";
+    resultOfAnalysis.open (outputText, std::fstream::app);
     resultOfAnalysis << "\n------------------------------------------------------\n";
     resultOfAnalysis << "DETECTION OF: " << input << " -OBSD: "<<observationDate<< " -T: "<<classificationThreshold*100<<"\n";
     resultOfAnalysis.close();
@@ -30,8 +31,9 @@ void FileWriter::write2FileHeader(string input, string observationDate, string o
 
 void FileWriter::write2FileBody(string input, string outputFile) {
     ofstream resultOfAnalysis;
+    string outputText = outputFile+".txt";
 
-    resultOfAnalysis.open (outputFile, std::fstream::app);
+    resultOfAnalysis.open (outputText, std::fstream::app);
     resultOfAnalysis << "\n" + input;
     resultOfAnalysis.close();
 }
@@ -39,9 +41,9 @@ void FileWriter::write2FileBody(string input, string outputFile) {
 void FileWriter::write2SourceFile(string pathToFile, string input, string outputFile){
     ofstream resultOfAnalysisSources;
 
-    string outputSourcesFile = outputFile+"_sources";
+    string outputTextSource = outputFile+"_sources.txt";
 
-    resultOfAnalysisSources.open (outputSourcesFile, std::fstream::app);
+    resultOfAnalysisSources.open (outputTextSource, std::fstream::app);
     resultOfAnalysisSources << "\n"+ pathToFile +", "+input;
     resultOfAnalysisSources.close();
 }
