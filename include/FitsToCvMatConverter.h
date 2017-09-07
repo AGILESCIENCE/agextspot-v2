@@ -15,6 +15,9 @@ public:
 	static int getObservationTimeFromFits(string fitsPath);
     static int extractObservationTime(char * card);
 
+    static string getObservationDateFromFitsFile(string fitsPath);
+    static string extractObservationDateFromCard(char * card);
+
 
 private:
     FitsToCvMatConverter();

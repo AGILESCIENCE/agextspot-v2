@@ -7,7 +7,7 @@ FileWriter::FileWriter()
 
 
 
-void FileWriter::write2FileHeader(string input, string outputFile,float classificationThreshold) {
+void FileWriter::write2FileHeader(string input, string observationDate, string outputFile,float classificationThreshold) {
     ofstream resultOfAnalysis;
 
 
@@ -23,7 +23,7 @@ void FileWriter::write2FileHeader(string input, string outputFile,float classifi
 
     resultOfAnalysis.open (outputFile, std::fstream::app);
     resultOfAnalysis << "\n------------------------------------------------------\n";
-    resultOfAnalysis << "DETECTION OF: " << input << " -T: "<<classificationThreshold*100<<"\n";
+    resultOfAnalysis << "DETECTION OF: " << input << " -OBSD: "<<observationDate<< " -T: "<<classificationThreshold*100<<"\n";
     resultOfAnalysis.close();
 }
 

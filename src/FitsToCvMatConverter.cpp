@@ -72,6 +72,17 @@ int FitsToCvMatConverter::extractObservationTime(char * card){
     return atoi(num_array);
 }
 
+
+
+
+
+
+
+
+
+
+
+
 Mat FitsToCvMatConverter::convertFitsToCvMat(string fitsPath)
 {
 
@@ -141,4 +152,95 @@ Mat FitsToCvMatConverter::convertFitsToCvMat(string fitsPath)
 	}
 
 	return *image;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+string FitsToCvMatConverter::getObservationDateFromFitsFile(string fitsPath){
+
+    char * image_path = new char[fitsPath.length() + 1];
+	strcpy(image_path, fitsPath.c_str());
+
+	string observationDate = " ";
+
+    fitsfile *fptr;
+    char card[FLEN_CARD];
+    int status = 0,  nkeys, ii;  /* MUST initialize status */
+    if(! fits_open_file(&fptr,  image_path, READONLY, &status)){
+        if(!fits_get_hdrspace(fptr, &nkeys, NULL, &status)){
+            for (ii = 1; ii <= nkeys; ii++)  {
+                if(! fits_read_record(fptr, ii, card, &status)){
+                    //printf("%s\n", card);
+                    if( card[0]=='D' && card[1]=='A' && card[2]=='T' && card[3]=='E' && card[4]=='-' && card[5]=='O'){
+                        observationDate = extractObservationDateFromCard(card);
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    fits_close_file(fptr, &status);
+    if (status)          /* print any error messages */
+        fits_report_error(stderr, status);
+
+
+    return observationDate;
+}
+string FitsToCvMatConverter::extractObservationDateFromCard(char * card){
+    //cout << card << endl;
+    string str_card(card);
+
+    if(str_card.size()<15){
+        return "date not available";
+    }
+
+    int last_index;
+    int start_index;
+
+    /// DATE-OBS= '2009-04-01T08:36:30' / start date and time of the observation(TT)
+
+    //cerco il primo '
+    int index = 0;
+    //while(index < str_card.size()){
+    //    cout << "char int " << str_card[index] << " " << (int)str_card[index] << endl;
+    //    index++;
+    //}
+
+    index = 0;
+    while(  (int)str_card[index] != 39){
+        index++;
+    }
+    index++;
+    start_index = index;
+
+    //cout << "start: " << str_card[start_index] << endl;
+    // cerco il secondo '
+    while(  (int)str_card[index] != 39 && index < str_card.size()){
+        index++;
+    }
+    last_index = index-1;
+
+    //cout << "stop: " << str_card[last_index] << endl;
+
+    // costruisco la data
+    int size = last_index - start_index + 1;
+    char date[size];
+    for(int i = start_index; i<=last_index; i++){
+        date[i-start_index] = str_card[i];
+    }
+
+    string string_date(date);
+  //  cout <<"sd: "<< string_date << endl;
+    return string_date;
 }
