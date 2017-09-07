@@ -32,7 +32,7 @@ private:
         Given a blob list, for each blob, call Reverend Bayes to predict the probabilities and write them to an output file with the
         galactic coordinates of the blob.
     */
-    void classifyBlobs(vector<Blob*> blobs,Mat tempImage);
+    void classifyBlobs(vector<Blob*> blobs);
 
 	string imagePath;
 	string outputLogName;

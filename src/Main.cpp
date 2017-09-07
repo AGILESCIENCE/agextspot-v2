@@ -1,5 +1,5 @@
 #include "GammaRayDetector.h"
-#include <time.h>
+//#include <time.h>
 
 
 /// GIT ADDRESS
@@ -21,15 +21,15 @@ int main(int argc, char*argv[]){
         float classificationThreshold = atof(argv[3]);
 
 
-        cout << "\n* AGILE GAMMA RAY BURST DETECTOR *" << endl;
+        //cout << "\n* AGILE GAMMA RAY BURST DETECTOR *" << endl;
 
-        clock_t tStart = clock();
+        //clock_t tStart = clock();
 
         GammaRayDetector grd(imagePath,outputLogName,classificationThreshold);
 
         grd.detect();
 
-        printf("\nTime taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+       // printf("Time taken: %.2fs", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 
 
     }
