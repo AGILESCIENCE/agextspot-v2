@@ -27,39 +27,40 @@ void GammaRayDetector::detect()
     /// tira fuori una lista con tutti i BLOBS
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
 
-    FileWriter::write2FileHeader(imagePath,observationDate, outputLogName, classificationThreshold);
+
+    string information2Print="DETECTION OF: "+imagePath+" -OBSD: "+observationDate+" -T: "+classificationThreshold*100+"\n";
+    string information2PrintForSources="";
 
     if(blobs.size() > 0)
     {
-
         for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
         {
-
             Blob* b = *i;
 
+            /// CLASSIFICATION
             double fluxProbability = classifyBlob(b);
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
+            string tempString = to_string(gaLong)+","+to_string(gaLat)+"], "+to_string(fluxProbability*100)+"%";
 
-            string information2Print = "["+to_string(gaLong)+","+to_string(gaLat)+"], "+to_string(fluxProbability*100)+"%";
-            //string information2Print = "["+to_string(b->getCentroid().x)+","+to_string(b->getCentroid().y)+"], "+to_string(fluxProbability*100)+"%";
-
-
+            /// LABELING
             if(fluxProbability >= classificationThreshold){
-                FileWriter::write2FileBody("SOURCE, "+information2Print,outputLogName);
-                FileWriter::write2SourceFile(imagePath,"SOURCE, "+information2Print+", "+observationDate);
-
-            }else
-            {
-                FileWriter::write2FileBody("BG,"+information2Print,outputLogName);
+                information2Print += "\nSOURCE, ["+tempString;
+                information2PrintForSources += "\n"+tempString;
+            }else{
+                information2Print += "\nBG, ["+tempString;
             }
-
         }
     }else{
 
-        FileWriter::write2FileBody("No blobs has been found!",outputLogName);
+        information2Print += "\nNo blobs has been found!";
     }
+
+
+        FileWriter::write2File(outputLogName,information2Print);
+        FileWriter::write2File(outputLogName+"_sources",information2PrintForSources);
+
 }
 
 

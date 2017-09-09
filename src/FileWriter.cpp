@@ -6,7 +6,20 @@ FileWriter::FileWriter()
 }
 
 
+void FileWriter::write2File(string _outputFileName,string input){
+    ofstream resultOfAnalysis;
+    string outputFileName = _outputFileName+".txt";
 
+    resultOfAnalysis.open (outputFileName, std::ofstream::out | std::fstream::app);
+
+    if(resultOfAnalysis.is_open()){
+        resultOfAnalysis << input;
+        resultOfAnalysis.close();
+    }else{
+        printf("Cant open header file ");
+    }
+}
+/*
 void FileWriter::write2FileHeader(string input, string observationDate, string outputFile,float classificationThreshold) {
     ofstream resultOfAnalysis;
 
@@ -64,6 +77,6 @@ void FileWriter::write2SourceFile(string pathToFile, string input){
     }
 
 
-}
+}*/
 
 
