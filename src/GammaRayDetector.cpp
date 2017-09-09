@@ -28,7 +28,7 @@ void GammaRayDetector::detect()
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
 
 
-    string information2Print="DETECTION OF: "+imagePath+" -OBSD: "+observationDate+" -T: "+classificationThreshold*100+"\n";
+    string information2Print="DETECTION OF: "+imagePath+" -OBSD: "+observationDate+" -T: "+to_string(classificationThreshold*100)+"\n";
     string information2PrintForSources="";
 
     if(blobs.size() > 0)
@@ -47,7 +47,7 @@ void GammaRayDetector::detect()
             /// LABELING
             if(fluxProbability >= classificationThreshold){
                 information2Print += "\nSOURCE, ["+tempString;
-                information2PrintForSources += "\n"+tempString;
+                information2PrintForSources += "\nSOURCE, ["+tempString+", "+observationDate;
             }else{
                 information2Print += "\nBG, ["+tempString;
             }
@@ -57,7 +57,8 @@ void GammaRayDetector::detect()
         information2Print += "\nNo blobs has been found!";
     }
 
-
+	information2Print+="\n\n";
+	information2PrintForSources+="\n";
         FileWriter::write2File(outputLogName,information2Print);
         FileWriter::write2File(outputLogName+"_sources",information2PrintForSources);
 
