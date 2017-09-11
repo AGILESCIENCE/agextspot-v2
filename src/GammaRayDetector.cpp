@@ -87,7 +87,7 @@ double GammaRayDetector::classifyBlob(Blob* b)
 
 
 ///   /ANALYSIS3/NGC4993_SHORT/output/20s_428630400.0_431308800.0/SCAN20_428630420.0_428630440.0_1.cts.gz
-string GammaRayDetector::extractNameFromImagePath(string outputLogName, string imagePath){
+string GammaRayDetector::extractFileNameFromImagePath(string imagePath){
     cout << imagePath << endl;
 
     /// FIND .txt in outputLogName.
