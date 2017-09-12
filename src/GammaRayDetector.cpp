@@ -10,7 +10,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
     if(foundTxt != string::npos)
         outputLogName = _outputLogName.substr(0,foundTxt);
     else
-        outputLogName = _outputLogName
+        outputLogName = _outputLogName;
 
 
 
