@@ -7,9 +7,12 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
 
     /// FIND .txt in outputLogName.
     size_t foundTxt = _outputLogName.find(".txt");
-    if(foundTxt != string::npos){
+    if(foundTxt != string::npos)
         outputLogName = _outputLogName.substr(0,foundTxt);
-    }
+    else
+        outputLogName = _outputLogName
+
+
 
     outputLogName +="_"+fileName+".txt";
 
