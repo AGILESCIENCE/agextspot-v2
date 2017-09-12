@@ -9,7 +9,7 @@ FileWriter::FileWriter()
 void FileWriter::write2File(string outputFileName,string input){
     ofstream resultOfAnalysis;
 
-    resultOfAnalysis.open (outputFileName, std::ofstream::out | std::fstream::app);
+    resultOfAnalysis.open (outputFileName, std::ofstream::out);
 
     if(resultOfAnalysis.is_open()){
         resultOfAnalysis << input;
