@@ -4,9 +4,16 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
     imagePath = _imagePath;
 
     fileName = extractFileNameFromImagePath(imagePath);
-    outputLogName = _outputLogName+"_"+fileName;
 
-    cout << "\nOUTPUT LOG NAME: " << outputLogName << endl;
+    /// FIND .txt in outputLogName.
+    size_t foundTxt = _outputLogName.find(".txt");
+    if(foundTxt != string::npos){
+        outputLogName = _outputLogName.substr(0,foundTxt);
+    }
+
+    outputLogName +="_"+fileName;
+
+    cout << "\nCreated Log File: " << outputLogName << endl;
 
     classificationThreshold = _classificationThreshold/100;
 
@@ -88,13 +95,7 @@ double GammaRayDetector::classifyBlob(Blob* b)
 
 ///   /ANALYSIS3/NGC4993_SHORT/output/20s_428630400.0_431308800.0/SCAN20_428630420.0_428630440.0_1.cts.gz
 string GammaRayDetector::extractFileNameFromImagePath(string imagePath){
-    cout << imagePath << endl;
 
-    /// FIND .txt in outputLogName.
-    size_t foundTxt = outputLogName.find(".txt");
-    if(foundTxt != string::npos){
-        outputLogName = outputLogName.substr(0,foundTxt);
-    }
 
     int firstIndex=0;
     int secondIndex=imagePath.size();
