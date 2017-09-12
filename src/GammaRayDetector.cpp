@@ -61,15 +61,15 @@ void GammaRayDetector::detect()
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-            string tempString = to_string(gaLong)+", "+to_string(gaLat)+", "+to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
+            string tempString = to_string(gaLong)+", "+to_string(gaLat)+", "+to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+", "+fileName+"\n";
  //           string tempString = to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
 
 
             /// LABELING
             if(fluxProbability >= classificationThreshold){
-                 information2PrintForSources += ", SOURCE, "+tempString+", "+fileName;
+                 information2PrintForSources += ", SOURCE, "+tempString;
             }else{
-                 information2PrintForSources += ", BG, "+tempString+", "+fileName;
+                 information2PrintForSources += ", BG, "+tempString;
 
             }
         }
