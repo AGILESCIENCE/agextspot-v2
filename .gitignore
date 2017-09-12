@@ -45,6 +45,7 @@ AgileRealImages/*
 *.png
 *.cts
 *.txt
+*.cts.gz
 *.swp
 *.save
 

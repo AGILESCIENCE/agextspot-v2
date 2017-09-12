@@ -28,35 +28,27 @@ UTILIZZO
 
 	Esempio di utilizzo:
 
-	./Agextspot ../080514B.cts ../risultati.txt 94.86
+	./Agextspot ../080514B.cts ../LOG.txt 94.86
 
 OUTPUT
 	
-	Il software scrive due files di log. Il primo elenca tutte le classificazioni effettuate (backgrounds e sources), il secondo elenca solo le sorgenti classificate come tali.	
+	Il software scrive un file di log che elenca tutte le classificazioni effettuate (backgrounds e sources) con il seguente formato:	
 
-	1)nome_file_di_log.txt
+	indice,  nome_file_di_log,  etichetta_di_classificazione,  L_GAL,   B_GAL,   confidenza_(%),   dataUTC,   dataTT,   soglia_di_classificazione
 
-	DETECTION OF: path_al_file/nome_del_file -OBSERVATION_DATE -THRESHOLD
-	classificazione, L, B, probabilità_GRB
-
-	Esempio di output:
-
-	------------------------------------------------------
-	DETECTION OF: ANALYSIS3/NGC4993_SHORT/output/100s_428630400.0_431308800.0/SCAN100_431032381.0_431032481.0_23782.cts.gz -OBSD: 2017-08-28T19:14:08 -T: 95
-
-	BG, 36.953536, -19.454948, 0.734106%
-	BG, 40.026007, -32.367002, 0.734106%
-	BG, 68.344477, -34.964095, 16.274435%
-	SOURCE, 55.503383, -36.232905, 100.000000%
-	BG, 77.751018, -48.750292, 0.734106%
-	BG, 64.093617, -57.440214, 1.441523%
-
-	2)nome_file_di_log_sources.txt
-
-	path_al_file/nome_file, classificazione, L, B, probabilità_GRB, data_di_acquisizione
 	
 	Esempio di output:
-	/ANALYSIS3/NGC4993_SHORT/output/100s_428630400.0_431308800.0/SCAN100_428638883.0_428638983.0_84.cts.gz, SOURCE, 308.043322, 41.543278, 99.999979%, 2017-08-01T02:22:30
+
+	File: LOG_SCAN100_431032381.0_431032481.0_23782.txt
+	------------------------------------------------------
+	1, SCAN100_431032381.0_431032481.0_23782, BG, 36.953536, -19.454948, 0.734106, 2017-08-28T19:14:08, 95
+	2, SCAN100_431032381.0_431032481.0_23782, BG, 40.026007, -32.367002, 0.734106, 2017-08-28T19:14:08, 95
+	3, SCAN100_431032381.0_431032481.0_23782, BG, 68.344477, -34.964095, 16.274435, 2017-08-28T19:14:08, 95
+	4, SCAN100_431032381.0_431032481.0_23782, SOURCE, 55.503383, -36.232905, 100.000000, 2017-08-28T19:14:08, 95
+	5, SCAN100_431032381.0_431032481.0_23782, BG, 77.751018, -48.750292, 0.734106, 2017-08-28T19:14:08, 95
+	6, SCAN100_431032381.0_431032481.0_23782, BG, 64.093617, -57.440214, 1.441523, 2017-08-28T19:14:08, 95
+
+	
 
 SOGLIE DI CLASSIFICAZIONE
 
