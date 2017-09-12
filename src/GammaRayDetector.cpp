@@ -75,7 +75,7 @@ void GammaRayDetector::detect()
         }
     }else{
 
-        information2PrintForSources += ", NO_BLOBS, "+tempString;
+        information2PrintForSources += "NO_BLOBS, "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+", "+fileName+"\n";;
     }
 
 
