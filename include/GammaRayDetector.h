@@ -32,9 +32,11 @@ private:
         Given a blob call Reverend Bayes to predict the probabilities.
     */
     double classifyBlob(Blob* Blob);
+    string extractFileNameFromImagePath(string imagePath);
 
 	string imagePath;
 	string outputLogName;
+	string fileName;
 	float classificationThreshold;
 
  	BayesianClassifierForBlobs* reverendBayes;

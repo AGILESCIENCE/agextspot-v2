@@ -12,7 +12,7 @@ class FitsToCvMatConverter
 {
 public:
 	static Mat convertFitsToCvMat(string fitsPath);
-	static int getObservationTimeFromFits(string fitsPath);
+	static string getObservationTimeFromFits(string fitsPath);
     static int extractObservationTime(char * card);
 
     static string getObservationDateFromFitsFile(string fitsPath);

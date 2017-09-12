@@ -2,11 +2,16 @@
 
 GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,float _classificationThreshold){
     imagePath = _imagePath;
-    outputLogName = _outputLogName;
+
+    fileName = extractFileNameFromImagePath(imagePath);
+    outputLogName = _outputLogName+"_"+fileName;
+
+    cout << "\nOUTPUT LOG NAME: " << outputLogName << endl;
+
     classificationThreshold = _classificationThreshold/100;
 
 	reverendBayes = new BayesianClassifierForBlobs();
-	agileMapUtils = new AgileMap(imagePath.c_str());
+    agileMapUtils = new AgileMap(imagePath.c_str());
 
  }
 
@@ -19,7 +24,8 @@ void GammaRayDetector::detect()
 {
 
 
-    string observationDate = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
+    string observationDateUTC = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
+    string observationDateTT = FitsToCvMatConverter::getObservationTimeFromFits(imagePath);
 
     /// converte un file fits in un'immagine Mat di opencv
 	Mat photonsImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
@@ -28,13 +34,16 @@ void GammaRayDetector::detect()
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
 
 
-    string information2Print="DETECTION OF: "+imagePath+" -OBSD: "+observationDate+" -T: "+to_string(classificationThreshold*100)+"\n";
-    string information2PrintForSources="";
 
+    string information2PrintForSources = "";
+
+    int index = 1;
     if(blobs.size() > 0)
     {
         for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
         {
+            information2PrintForSources += to_string(index)+", "+fileName;
+            index++;
             Blob* b = *i;
 
             /// CLASSIFICATION
@@ -42,25 +51,25 @@ void GammaRayDetector::detect()
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-            string tempString = to_string(gaLong)+", "+to_string(gaLat)+", "+to_string(fluxProbability*100);
+            string tempString = to_string(gaLong)+", "+to_string(gaLat)+", "+to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
+ //           string tempString = to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
+
 
             /// LABELING
             if(fluxProbability >= classificationThreshold){
-                information2Print += "\nSOURCE, "+tempString;
-                information2PrintForSources += "\nSOURCE, "+tempString+", "+observationDate;
+                 information2PrintForSources += ", SOURCE, "+tempString;
             }else{
-                information2Print += "\nBG, "+tempString;
+                 information2PrintForSources += ", BG, "+tempString;
+
             }
         }
     }else{
 
-        information2Print += "\nNo blobs has been found!";
+        information2PrintForSources += "No blobs has been found!";
     }
 
-	information2Print+="\n\n";
-	information2PrintForSources+="\n";
-        FileWriter::write2File(outputLogName,information2Print);
-        FileWriter::write2File(outputLogName+"_sources",information2PrintForSources);
+
+     FileWriter::write2File(outputLogName,information2PrintForSources);
 
 }
 
@@ -77,5 +86,50 @@ double GammaRayDetector::classifyBlob(Blob* b)
 }
 
 
+///   /ANALYSIS3/NGC4993_SHORT/output/20s_428630400.0_431308800.0/SCAN20_428630420.0_428630440.0_1.cts.gz
+string GammaRayDetector::extractNameFromImagePath(string outputLogName, string imagePath){
+    cout << imagePath << endl;
+
+    /// FIND .txt in outputLogName.
+    size_t foundTxt = outputLogName.find(".txt");
+    if(foundTxt != string::npos){
+        outputLogName = outputLogName.substr(0,foundTxt);
+    }
+
+    int firstIndex=0;
+    int secondIndex=imagePath.size();
+
+    /// FINDING .cts.gz  OR .cts in imagePath
+    size_t foundCtsGz = imagePath.find(".cts.gz");
+
+    if (foundCtsGz!=string::npos){
+        //cout << ".cts.gz foundCtsGz at: " << foundCtsGz <<endl;
+        secondIndex = foundCtsGz;
+        imagePath = imagePath.substr(firstIndex, secondIndex);
+    } else {
+
+        size_t foundCts = imagePath.find(".cts");
+        if (foundCts!=string::npos){
+            secondIndex = foundCts;
+            imagePath = imagePath.substr(firstIndex, secondIndex);
+        }
+    }
+
+    /// FINDING SLASH in imagePath
+    size_t foundSlash;
 
 
+    char toDelete2 = '/';
+    do{
+        foundSlash = imagePath.find(toDelete2);
+        //cout << "\nSlash foundSlash at: " << foundSlash << " NPOS: "<<string::npos << endl;
+        firstIndex = foundSlash;
+        imagePath = imagePath.substr(firstIndex+1, secondIndex);
+      //  cout << "\nIMAGE PATH SUBSTRING: " << imagePath << endl;
+    }
+    while (foundSlash!=string::npos);
+
+
+
+    return imagePath;
+}

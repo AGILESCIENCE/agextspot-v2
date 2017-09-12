@@ -5,13 +5,13 @@ FitsToCvMatConverter::FitsToCvMatConverter()
 {
 }
 
-int FitsToCvMatConverter::getObservationTimeFromFits(string fitsPath){
+string FitsToCvMatConverter::getObservationTimeFromFits(string fitsPath){
 
     char * image_path = new char[fitsPath.length() + 1];
 	strcpy(image_path, fitsPath.c_str());
 
 	int tstart;
-	int tstop;
+	//int tstop;
 
     fitsfile *fptr;
     char card[FLEN_CARD];
@@ -25,17 +25,17 @@ int FitsToCvMatConverter::getObservationTimeFromFits(string fitsPath){
         if( card[0]=='T' && card[1]=='S' && card[2]=='T' && card[3]=='A'){
             tstart = extractObservationTime(card);
         }
-        if( card[0]=='T' && card[1]=='S' && card[2]=='T' && card[3]=='O'){
-            tstop = extractObservationTime(card);
-        }
+        //if( card[0]=='T' && card[1]=='S' && card[2]=='T' && card[3]=='O'){
+       //     tstop = extractObservationTime(card);
+      //  }
     }
     fits_close_file(fptr, &status);
     if (status)          /* print any error messages */
         fits_report_error(stderr, status);
 
 
-    cout << tstop-tstart <<" seconds" <<endl;
-    return tstop-tstart;
+    //cout << tstop-tstart <<" seconds" <<endl;
+    return to_string(tstart);
 }
 
 int FitsToCvMatConverter::extractObservationTime(char * card){
