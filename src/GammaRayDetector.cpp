@@ -52,7 +52,7 @@ void GammaRayDetector::detect()
     {
         for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
         {
-            information2PrintForSources += to_string(index)+", "+fileName;
+            information2PrintForSources += to_string(index);
             index++;
             Blob* b = *i;
 
@@ -67,9 +67,9 @@ void GammaRayDetector::detect()
 
             /// LABELING
             if(fluxProbability >= classificationThreshold){
-                 information2PrintForSources += ", SOURCE, "+tempString;
+                 information2PrintForSources += ", SOURCE, "+tempString+", "+fileName;
             }else{
-                 information2PrintForSources += ", BG, "+tempString;
+                 information2PrintForSources += ", BG, "+tempString+", "+fileName;
 
             }
         }
