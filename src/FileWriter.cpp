@@ -6,7 +6,7 @@ FileWriter::FileWriter()
 }
 
 
-void FileWriter::write2File(string _outputFileName,string input){
+void FileWriter::write2File(string outputFileName,string input){
     ofstream resultOfAnalysis;
 
     resultOfAnalysis.open (outputFileName, std::ofstream::out | std::fstream::app);
