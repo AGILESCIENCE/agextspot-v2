@@ -75,7 +75,7 @@ void GammaRayDetector::detect()
         }
     }else{
 
-        information2PrintForSources += "No blobs has been found!";
+        information2PrintForSources += ", NO_BLOBS, "+tempString;
     }
 
 
