@@ -8,7 +8,6 @@ FileWriter::FileWriter()
 
 void FileWriter::write2File(string _outputFileName,string input){
     ofstream resultOfAnalysis;
-    string outputFileName = _outputFileName+".txt";
 
     resultOfAnalysis.open (outputFileName, std::ofstream::out | std::fstream::app);
 

@@ -11,7 +11,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,floa
         outputLogName = _outputLogName.substr(0,foundTxt);
     }
 
-    outputLogName +="_"+fileName;
+    outputLogName +="_"+fileName+".txt";
 
     cout << "\nCreated Log File: " << outputLogName << endl;
 
