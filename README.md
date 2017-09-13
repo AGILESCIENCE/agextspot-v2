@@ -34,7 +34,7 @@ OUTPUT
 	
 	Il software scrive un file di log che elenca tutte le classificazioni effettuate (backgrounds e sources) con il seguente formato:	
 
-	indice,  nome_file_di_log,  etichetta_di_classificazione,  L_GAL,   B_GAL,   confidenza_(%),   dataUTC,   dataTT,   soglia_di_classificazione
+	indice,  etichetta_di_classificazione,  L_GAL,   B_GAL,   confidenza_(%),   dataUTC,   dataTT,  nome_file_di_log,  soglia_di_classificazione
 
 	
 	Esempio di output:

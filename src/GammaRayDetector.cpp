@@ -52,7 +52,7 @@ void GammaRayDetector::detect()
     {
         for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
         {
-            information2PrintForSources += to_string(index);
+            information2PrintForSources += to_string(index)+" ";
             index++;
             Blob* b = *i;
 
@@ -61,21 +61,21 @@ void GammaRayDetector::detect()
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-            string tempString = to_string(gaLong)+", "+to_string(gaLat)+", "+to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+", "+fileName+"\n";
+            string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
  //           string tempString = to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
 
 
             /// LABELING
             if(fluxProbability >= classificationThreshold){
-                 information2PrintForSources += ", SOURCE, "+tempString;
+                 information2PrintForSources += "SOURCE "+tempString;
             }else{
-                 information2PrintForSources += ", BG, "+tempString;
+                 information2PrintForSources += "BG "+tempString;
 
             }
         }
     }else{
 
-        information2PrintForSources += "NO_BLOBS, "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+", "+fileName+"\n";;
+        information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
     }
 
 
