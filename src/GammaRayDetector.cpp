@@ -1,28 +1,31 @@
 #include "GammaRayDetector.h"
+#include "ExpRatioEvaluator.h"
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName,float _classificationThreshold){
-    imagePath = _imagePath;
+GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, double _minTreshold, double _maxTreshold){ 
+    
+	imagePath = _imagePath;
+
+	imageExpPath = _imageExpPath;
 
     fileName = extractFileNameFromImagePath(imagePath);
 
-    /// FIND .txt in outputLogName.
+    // FIND .txt in outputLogName.
     size_t foundTxt = _outputLogName.find(".txt");
     if(foundTxt != string::npos)
         outputLogName = _outputLogName.substr(0,foundTxt);
     else
         outputLogName = _outputLogName;
 
-
-
     outputLogName +="_"+fileName+".txt";
 
-    cout << "\nCreated Log File: " << outputLogName << endl;
 
     classificationThreshold = _classificationThreshold/100;
 
 	reverendBayes = new BayesianClassifierForBlobs();
     agileMapUtils = new AgileMap(imagePath.c_str());
-
+    
+	minTreshold = _minTreshold;
+    maxTreshold = _maxTreshold;
  }
 
 
@@ -36,16 +39,15 @@ void GammaRayDetector::detect()
 
     string observationDateUTC = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
     string observationDateTT = FitsToCvMatConverter::getObservationTimeFromFits(imagePath);
-
+   
     /// converte un file fits in un'immagine Mat di opencv
 	Mat photonsImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
 
     /// tira fuori una lista con tutti i BLOBS
     vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
-
-
-
+    
     string information2PrintForSources = "";
+    string expRatioString = "";
 
     int index = 1;
     if(blobs.size() > 0)
@@ -61,10 +63,26 @@ void GammaRayDetector::detect()
 
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-            string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
+                        
  //           string tempString = to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
 
+			//ExpRatioEvaluation
 
+			ExpRatioEvaluator exp(imageExpPath,minTreshold,maxTreshold,gaLong,gaLat);
+			double *expRatioArray = exp.computeExpRatioValues();
+			
+			if(expRatioArray[0]==-1){
+				expRatioString = to_string((int)round(expRatioArray[0])) + " " + to_string((int)expRatioArray[1]) + " " + to_string((int)expRatioArray[2]) + " " + to_string((int)round(expRatioArray[3]));
+				//cout << "ExpRatioString: " << expRatioString << endl;
+			}
+			else
+			{
+				expRatioString = to_string((int)round(expRatioArray[0]*100)) + " " + to_string((int)expRatioArray[1]) + " " + to_string((int)expRatioArray[2]) + " " + to_string((int)round(expRatioArray[3]));
+				//cout << "ExpRatioString: " << expRatioString << endl;
+			}
+			
+			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
+			
             /// LABELING
             if(fluxProbability >= classificationThreshold){
                  information2PrintForSources += "SOURCE "+tempString;
@@ -72,14 +90,21 @@ void GammaRayDetector::detect()
                  information2PrintForSources += "BG "+tempString;
 
             }
+            
+			
+			
         }
     }else{
 
         information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
     }
+    
+		
+		
+    
+		FileWriter::write2File(outputLogName,information2PrintForSources);
 
-
-     FileWriter::write2File(outputLogName,information2PrintForSources);
+    cout << "\nCreated Log File: " << outputLogName << "\n" <<endl;
 
 }
 

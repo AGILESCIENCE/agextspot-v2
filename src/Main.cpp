@@ -1,45 +1,65 @@
+
+/*
+ * Copyright (c) 2017
+ *     Leonardo Baroncelli, Giancarlo Zollino
+ *
+ * Any information contained in this software
+ * is property of the AGILE TEAM and is strictly
+ * private and confidential.
+ * 
+ * https://github.com/Leofaber/agextspot-v2
+*/
+
 #include "GammaRayDetector.h"
-//#include <time.h>
-
-
-/// GIT ADDRESS
-/// https://github.com/Leofaber/agextspot-v2
-/// Authors: Baroncelli Leonardo, Zollino Giancarlo
+#include "ExpRatioEvaluator.h"
 
 using namespace std;
 
+const char* startString = {
+"################################################################\n"
+"###                   Task AG_extspot v1.0.1 -               ###"
+};
 
+const char* endString = {
+"### Task AG_extspot exiting .................................###\n"
+"################################################################"
+};
 
 int main(int argc, char*argv[]){
-
-    if( argc > 3) {
-
-
-
-        string imagePath = (string)argv[1];
-        string outputLogName = (string)argv[2];
-        float classificationThreshold = atof(argv[3]);
-
-
-        //cout << "\n* AGILE GAMMA RAY BURST DETECTOR *" << endl;
-
-        //clock_t tStart = clock();
-
-        GammaRayDetector grd(imagePath,outputLogName,classificationThreshold);
-
-        grd.detect();
-
-       // printf("Time taken: %.2fs", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+	
+	cout << startString << endl;
+		
+	if( argc < 5 || argc > 7) {
+		cout << "\nAt least four arguments expected (+ 2 optional) .\n   -the .cts image path \n   -the .exp image path \n   -the name of output log file\n   -the classification threshold\n\n   (Optional)\n   -minThreshold (default value 0)\n   -maxThreshold (default value 100)\n\nExample: ./agextspot ../images/map.cts ../images/map.ext results  95 (optional) 15 75" << endl;
+		cout << 	endString << endl;    
+		exit (EXIT_FAILURE);	
+	}
 
 
-    }
-    else if( argc > 4 ) {
-        cout << "Too many arguments supplied.\n  -the image path \n   -the name of output log file\n   -the classification threshold\nExample: ./agextspot ../images/map.cts  results  95" << endl;
+	float minTreshold = 0;
+	float maxTreshold = 100;
 
-    }
-    else {
-        cout << "Three arguments expected.\n   -the image path \n   -the name of output log file\n   -the classification threshold\nExample: ./agextspot ../images/map.cts  results  95" << endl;
-    }
+    string imageCtsPath = (string)argv[1];
+    const char *imageExpPath = argv[2];
+    string outputLogName = (string)argv[3];
+    float classificationThreshold = atof(argv[4]);
+    
+		    
+    if(argc >6 && argc <8){
+        
+		minTreshold = atof(argv[5]);
+        cout << "minTreshold: " << minTreshold << endl;
+        maxTreshold = atof(argv[6]);
+        cout << "maxTreshold: " << maxTreshold << endl; 
+        
+     }
+    
+
+	GammaRayDetector grd(imageCtsPath,outputLogName,classificationThreshold,imageExpPath,minTreshold,maxTreshold); 
+    grd.detect();
+
+
+	cout << 	endString << endl;
     return 0;
 
 }

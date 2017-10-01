@@ -17,7 +17,7 @@ public:
     /**
         User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
     */
-	GammaRayDetector(string imagePath, string outputLogName, float classificationThreshold);
+	GammaRayDetector(string imageCtsPath, string outputLogName, float classificationThreshold, const char *imageExpPath, double minTreshold, 	double maxTreshold); 
 
 	/**
         Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
@@ -38,6 +38,11 @@ private:
 	string outputLogName;
 	string fileName;
 	float classificationThreshold;
+	const char *imageExpPath;
+	double minTreshold;
+	double maxTreshold;
+	double l;
+	double b; 
 
  	BayesianClassifierForBlobs* reverendBayes;
     AgileMap* agileMapUtils;

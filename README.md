@@ -24,29 +24,29 @@ AGEXTSPOT-V2
 
 UTILIZZO
 
-	./nome_eseguibile     path_al_file_fits     nome_file_di_log     soglia_di_classificazione
+	./nome_eseguibile     path_al_file_cts     path_al_file_exp     nome_file_di_log     soglia_di_classificazione     (Opzionale)     minTreshold (default value 0)     maxTreshold (default value 100)
 
 	Esempio di utilizzo:
 
-	./Agextspot ../080514B.cts ../LOG.txt 94.86
+	./Agextspot ../080514B.cts  ../080514B.exp ../LOG.txt 94.86 (Opzionale) 5 75
 
 OUTPUT
 	
 	Il software scrive un file di log che elenca tutte le classificazioni effettuate (backgrounds e sources) con il seguente formato:	
 
-	indice,  etichetta_di_classificazione,  L_GAL,   B_GAL,   confidenza_(%),   dataUTC,   dataTT,  nome_file_di_log,  soglia_di_classificazione
+	indice,  etichetta_di_classificazione,  L_GAL,   B_GAL,   confidenza_(%),   dataUTC,   dataTT, soglia_di_classificazione,  nome_file_di_log,  nBad/totCount,   nBad,   totCount,   greyLevel/totCount     
 
 	
 	Esempio di output:
 
 	File: LOG_SCAN100_431032381.0_431032481.0_23782.txt
 	------------------------------------------------------
-	1, BG, 36.953536, -19.454948, 0.734106, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
-	2, BG, 40.026007, -32.367002, 0.734106, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
-	3, BG, 68.344477, -34.964095, 16.274435, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
-	4, SOURCE, 55.503383, -36.232905, 100.000000, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
-	5, BG, 77.751018, -48.750292, 0.734106, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
-	6, BG, 64.093617, -57.440214, 1.441523, 2017-08-28T19:14:08, 137843757, SCAN100_431032381.0_431032481.0_23782, 95
+	1, BG, 36.953536, -19.454948, 0.734106, 2017-08-28T19:14:08, 137843757,95,SCAN100_431032381.0_431032481.0_23782,100, 0, 1681, 9 
+	2, BG, 40.026007, -32.367002, 0.734106, 2017-08-28T19:14:08, 137843757, 95 SCAN100_431032381.0_431032481.0_23782,100, 0, 1681, 10
+	3, BG, 68.344477, -34.964095, 16.274435, 2017-08-28T19:14:08, 137843757, 95 SCAN100_431032381.0_431032481.0_23782,-1, -1, -1, -1
+	4, SOURCE, 55.503383, -36.232905, 100.000000, 2017-08-28T19:14:08, 137843757, 95 SCAN100_431032381.0_431032481.0_23782, 100, 0, 1681, 10
+	5, BG, 77.751018, -48.750292, 0.734106, 2017-08-28T19:14:08, 137843757, 95 SCAN100_431032381.0_431032481.0_23782,-1, -1, -1, -1
+	6, BG, 64.093617, -57.440214, 1.441523, 2017-08-28T19:14:08, 137843757, 95 SCAN100_431032381.0_431032481.0_23782,100, 0, 1681, 9 
 
 	Se non vengono effettuate classificazioni:
 	File: LOG_SCAN100_431032381.0_431032481.0_23782.txt
