@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2017
- *     Leonardo Baroncelli, Giancarlo Zollino (IASF-Bologna),
+ *     Leonardo Baroncelli, Giancarlo Zollino,
  *
  * Any information contained in this software
  * is property of the AGILE TEAM and is strictly
@@ -9,22 +9,34 @@
 
 #include "ExpRatioEvaluator.h"
 
+
 using namespace std; 
 
-ExpRatioEvaluator::ExpRatioEvaluator(const char * _expPath, double _minThreshold, double _maxThreshold, double _l, double _b) 
+ExpRatioEvaluator::ExpRatioEvaluator(const char * _expPath) 
 {
 	expPath=_expPath;
-	minThreshold=_minThreshold;
-	maxThreshold=_maxThreshold;
-	l=_l;
-	b=_b;
-	x=0;
-	y=0;	
+	
 	agileMap=new AgileMap(expPath);
+	
+	tStart=agileMap->GetTstart();
+	tStop=agileMap->GetTstop();
+	timeFactor=tStop-tStart;
+ 
 	double cdelt2=agileMap->GetYbin();
 	size = 10/cdelt2;
 	
+	
+	spatialFactor = 0.0003046174197867085688996857673060958405*cdelt2*cdelt2;
+	normalizationFactor = spatialFactor*timeFactor;
+	
+	cout << "normalization factor: " << normalizationFactor<<endl;
+	if(! convertFitsDataToMatrix() )
+	{
+		fprintf( stderr, "convertFitsDataToMatrix() Error reading fits file\n");
+		exit (EXIT_FAILURE);
+	}
 } 
+
 
 bool ExpRatioEvaluator::convertFitsDataToMatrix()
 {
@@ -54,8 +66,11 @@ bool ExpRatioEvaluator::convertFitsDataToMatrix()
 				rows = (int)naxes[0]; 
 				cols = (int)naxes[1];
 				image = new double*[rows];
+ 				normalizedImage = new double*[rows];
+
 				for (int i = 0; i < rows; ++i){
 					image[i] = new double[cols];
+					normalizedImage[i] = new double[cols];
 				}
 
 				/* get memory for 1 row */
@@ -79,11 +94,15 @@ bool ExpRatioEvaluator::convertFitsDataToMatrix()
 
 						for (ii = 0; ii < naxes[0]; ii++)
 						{
+							
 							image[row_index][col_index] = (double)pixels[ii];
+							normalizedImage[row_index][col_index] = (double)pixels[ii]/normalizationFactor;
+							//cout << normalizedImage[row_index][col_index] << " ";
 							col_index++;
 						}
 						col_index = 0;
 						row_index++;
+						//cout << "\n";
 					}
 
 					free(pixels);
@@ -106,7 +125,7 @@ bool ExpRatioEvaluator::convertFitsDataToMatrix()
 }
 
 
-bool ExpRatioEvaluator::isRectangleInside() 
+bool ExpRatioEvaluator::isRectangleInside(int x, int y) 
 {
 	double distSx;
 	double distDx;
@@ -125,8 +144,16 @@ bool ExpRatioEvaluator::isRectangleInside()
 	
 }
 
-double* ExpRatioEvaluator::computeExpRatioValues() 
+double* ExpRatioEvaluator::computeExpRatioValues(double l, double b, bool onNormalizeMap, double minThreshold, double maxThreshold) 
 { 
+		
+	cout << "MinThreshold: "<< minThreshold << endl;
+	cout << "MaxThreshold: " << maxThreshold << endl;
+	if(onNormalizeMap)
+		cout << "ExpRatioEvaluator will compute exp-ratio value of the normalized map" << endl;
+	else	
+		cout << "ExpRatioEvaluator will compute exp-ratio value of the NO-normalized map" << endl;	
+
  	int xmin, xmax, ymin,ymax;
 	int npixel = 0;
 	int nBad = 0;
@@ -136,11 +163,10 @@ double* ExpRatioEvaluator::computeExpRatioValues()
 	double greyLevelSum = 0;
 	double mean = 0;
 		
-	if(! convertFitsDataToMatrix() )
-	{
-		fprintf( stderr, "convertFitsDataToMatrix() Error reading fits file\n");
-		exit (EXIT_FAILURE);
-	}
+	
+
+	int x;
+	int y;
 
 	agileMap->GetRowCol(l,b,&x,&y);
 	
@@ -149,32 +175,55 @@ double* ExpRatioEvaluator::computeExpRatioValues()
 	ymin = y - size;
 	ymax = y + size;
 	
-	if(isRectangleInside()) 
-	{	
+	
+	if(isRectangleInside(x,y)) 
+	{		
 		for(int i = xmin; i <= xmax; i++) 
 		{
 			for(int j= ymin; j <= ymax; j++) 
 			{	
 				totCount+=1;
-				tmp=(double)image[i][j];
+				if(onNormalizeMap){
+ 
+					tmp=(double)normalizedImage[i][j];
+ 
+				}		
+				else
+					tmp=(double)image[i][j];
+				
 				greyLevelSum+=tmp;
+
 				if(tmp < minThreshold || tmp >maxThreshold)
 					nBad+=1;
 			}
 		}
 	
-		output[0] = (1-(nBad/totCount));
+		output[0] = (1-(nBad/totCount))*100;
 		output[1] = nBad;
 		output[2] = totCount;
-		output[3] = greyLevelSum/totCount;	
+		output[3] = greyLevelSum/totCount;
 		return output;
 
 	}else 
 	{
 		fprintf( stderr, "Rectangle is not completely inside!\n");
-		output[0] = output[1] = output[2] = output[3] = -1;
+		output[0] =  -1;
+		output[1] =  -1;
+		output[2] =  -1;
+		output[3] =  -1;
 		return output;
 
 	}
+}
+
+double ** ExpRatioEvaluator::getNormalizedImage(){
+	return normalizedImage;
+}
+
+int ExpRatioEvaluator::getRows(){
+	return rows;
+}
+int ExpRatioEvaluator::getCols(){
+	return cols;
 }
 

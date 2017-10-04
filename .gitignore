@@ -37,7 +37,7 @@ Dataset1000/*
 obj/*
 OpenCvLibs/*
 AgileRealImages/*
-
+MAPPE_PER_TEST/*
 # Files
 *.cbp
 *.depend

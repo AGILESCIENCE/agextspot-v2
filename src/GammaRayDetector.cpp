@@ -1,11 +1,9 @@
 #include "GammaRayDetector.h"
-#include "ExpRatioEvaluator.h"
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, double _minTreshold, double _maxTreshold){ 
+
+GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool _doExpEvaluationOnNormalizedMap, double _minTreshold, double _maxTreshold){ 
     
 	imagePath = _imagePath;
-
-	imageExpPath = _imageExpPath;
 
     fileName = extractFileNameFromImagePath(imagePath);
 
@@ -18,12 +16,15 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
 
     outputLogName +="_"+fileName+".txt";
 
-
+	
     classificationThreshold = _classificationThreshold/100;
-
 	reverendBayes = new BayesianClassifierForBlobs();
     agileMapUtils = new AgileMap(imagePath.c_str());
-    
+
+	// EXP RATIO EVALUATION 
+	imageExpPath = _imageExpPath;
+    exp = new ExpRatioEvaluator(_imageExpPath);
+	doExpEvaluationOnNormalizedMap = _doExpEvaluationOnNormalizedMap;
 	minTreshold = _minTreshold;
     maxTreshold = _maxTreshold;
  }
@@ -58,32 +59,25 @@ void GammaRayDetector::detect()
             index++;
             Blob* b = *i;
 
-            /// CLASSIFICATION
+            // Classification
             double fluxProbability = classifyBlob(b);
 
+			// Conversion of blob centroid in galactic coordinates
             double gaLong = agileMapUtils->l(b->getCentroid().x,b->getCentroid().y);
             double gaLat  = agileMapUtils->b(b->getCentroid().x,b->getCentroid().y);
-                        
- //           string tempString = to_string(fluxProbability*100)+", "+observationDateUTC+", "+observationDateTT+", "+to_string(classificationThreshold*100)+"\n";
+ 
 
-			//ExpRatioEvaluation
 
-			ExpRatioEvaluator exp(imageExpPath,minTreshold,maxTreshold,gaLong,gaLat);
-			double *expRatioArray = exp.computeExpRatioValues();
-			
-			if(expRatioArray[0]==-1){
-				expRatioString = to_string((int)round(expRatioArray[0])) + " " + to_string((int)expRatioArray[1]) + " " + to_string((int)expRatioArray[2]) + " " + to_string((int)round(expRatioArray[3]));
-				//cout << "ExpRatioString: " << expRatioString << endl;
-			}
-			else
-			{
-				expRatioString = to_string((int)round(expRatioArray[0]*100)) + " " + to_string((int)expRatioArray[1]) + " " + to_string((int)expRatioArray[2]) + " " + to_string((int)round(expRatioArray[3]));
-				//cout << "ExpRatioString: " << expRatioString << endl;
-			}
-			
+
+			// ExpRatioEvaluation
+			double *expRatioArray = exp->computeExpRatioValues(gaLong,gaLat,doExpEvaluationOnNormalizedMap,minTreshold,maxTreshold);
+			expRatioString = to_string(expRatioArray[0])+ " ";
+
+
+			// Building of output
 			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
 			
-            /// LABELING
+            /// Labeling
             if(fluxProbability >= classificationThreshold){
                  information2PrintForSources += "SOURCE "+tempString;
             }else{
