@@ -11,9 +11,11 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool _doExpEvaluationOnNormalizedMap, double _minTreshold, double _maxTreshold){ 
+GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool doExpEvaluationOnNormalizedMap, double minTreshold, double maxTreshold, int squareSize){ 
     
 	imagePath = _imagePath;
+	imageExpPath = _imageExpPath;
+
 
     fileName = extractFileNameFromImagePath(imagePath);
 
@@ -32,11 +34,8 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
     agileMapUtils = new AgileMap(imagePath.c_str());
 
 	// EXP RATIO EVALUATION 
-	imageExpPath = _imageExpPath;
-    exp = new ExpRatioEvaluator(_imageExpPath);
-	doExpEvaluationOnNormalizedMap = _doExpEvaluationOnNormalizedMap;
-	minTreshold = _minTreshold;
-    maxTreshold = _maxTreshold;
+    exp = new ExpRatioEvaluator(imageExpPath,doExpEvaluationOnNormalizedMap,minTreshold,maxTreshold,squareSize);
+	
  }
 
 
@@ -80,8 +79,8 @@ void GammaRayDetector::detect()
 
 
 			// ExpRatioEvaluation
-			double *expRatioArray = exp->computeExpRatioValues(gaLong,gaLat,doExpEvaluationOnNormalizedMap,minTreshold,maxTreshold);
-			expRatioString = to_string(expRatioArray[0])+ " ";
+			double expRatio = exp->computeExpRatioValues(gaLong,gaLat);
+			expRatioString = to_string(expRatio)+ " ";
 
 
 			// Building of output
