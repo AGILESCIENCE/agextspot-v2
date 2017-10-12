@@ -26,7 +26,7 @@ AGEXTSPOT-V2
 
 UTILIZZO
 
-	./nome_eseguibile     path_al_file_cts     path_al_file_exp     nome_file_di_log     soglia_di_classificazione    booleano(true per eseguire la valutazione exp-ratio su mappa normalizzata, false altrimenti)     (Opzionale)     minTreshold (default value 0)     maxTreshold (default value 100)
+	./nome_eseguibile     path_al_file_cts     path_al_file_exp     nome_file_di_log     soglia_di_classificazione    booleano(true per eseguire la valutazione exp-ratio su mappa normalizzata, false altrimenti)     (Opzionale)     minTreshold (default value 120)     maxTreshold (default value 140)   squareSize (default value 10)
 
 	Esempio di utilizzo:
 
