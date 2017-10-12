@@ -5,44 +5,60 @@
  * Any information contained in this software
  * is property of the AGILE TEAM and is strictly
  * private and confidential.
+ * 
+ * https://github.com/Leofaber/ExpRatioEvaluator
 */
 
 #include "ExpRatioEvaluator.h"
 
 
-using namespace std; 
 
-ExpRatioEvaluator::ExpRatioEvaluator(const char * _expPath) 
+
+ExpRatioEvaluator::ExpRatioEvaluator(const char * _expPath,bool _onNormalizedMap, double _minThreshold, double _maxThreshold, int _squareSize) 
 {
 	expPath=_expPath;
 	
 	agileMap=new AgileMap(expPath);
 	
-	tStart=agileMap->GetTstart();
-	tStop=agileMap->GetTstop();
-	timeFactor=tStop-tStart;
- 
-	double cdelt2=agileMap->GetYbin();
-	size = 10/cdelt2;
+	cdelt2 = agileMap->GetYbin();
 	
+	squareSize = _squareSize/cdelt2;
 	
-	spatialFactor = 0.0003046174197867085688996857673060958405*cdelt2*cdelt2;
-	normalizationFactor = spatialFactor*timeFactor;
+	onNormalizedMap = _onNormalizedMap;
 	
-	cout << "normalization factor: " << normalizationFactor<<endl;
+	minThreshold = _minThreshold;
+	
+	maxThreshold = _maxThreshold;
+
+	// Computes double ** image -> FORSE SI PUO' FARE ANCHE QUESTO CON AGILE MAP? CI GUARDO IO, PER ADESSO LASCIALO COSI'
 	if(! convertFitsDataToMatrix() )
 	{
-		fprintf( stderr, "convertFitsDataToMatrix() Error reading fits file\n");
+		fprintf( stderr, "[ExpRatioEvaluator] ERROR!! convertFitsDataToMatrix(): error reading fits file\n");
 		exit (EXIT_FAILURE);
 	}
+		
+	//1 crate normalized image 
+	normalizedImage = createNormalizedImage();
+	
+	
+	//2 create expRatioImage
+	expRatioImage = createExpRatioPixelMap(minThreshold,maxThreshold);		//inserito true per compilazione
+	
+
+	//4 Writing of normalizedImage
+	writeMatrixDataInAgileMapFile("norm.exp", normalizedImage);
+	
+
+
+	// Writing of expRatioImage
+	writeMatrixDataInAgileMapFile("exp_norm.exp", expRatioImage);	
+	
 } 
 
 
 bool ExpRatioEvaluator::convertFitsDataToMatrix()
 {
 	
-
-
 	//CFITSIO
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
@@ -66,11 +82,9 @@ bool ExpRatioEvaluator::convertFitsDataToMatrix()
 				rows = (int)naxes[0]; 
 				cols = (int)naxes[1];
 				image = new double*[rows];
- 				normalizedImage = new double*[rows];
 
 				for (int i = 0; i < rows; ++i){
 					image[i] = new double[cols];
-					normalizedImage[i] = new double[cols];
 				}
 
 				/* get memory for 1 row */
@@ -96,13 +110,10 @@ bool ExpRatioEvaluator::convertFitsDataToMatrix()
 						{
 							
 							image[row_index][col_index] = (double)pixels[ii];
-							normalizedImage[row_index][col_index] = (double)pixels[ii]/normalizationFactor;
-							//cout << normalizedImage[row_index][col_index] << " ";
 							col_index++;
 						}
 						col_index = 0;
 						row_index++;
-						//cout << "\n";
 					}
 
 					free(pixels);
@@ -136,23 +147,45 @@ bool ExpRatioEvaluator::isRectangleInside(int x, int y)
 	distDx =  pow(pow(double(cols-1-x),2),0.5);
 	distUp =  pow(pow(double(0-y),2),0.5);
 	distDown =  pow(pow(double(rows-1-y),2),0.5);
-	if(distSx < size || distDx < size || distUp < size || distDown < size)
+	if(distSx < squareSize || distDx < squareSize || distUp < squareSize || distDown < squareSize)
 		return false;
 	else
 		return true;
-
-	
 }
 
-double* ExpRatioEvaluator::computeExpRatioValues(double l, double b, bool onNormalizeMap, double minThreshold, double maxThreshold) 
+
+
+
+double ExpRatioEvaluator::computeExpRatioValues(double l, double b) 
 { 
+	int x;
+	int y;
+
+	agileMap->GetRowCol(l,b,&x,&y);
+	if(x < 0 || x > cols-1 || y < 0 || y > rows-1)
+	{
+		fprintf( stderr, "[ExpRatioEvaluator] ERROR!! computeExpRatioValues(double l, double b):  Map .cts and Map .exp are not centered in the same galactic coordinate because input l and input b go out of the .exp map\n");
+		output[0] =  -2;
+		output[1] =  -2;
+		output[2] =  -2;
+		output[3] =  -2;
 		
-	cout << "MinThreshold: "<< minThreshold << endl;
-	cout << "MaxThreshold: " << maxThreshold << endl;
-	if(onNormalizeMap)
-		cout << "ExpRatioEvaluator will compute exp-ratio value of the normalized map" << endl;
-	else	
-		cout << "ExpRatioEvaluator will compute exp-ratio value of the NO-normalized map" << endl;	
+		return output[0];
+	}
+	return computeExpRatio(x, y);
+}
+
+
+double ExpRatioEvaluator::computeExpRatioValues(int i, int j, string type)
+{	
+	return computeExpRatio(i, j);
+}
+
+
+double ExpRatioEvaluator::computeExpRatio(int x, int y){
+	
+	// The output array  [ exp-ratio, nBad, nTot, greyLevelMean ]	
+	double output[4];
 
  	int xmin, xmax, ymin,ymax;
 	int npixel = 0;
@@ -163,67 +196,363 @@ double* ExpRatioEvaluator::computeExpRatioValues(double l, double b, bool onNorm
 	double greyLevelSum = 0;
 	double mean = 0;
 		
-	
+	xmin = x - squareSize;
+	xmax = x + squareSize;
+	ymin = y - squareSize;
+	ymax = y + squareSize;
 
-	int x;
-	int y;
 
-	agileMap->GetRowCol(l,b,&x,&y);
-	
-	xmin = x - size;
-	xmax = x + size;
-	ymin = y - size;
-	ymax = y + size;
-	
-	
 	if(isRectangleInside(x,y)) 
-	{		
+	{	
 		for(int i = xmin; i <= xmax; i++) 
 		{
 			for(int j= ymin; j <= ymax; j++) 
 			{	
 				totCount+=1;
-				if(onNormalizeMap){
- 
-					tmp=(double)normalizedImage[i][j];
- 
-				}		
+				if(onNormalizedMap) 
+					tmp = (double)normalizedImage[i][j];
 				else
 					tmp=(double)image[i][j];
-				
-				greyLevelSum+=tmp;
 
-				if(tmp < minThreshold || tmp >maxThreshold)
+				greyLevelSum+=tmp;
+ 				
+				//cout << "minThreshold: " << minThreshold << "maxThreshold: " << maxThreshold << "tmp: " << tmp << endl;
+				if(tmp < minThreshold || tmp >maxThreshold){
+ 					
 					nBad+=1;
+				}
+					
 			}
 		}
-	
+		//cout << "nBad: " << nBad << "totCount: " << totCount << "expratio: " << (1-(nBad/totCount))*100 << endl;
+ 		//getchar();
 		output[0] = (1-(nBad/totCount))*100;
 		output[1] = nBad;
 		output[2] = totCount;
 		output[3] = greyLevelSum/totCount;
-		return output;
+		
+
+		return output[0];
 
 	}else 
 	{
-		fprintf( stderr, "Rectangle is not completely inside!\n");
+		//fprintf( stderr, "Rectangle is not completely inside!\n");
 		output[0] =  -1;
 		output[1] =  -1;
 		output[2] =  -1;
 		output[3] =  -1;
-		return output;
+
+		return output[0];
 
 	}
 }
 
-double ** ExpRatioEvaluator::getNormalizedImage(){
-	return normalizedImage;
+
+
+double ** ExpRatioEvaluator::createExpRatioPixelMap(double minThreshold, double maxThreshold){
+
+
+
+		// GENERAZIONE DELLA MAPPA IN CUI OGNI PIXEL E' UN EXP-RATIO
+			
+		// il seguente codice, data la mappa normalizzata, crea una seconda mappa, in cui ogni pixel è il valore di exp-ratio centrato
+		// sul pixel corrispondente della mappa normalizzata. (i bordi saranno -1 perchè il rettangolo fuoriuscirà).
+		// La nuova mappa deve essere inserita in una file CTS leggibile con ds9.
+
+		// dovrebbe uscire una roba del genere:
+
+		// -1 -1 -1 -1 -1 -1 ........
+		// -1 -1 -1 -1 -1 -1 ........
+		// -1 -1... .. .. .. ........
+		// -1 -1...  a  b  c ........
+		// -1 -1...  q  w  e ........
+		// .. .....  x  y  z ........
+		// .. ..... .. .. .. ........
+
+
+		// Algoritmo:
+		
+		// crea una nuova mappa e inizializzala
+		double ** expRatioMap;
+		expRatioMap = new double*[rows];
+
+		
+		for(int i=0; i<rows; i++) {
+			expRatioMap[i] = new double[cols];
+		}
+					
+		
+		// calcola i valori e inseriscili nella nuova mappa
+		for(int i = 0; i < rows ; i++ ) {
+			for(int j = 0; j < cols; j++) {
+ 
+				expRatioMap[i][j] = computeExpRatioValues(i,j,"PIXEL");
+;								
+			}
+			
+		}
+
+		/*
+		for(int i = 0; i < rows ; i++ ) {
+			for(int j = 0; j < cols; j++) {
+ 
+ 
+				cout << expRatioMap[i][j] << " ";
+ 
+			}
+			cout << "\n";
+		}*/
+		
+		return expRatioMap;
+
+
 }
 
-int ExpRatioEvaluator::getRows(){
-	return rows;
+
+/*
+		*********************************************************************************************************
+		*********************************************************************************************************
+		*********************************************************************************************************
+		************************************** 				   **************************************
+		*********************************************************************************************************
+		*********************************************************************************************************
+		*********************************************************************************************************
+*/
+
+
+double ExpRatioEvaluator::Alikesinaa(double input){
+	
+		if (input == 0)
+			 
+			return(1.0);
+				
+		else
+			return(sin(input)/input);
 }
-int ExpRatioEvaluator::getCols(){
-	return cols;
+
+	
+	
+
+// OPTIMIZED CODE!
+double ** ExpRatioEvaluator::computeSpatialNormalizationFactorMatrix(){
+			
+			/*
+					D D D X X X
+					D D D X X X
+					D D D X X X
+					V V V O O O
+					V V V O O O
+					V V V O O O
+			*/		
+			
+
+			// Initializes a distance matrix.
+			int dMrows = rows/2;
+			int dMcols =  cols/2;
+			double center_l = agileMap->GetMapCenterL();
+			double center_b = agileMap->GetMapCenterB();
+			double fctr4Normalization = 0.0003046174197867085688996857673060958405 * cdelt2 * cdelt2;
+			
+			double ** normalizationFactorMatrix = new double*[rows];
+			for(int i = 0; i < rows; ++i) {
+				normalizationFactorMatrix[i] = new double[cols];
+			}
+	
+		/*		
+			Computes distance from double ** image using SrcDist( i, j, center_l, center_b ) to store the distances from every pixel of
+			the first quadrant of the matrix (i,j) to the center (center_l, center_b).
+
+			Initialize and compute the normalizationFactorMatrix, iterating ONLY ON THE FIRST QUADRANT OF THE MATRIX, WRITING 4 PIXEL (the symmetric 				ones) AT TIME, with this formula:
+
+			if the distance is not 0 
+			0.0003046174197867085688996857673060958405 * xbin * ybin * Alikesinaa(0.0174532925199432954743716805978692718782 * distanceMatrix[i][j]);
+			else
+			0.0003046174197867085688996857673060958405 * xbin * ybin
+
+		*/	
+		
+				
+		for(int i=0; i<dMrows; ++i) {
+			for(int j=0; j<dMcols; ++j) {
+				
+				double distance =agileMap->SrcDist(i,j,center_l,center_b);
+								
+				if(distance!=0){
+				
+					normalizationFactorMatrix[i][j] =  fctr4Normalization * Alikesinaa(0.0174532925199432954743716805978692718782 * distance);	 
+					
+					normalizationFactorMatrix[i][cols -1 - j] =fctr4Normalization * Alikesinaa(0.0174532925199432954743716805978692718782 * distance);
+					
+					normalizationFactorMatrix[rows -1 - i][j] = fctr4Normalization * Alikesinaa(0.0174532925199432954743716805978692718782 * distance);
+					
+					normalizationFactorMatrix[rows -1 - i][cols -1 - j] = fctr4Normalization * Alikesinaa(0.0174532925199432954743716805978692718782 * distance);
+					
+				}
+				
+				else {
+					normalizationFactorMatrix[i][j] = fctr4Normalization;
+					normalizationFactorMatrix[i][cols - j] = fctr4Normalization;
+					normalizationFactorMatrix[rows - i][j] = fctr4Normalization;
+					normalizationFactorMatrix[rows - i][cols - j] = fctr4Normalization;
+				}
+			}
+		}
+		return normalizationFactorMatrix;
+				
 }
+
+
+
+double ** ExpRatioEvaluator::createNormalizedImage(){
+
+	// Computes time normalization factor
+	double timeFactor = agileMap->GetTstop()  -  agileMap->GetTstart();
+ 
+	// Computes spatial normalization factor matrix
+	double ** normalizationFactorMatrix = computeSpatialNormalizationFactorMatrix();
+
+	
+	// Computes normalizedImage!! 
+	double ** normalizedImage = new double*[rows];
+			for(int i = 0; i < rows; ++i) {
+				normalizedImage[i] = new double[cols];
+			}
+	
+	for(int i = 0 ; i < rows; ++i) {
+		for(int j = 0 ; j < cols; ++ j) {
+			normalizedImage[i][j] = image[i][j]/ (  timeFactor * normalizationFactorMatrix[i][j] );
+		}
+	}
+	
+	return normalizedImage;
+
+}
+ 
+ 
+int ExpRatioEvaluator::writeMatrixDataInAgileMapFile(const char * appendToFilename, double ** matrixData){  
+	
+	
+	/// Computes new filename
+	const char * newFileNameC = computeNewFileName(appendToFilename).c_str(); // TO FIX 
+ 
+	remove(newFileNameC);
+
+ 	FitsFile f;
+
+	if (!f.Create(newFileNameC)) {
+		cerr << "ERROR " << f.Status() << " creating " << newFileNameC << endl;
+		return f.Status();
+	}
+
+	
+	int bitpix = DOUBLE_IMG;
+	int naxis = 2;
+	long naxes[2] = { rows, cols };		 
+	long fpixel[2] = { 1, 1 };
+
+	fits_create_img(f, bitpix, naxis, naxes, f);
+	
+	double * rowData =  new double[rows*cols];
+	
+	int status;
+	
+	for(int i = 0; i < rows; i++){
+		for(int j = 0; j < cols ; j++){
+			rowData[i*cols+j] = matrixData[rows-i-1][j];
+		}
+	}	
+	 	
+	
+	fits_write_pix(f, TDOUBLE, fpixel, rows*cols, rowData, f);
+
+	f.WriteKey("CTYPE1", "GLON-ARC");
+	f.WriteKey("CTYPE2", "GLAT-ARC");
+	f.WriteKey("CRPIX1", agileMap->GetX0());
+	f.WriteKey("CRVAL1", agileMap->GetMapCenterL());
+	f.WriteKey("CDELT1", agileMap->GetXbin());
+	f.WriteKey("CRPIX2", agileMap->GetY0());
+	f.WriteKey("CRVAL2", agileMap->GetMapCenterB());
+	f.WriteKey("CDELT2", agileMap->GetYbin());
+	f.WriteKey("LONPOLE", agileMap->GetLonpole());
+	f.WriteKey("MINENG", agileMap->GetEmin());
+	f.WriteKey("MAXENG", agileMap->GetEmax());
+	f.WriteKey("INDEX", agileMap->GetMapIndex());
+	f.WriteKey("SC-Z-LII", agileMap->GetLpoint());
+	f.WriteKey("SC-Z-BII", agileMap->GetBpoint());
+	//f.WriteKey("SC-LONPL", m_gp);
+
+	const char * m_dateObs = agileMap->GetStartDate();
+	const char * m_dateEnd = agileMap->GetEndDate();
+
+	if (m_dateObs[0])
+		f.WriteKey("DATE-OBS", m_dateObs);
+	if (m_dateEnd[0])
+		f.WriteKey("DATE-END", m_dateEnd);
+
+	f.WriteKey("TSTART", agileMap->GetTstart());
+	f.WriteKey("TSTOP", agileMap->GetTstop());
+	f.WriteKey("FOVMIN", agileMap->GetFovMin());
+	f.WriteKey("FOV", agileMap->GetFovMax());
+	f.WriteKey("ALBEDO", agileMap->GetAlbedo());
+	f.WriteKey("PHASECOD", agileMap->GetPhaseCode());
+
+	double m_step = agileMap->GetStep();
+	if (m_step)
+		f.WriteKey("STEP", m_step);
+
+	const char * m_skyL = agileMap->GetSkyL();
+	const char * m_skyH = agileMap->GetSkyH();
+
+	if (m_skyL[0])
+		f.WriteKey("SKYL", m_skyL);
+	if (m_skyH[0])
+		f.WriteKey("SKYH", m_skyH);
+
+	if (f.Status())
+		cerr << "ERROR " << f.Status() << " writing to " << newFileNameC << endl;
+	return f.Status();
+
+
+	
+
+}
+
+string ExpRatioEvaluator::computeNewFileName(const char * appendToFilename){
+	
+	const char * imageName = agileMap->GetFileName(); // e.g.    MAP1000s.exp
+	string imageName_string(imageName);
+	
+	string newFileName = "";
+
+	// tolgo tutto quello che c'è prima di tutti gli slash	
+	size_t foundPatternSlash = imageName_string.find("/");
+	while(foundPatternSlash != string::npos)
+	{
+		imageName_string = imageName_string.substr(foundPatternSlash+1);
+		foundPatternSlash = imageName_string.find("/");
+	}
+
+
+
+	
+	
+    size_t foundPatternExp = imageName_string.find(".exp");
+	size_t foundPatternCts = imageName_string.find(".cts");
+
+    if(foundPatternExp != string::npos)
+		newFileName = imageName_string.substr(0,foundPatternExp);
+	else if(foundPatternCts != string::npos)
+		newFileName = imageName_string.substr(0,foundPatternCts);
+    else
+		newFileName = imageName_string;
+
+	string appendToFilenameString(appendToFilename);
+	newFileName +="_"+appendToFilenameString+".gz";
+	cout << "NewFileName: " << newFileName << endl;
+
+
+
+	return newFileName;
+}
+
 

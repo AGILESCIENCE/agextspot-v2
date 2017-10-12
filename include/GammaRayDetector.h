@@ -27,7 +27,7 @@ public:
     /**
         User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
     */
-	GammaRayDetector(string imageCtsPath, string outputLogName, float classificationThreshold, const char *imageExpPath, bool doExpEvaluationOnNormalizedMap, double minTreshold, double maxTreshold); 
+	GammaRayDetector(string imageCtsPath, string outputLogName, float classificationThreshold, const char *imageExpPath, bool doExpEvaluationOnNormalizedMap, double minTreshold, double maxTreshold, int squareSize); 
 
 	/**
         Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
@@ -50,9 +50,6 @@ private:
 	float classificationThreshold;
 
 	const char *imageExpPath;
-	bool doExpEvaluationOnNormalizedMap;
-	double minTreshold;
-	double maxTreshold;
 	
 	
  	BayesianClassifierForBlobs* reverendBayes;
