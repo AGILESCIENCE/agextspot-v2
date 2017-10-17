@@ -60,7 +60,7 @@ exec_prefix=$(prefix)
 # The directory to install the binary files in.
 bindir=$(exec_prefix)/bin
 # The directory to install the local configuration file.
-datadir=$(exec_prefix)/share
+# datadir=$(exec_prefix)/share
 # The directory to install the libraries in.
 libdir=$(exec_prefix)/lib
 # The directory to install the info files in.
@@ -79,7 +79,7 @@ DOC_DIR = ref
 DOXY_SOURCE_DIR = code_filtered
 EXE_DESTDIR  = bin
 LIB_DESTDIR = lib
-CONF_DIR=conf
+# CONF_DIR=conf
 ICON_DIR = ui
 
 ####### 4) Compiler, tools and options
@@ -262,8 +262,8 @@ install: all
 	#$(COPY_FILE) $(ICON_DIR)/$(ICON_NAME) $(icondir)
 
 	# For conf files installation
-	test -d $(datadir) || mkdir -p $(datadir)
-	$(COPY_FILE) $(CONF_DIR)/* $(datadir)/$(CONF_DEST_DIR)
+	# test -d $(datadir) || mkdir -p $(datadir)
+	# $(COPY_FILE) $(CONF_DIR)/* $(datadir)/$(CONF_DEST_DIR)
 
 #uninstall: delete all the installed files--the copies that the `install' target creates.
 uninstall:
