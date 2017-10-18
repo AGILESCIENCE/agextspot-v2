@@ -35,11 +35,12 @@ int main(int argc, char*argv[]){
 	float maxTreshold = 140;
 	int squareSize = 10;
 	bool doExpEvaluationOnNormalizedMap = true;
+	bool writeExpRatioMap = true;
 
 
 	// CONTROLLO TROPPO POCHI o TROPPI PARAMETRI
-	if( argc < 6 || argc > 9) {
-		cout << "\nAt least five arguments expected (+ 3 optional) .\n   -the .cts image path \n   -the .exp image path \n   -the name of output log file\n   -the classification threshold\n    -boolean (true/false): true -> will perform exp-ratio evaluation on the normalized map\n\n   (Optional)\n   -minThreshold (default value 120)\n   -maxThreshold (default value 140)\n   -squareSize (default value 10)\n\nExample: ./agextspot ../images/map.cts ../images/map.ext results 95 true (optional) 125 130 10" << endl;
+	if( argc < 7 || argc > 10) {
+		cout << "\nAt least 6 arguments expected (+ 3 optional) .\n   -the .cts image path \n   -the .exp image path \n   -the name of output log file\n   -the classification threshold\n   -boolean (true/false): true -> will perform exp-ratio evaluation on the normalized map\n   -boolean (true/false): true -> will create expRatioMap\n\n   (Optional)\n   -minThreshold (default value 120)\n   -maxThreshold (default value 140)\n   -squareSize (default value 10)\n\nExample: ./agextspot ../images/map.cts ../images/map.ext results 95 true (optional) 125 130 10" << endl;
 		cout << 	endString << endl;    
 		exit (EXIT_FAILURE);	
 	}
@@ -52,35 +53,41 @@ int main(int argc, char*argv[]){
     string outputLogName = argv[3];
     float classificationThreshold = atof(argv[4]);
     const char *normalize = argv[5];
+    const char *createExpRatioMap = argv[6];
 	
 		
 	if( strcmp(normalize, "true") == 0 )
 		doExpEvaluationOnNormalizedMap = true;
 	else
 		doExpEvaluationOnNormalizedMap = false;
+		
+	if(strcmp(createExpRatioMap, "true") == 0)
+		writeExpRatioMap = true;
+	else
+		writeExpRatioMap = false;
 	
 	// SETTAGGIO PARAMETRI OPZIONALI
 
-    	if(argc == 7)
+    	if(argc == 8)
 		{	
-			if(((string)argv[6])!="d")
-				minTreshold = atof(argv[6]);
-		}
-		else if(argc == 8)
-		{
-			if(((string)argv[6])!="d")
-				minTreshold = atof(argv[6]);
 			if(((string)argv[7])!="d")
-				maxTreshold = atof(argv[7]);
+				minTreshold = atof(argv[7]);
 		}
 		else if(argc == 9)
 		{
-			if(((string)argv[6])!="d")
-				minTreshold = atof(argv[6]);
 			if(((string)argv[7])!="d")
-				maxTreshold = atof(argv[7]);
+				minTreshold = atof(argv[7]);
 			if(((string)argv[8])!="d")
-				squareSize = atof(argv[8]);
+				maxTreshold = atof(argv[8]);
+		}
+		else if(argc == 10)
+		{
+			if(((string)argv[7])!="d")
+				minTreshold = atof(argv[7]);
+			if(((string)argv[8])!="d")
+				maxTreshold = atof(argv[8]);
+			if(((string)argv[9])!="d")
+				squareSize = atof(argv[9]);
 		}
 
 	
@@ -92,7 +99,7 @@ int main(int argc, char*argv[]){
      
     
 
-	GammaRayDetector grd(imageCtsPath, outputLogName, classificationThreshold, imageExpPath, doExpEvaluationOnNormalizedMap, minTreshold, maxTreshold, squareSize); 
+	GammaRayDetector grd(imageCtsPath, outputLogName, classificationThreshold, imageExpPath, doExpEvaluationOnNormalizedMap,writeExpRatioMap, minTreshold, maxTreshold, squareSize); 
 
     grd.detect();
 
