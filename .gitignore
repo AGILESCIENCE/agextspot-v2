@@ -38,6 +38,7 @@ obj/*
 OpenCvLibs/*
 AgileRealImages/*
 MAPPE_PER_TEST/*
+test/*
 # Files
 *.cbp
 *.depend
@@ -49,3 +50,4 @@ MAPPE_PER_TEST/*
 *.swp
 *.save
 *.exp
+version
