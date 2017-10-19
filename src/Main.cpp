@@ -40,7 +40,7 @@ int main(int argc, char*argv[]){
 
 	// CONTROLLO TROPPO POCHI o TROPPI PARAMETRI
 	if( argc < 7 || argc > 10) {
-		cout << "\nAt least 6 arguments expected (+ 3 optional) .\n   -the .cts image path \n   -the .exp image path \n   -the name of output log file\n   -the classification threshold\n   -boolean (true/false): true -> will perform exp-ratio evaluation on the normalized map\n   -boolean (true/false): true -> will create expRatioMap\n\n   (Optional)\n   -minThreshold (default value 120)\n   -maxThreshold (default value 140)\n   -squareSize (default value 10)\n\nExample: ./agextspot ../images/map.cts ../images/map.ext results 95 true (optional) 125 130 10" << endl;
+		cout << "\nAt least 6 arguments expected (+ 3 optional) .\n   - The .cts image path \n   - The .exp image path \n   - The name of output log file\n   - The classification threshold\n   - The Normalize boolean (true/false): true -> will perform exp-ratio evaluation on the normalized map\n   - The createExpRatioMap boolean (true/false): true -> will create expRatioMap\n\n   (Optional)\n   - The minThreshold (default value 120)\n   - The maxThreshold (default value 140)\n   - The squareSize (default value 10)\n\nExample: ./agextspot ../images/map.cts ../images/map.ext results 95 true (optional) 125 130 10" << endl;
 		cout << 	endString << endl;    
 		exit (EXIT_FAILURE);	
 	}
@@ -48,9 +48,9 @@ int main(int argc, char*argv[]){
 
 	
 	// SETTAGGIO PARAMETRI OBBLIGATORI
-    string imageCtsPath = argv[1];
-    const char *imageExpPath = argv[2];
-    string outputLogName = argv[3];
+    const char * imageCtsPath = argv[1];
+    const char * imageExpPath = argv[2];
+    const char * outputLogName = argv[3];
     float classificationThreshold = atof(argv[4]);
     const char *normalize = argv[5];
     const char *createExpRatioMap = argv[6];
