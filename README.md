@@ -1,4 +1,4 @@
-# AG_extspot-v2 1.0.2
+# AG_extspot-v2 1.0.3
 
 Agextspot è un software di rilevazione automatica di Gamma Ray Burst in un file FITS che contiene la lista di fotoni ad alta energia di una certa regione di cielo.
 
@@ -18,24 +18,24 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 
 ### Utilizzo
 
-	./bin/AG_extspot imageCtsPath, outputLogName, classificationThreshold, imageExpPath, onNormalizedMap, minTreshold, maxTreshold, squareSize
+	./bin/AG_extspot outputLogName, imageCtsPath, classificationThreshold, imageExpPath, onNormalizedMap, minTreshold, maxTreshold, squareSize
 	
 
 ### Input
 
+	outputLogName: il file di output (è possibile specificare anche il percorso) ( const char * )
+	
 	imageCtsPath: il percorso alla mappa dei conteggi (.cts o .cts.gz) ( const char * )
+
+	classificationThreshold: la soglia di classificazione, se la percentuale bayesiana di classificazione supera la soglia, il blob i-esimo viene etichettato come GRB ( float )
 
 	imageExpPath: il percorso alla mappa di esposizone (.exp o .exp.gz) ( const char * )
 	
-	outputLogName: il file di output (è possibile specificare anche il percorso) ( const char * )
-	
-	classificationThreshold: la soglia di classificazione, se la percentuale bayesiana di classificazione supera la soglia, il blob i-esimo viene etichettato come GRB ( float )
-	
-	onNormalizedMap: se il valore è "true", la valutazione exp-ratio viene effettuata sulla mappa normalizzata. Inoltre la mappa exp-ratio viene creata a partire dalla mappa normalizzata. Altrimenti si utilizza l'immagine in input. ( true/false )
-
-	createExpratioMap: se il valore è "true", viene creata una mappa (FITS) nella quale il valore di ogni pixel rappresenta il valore dell'ExpRatioEvaluator calcolato sul medesimo pixel. Se il valore è "false" non viene creata alcuna mappa. ( true/false )
-	
 (OPZIONALI) -> è possibile specificare "d" per usare il valore di default
+
+	isExpMapNormalized : se il valore è "false", si afferma che la mappa exp in input NON è normalizzata. Il software provvederà a normalizzarla ed a scriverla su file. ( default = false)
+
+	createExpRatioMap: se il valore è "true", viene creata una mappa (FITS) nella quale il valore di ogni pixel rappresenta il valore dell'ExpRatioEvaluator calcolato sul medesimo pixel. Se il valore è "false" non viene creata alcuna mappa. ( true/false ) ( default = false)
 
 	minThreshold: la soglia minima sotto la quale il pixel è considerato "bad" per il calcolo dell'exp-ratio ( double ) ( default = 120 )
 	
@@ -45,7 +45,7 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 
 ### Esempio di utilizzo
 
-	./bin/AG_extspot MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts MAPPE_PER_TEST/MAP1000s_45l_30b.exp log.txt 95 true false d 130 d
+	./bin/AG_extspot log.txt MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts 95 MAPPE_PER_TEST/MAP1000s_45l_30b.exp d d d d d
  	
 
 ### Output
