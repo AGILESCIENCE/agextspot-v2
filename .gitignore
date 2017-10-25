@@ -50,4 +50,5 @@ test/*
 *.swp
 *.save
 *.exp
+*.gz
 version
