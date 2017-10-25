@@ -11,7 +11,7 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool doExpEvaluationOnNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, int squareSize){ 
+GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, int squareSize){ 
     
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
@@ -34,7 +34,7 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
     agileMapUtils = new AgileMap(imagePath.c_str());
 
 	// EXP RATIO EVALUATION 
-	exp = new ExpRatioEvaluator(imageExpPath,doExpEvaluationOnNormalizedMap, createExpRatioMap,minTreshold,maxTreshold,squareSize);
+	exp = new ExpRatioEvaluator(imageExpPath,isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap,minTreshold,maxTreshold,squareSize);
 	
  }
 
