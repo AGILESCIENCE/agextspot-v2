@@ -31,7 +31,8 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
 	
     classificationThreshold = _classificationThreshold/100;
 	reverendBayes = new BayesianClassifierForBlobs();
-    agileMapUtils = new AgileMap(imagePath.c_str());
+	agileMapUtils = new AgileMap(imagePath.c_str());
+    
 
 	// EXP RATIO EVALUATION 
 	exp = new ExpRatioEvaluator(imageExpPath,isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap,minTreshold,maxTreshold,squareSize);
@@ -49,7 +50,7 @@ void GammaRayDetector::detect()
 
     string observationDateUTC = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
     string observationDateTT = FitsToCvMatConverter::getObservationTimeFromFits(imagePath);
-   
+
     /// converte un file fits in un'immagine Mat di opencv
 	Mat photonsImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
 

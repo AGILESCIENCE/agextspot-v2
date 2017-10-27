@@ -96,9 +96,8 @@ int FitsToCvMatConverter::extractObservationTime(char * card){
 Mat FitsToCvMatConverter::convertFitsToCvMat(string fitsPath)
 {
 
-	char * image_path = new char[fitsPath.length() + 1];
-	strcpy(image_path, fitsPath.c_str());
-
+	const char * image_path = fitsPath.c_str();
+ 
 	//CFITSIO
 	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
 	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
