@@ -39,7 +39,7 @@ int main(int argc, char*argv[]){
 	
 	// CONTROLLO TROPPO POCHI o TROPPI PARAMETRI
 	if( argc < 6 || argc > 11) {
-		cout << "\nAt least 5 arguments expected (+ 5 optional) .\n   - The name of output log file\n   - The .cts image path \n   - The classification threshold\n   - The .exp image path \n   -  isExpMapNormalized? : if 'true' we assert that the exp map given in input is already normalized.\n\n(OPTIONAL)\n   - createNormMap? : if 'true' the normalized map will be writed on file (default value = false)\n   - createExpRatioMap? : if 'true' the exp-ratio map will be writed on file. (default value = false)\n   - The minThreshold (default value = 120)\n   - The maxThreshold (default value = 140)\n   - The square size (default value = 10)\n\nExample: ./agextspot log.txt ../images/map.cts 95 ../images/map.exp false 95 true true true 125 130 10" << endl;
+		cout << "\nAt least 5 arguments expected (+ 5 optional) .\n   - The name of output log file\n   - The .cts image path \n   - The classification threshold\n   - The .exp image path \n   -  isExpMapNormalized? : if 'true' we assert that the exp map given in input is already normalized.\n\n(OPTIONAL)\n   - createNormMap? : if 'true' the normalized map will be writed on file (default value = false)\n   - createExpRatioMap? : if 'true' the exp-ratio map will be writed on file. (default value = false)\n   - The minThreshold (default value = 120)\n   - The maxThreshold (default value = 140)\n   - The square size (default value = 10)"<<endl;
 		cout << 	endString << endl;    
 		exit (EXIT_FAILURE);	
 	}
