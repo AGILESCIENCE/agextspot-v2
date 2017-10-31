@@ -52,7 +52,7 @@ test/*
 *.exp
 *.gz
 ExpRatioEvaluator.cpp
-ExpRatioEvaluator.
+ExpRatioEvaluator.h
 MapConverter.h
 MapConverter.cpp
 version
