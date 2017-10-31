@@ -21,14 +21,14 @@ BayesianClassifierForBlobs::BayesianClassifierForBlobs(){
 
 
 
-vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
+vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob b){
 
     vector<pair<string,double> > prediction;
 
     //double pixelMean = b->getPixelsMean();
     //double area = b->getNumberOfPixels();
-    double photons = b->getPhotonsInBlob();
-    double photonsCloseness = b->getPhotonsCloseness();
+    double photons = b.getPhotonsInBlob();
+    double photonsCloseness = b.getPhotonsCloseness();
     /// ADD ATTRIBUTE
 
     //double bgPM = computeProbabilityFromDistribution(pixelMean,bgPixelMeanDistribution);

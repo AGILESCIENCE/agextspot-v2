@@ -15,7 +15,7 @@ BlobsFinder::BlobsFinder()
     //ctor
 }
 
-vector<Blob*> BlobsFinder::findBlobs(Mat tempImage) {
+vector<Blob> BlobsFinder::findBlobs(Mat tempImage) {
 
     Mat photonImage = tempImage.clone();
 
@@ -32,7 +32,7 @@ vector<Blob*> BlobsFinder::findBlobs(Mat tempImage) {
 
 	/// FIND THE CONTOUR OF EACH BLOB
 
-    vector<Blob*> blobs;
+    vector<Blob> blobs;
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
 
@@ -44,9 +44,12 @@ vector<Blob*> BlobsFinder::findBlobs(Mat tempImage) {
 
         vector<Point> currentBlob = *i;
         /// CREATING A BLOB (se e solo se non è un blob contenuto in un altro blob..
-        if(hierarchy[indexx][3]!=0)
-            blobs.push_back(new Blob(currentBlob,tempImage,photonImage));
-
+        if(hierarchy[indexx][3]!=0){
+			Blob b(currentBlob,tempImage,photonImage);
+			cout << "b: " << &b << endl;
+			blobs.push_back(b/*new Blob(currentBlob,tempImage,photonImage)*/);
+		}
+            
         indexx++;
 
     }

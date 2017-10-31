@@ -32,7 +32,7 @@ class BlobsFinder
                 - gaussian filtering
                 - find contours procedure
          */
-        static vector<Blob*> findBlobs(Mat image);
+        static vector<Blob> findBlobs(Mat image);
 
     private:
         BlobsFinder();

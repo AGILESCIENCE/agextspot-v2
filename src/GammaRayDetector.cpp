@@ -11,7 +11,21 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, float _classificationThreshold, const char *_imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, int squareSize){ 
+GammaRayDetector::GammaRayDetector(string _imagePath, 
+								   string _outputLogName, 
+								   float _classificationThreshold, 
+								   const char *_imageExpPath, 
+								   bool isExpMapNormalizedBool, 
+								   bool createExpNormalizedMap,
+								   bool createExpRatioMap, 
+								   double minTreshold, 
+								   double maxTreshold, 
+								   double squareSize) :
+ 
+	reverendBayes(),
+	agileMapUtils(_imagePath.c_str()), 
+	exp(_imageExpPath, isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap, minTreshold, maxTreshold, squareSize)
+{ 
     
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
@@ -19,23 +33,9 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
 
     fileName = extractFileNameFromImagePath(imagePath);
 
-    // FIND .txt in outputLogName.
-    size_t foundTxt = _outputLogName.find(".txt");
-    if(foundTxt != string::npos)
-        outputLogName = _outputLogName.substr(0,foundTxt);
-    else
-        outputLogName = _outputLogName;
-
-    outputLogName +="_"+fileName+".txt";
-
-	
+	outputLogName = computeOutputLogName(fileName,_outputLogName,minTreshold,maxTreshold,squareSize);
+		
     classificationThreshold = _classificationThreshold/100;
-	reverendBayes = new BayesianClassifierForBlobs();
-	agileMapUtils = new AgileMap(imagePath.c_str());
-    
-
-	// EXP RATIO EVALUATION 
-	exp = new ExpRatioEvaluator(imageExpPath,isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap,minTreshold,maxTreshold,squareSize);
 	
  }
 
@@ -47,15 +47,18 @@ GammaRayDetector::GammaRayDetector(string _imagePath, string _outputLogName, flo
 void GammaRayDetector::detect()
 {
 
+	
+    const char * observationDateUTCtemp = agileMapUtils.GetStartDate();
+    string observationDateUTC = observationDateUTCtemp;
 
-    string observationDateUTC = FitsToCvMatConverter::getObservationDateFromFitsFile(imagePath);
-    string observationDateTT = FitsToCvMatConverter::getObservationTimeFromFits(imagePath);
+	double observationDateTT = agileMapUtils.GetTstart();
+	
 
     /// converte un file fits in un'immagine Mat di opencv
 	Mat photonsImage = FitsToCvMatConverter::convertFitsToCvMat(imagePath);
 
     /// tira fuori una lista con tutti i BLOBS
-    vector<Blob*> blobs = BlobsFinder::findBlobs(photonsImage);
+    vector<Blob> blobs = BlobsFinder::findBlobs(photonsImage);
     
     string information2PrintForSources = "";
     string expRatioString = "";
@@ -63,29 +66,29 @@ void GammaRayDetector::detect()
     int index = 1;
     if(blobs.size() > 0)
     {
-        for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
+        for(vector<Blob>::iterator i = blobs.begin(); i != blobs.end(); i++)
         {
             information2PrintForSources += to_string(index)+" ";
             index++;
-            Blob* b = *i;
+            Blob b = *i;
 
             // Classification
             double fluxProbability = classifyBlob(b);
 
 			// Conversion of blob centroid in galactic coordinates
-            double gaLong = agileMapUtils->l(b->getCentroid().x, (agileMapUtils->Rows()-b->getCentroid().y));
-            double gaLat  = agileMapUtils->b(b->getCentroid().x, (agileMapUtils->Rows()-b->getCentroid().y));
+            double gaLong = agileMapUtils.l(b.getCentroid().x, (agileMapUtils.Rows()-b.getCentroid().y));
+            double gaLat  = agileMapUtils.b(b.getCentroid().x, (agileMapUtils.Rows()-b.getCentroid().y));
  
 
 
 
 			// ExpRatioEvaluation
-			double expRatio = exp->computeExpRatioValues(gaLong,gaLat);
+			double expRatio = exp.computeExpRatioValues(gaLong,gaLat);
 			expRatioString = to_string(expRatio)+ " ";
 
 
 			// Building of output
-			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
+			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
 			
             /// Labeling
             if(fluxProbability >= classificationThreshold){
@@ -100,7 +103,7 @@ void GammaRayDetector::detect()
         }
     }else{
 
-        information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+observationDateTT+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
+        information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
     }
     
 		
@@ -115,9 +118,9 @@ void GammaRayDetector::detect()
 
 
 
-double GammaRayDetector::classifyBlob(Blob* b)
+double GammaRayDetector::classifyBlob(Blob b)
 {
-    vector<pair<string,double> > predicted = reverendBayes->classify(b);
+    vector<pair<string,double> > predicted = reverendBayes.classify(b);
     //double bgProbability   = predicted[0].second;
     double fluxProbability = predicted[1].second;
 
@@ -165,4 +168,22 @@ string GammaRayDetector::extractFileNameFromImagePath(string imagePath){
 
 
     return imagePath;
+}
+
+string GammaRayDetector::computeOutputLogName(string _filename, string _outputLogName, double minThreshold, double maxThreshold, double squareSize){
+	string outputlogname;
+
+	// FIND .txt in outputLogName.
+    size_t foundTxt = _outputLogName.find(".txt");
+    if(foundTxt != string::npos)
+        outputlogname = _outputLogName.substr(0,foundTxt);
+    else
+        outputlogname = _outputLogName;
+	   
+
+    outputlogname +="_"+_filename+"_"+to_string(minThreshold)+"_"+to_string(maxThreshold)+"_"+to_string(squareSize)+".txt";
+	
+	return outputlogname;	
+
+
 }
