@@ -51,4 +51,6 @@ test/*
 *.save
 *.exp
 *.gz
+ExpRatioEvaluator.cpp
+ExpRatioEvaluator.h
 version
