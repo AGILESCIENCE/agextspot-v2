@@ -1,4 +1,4 @@
-# AG_extspot-v2 1.0.4
+# AG_extspot-v2 1.0.5
 
 Agextspot è un software di rilevazione automatica di Gamma Ray Burst in un file FITS che contiene la lista di fotoni ad alta energia di una certa regione di cielo.
 
@@ -61,7 +61,7 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 	
 ### Esempio di output
 
-	File: output_0000000010_001_GRBTESTMAP.txt
+	File: output_0000000010_001_GRBTESTMAP_120_140_10.txt
 
 	1 BG 66.714393 43.532257 0.734106 2017-03-13T22:41:16 416529609 95.000000 0000000010_001_GRBTESTMAP -1.000000
 	2 SOURCE 24.858941 47.314162 100.000000 2017-03-13T22:41:16 416529609 95.000000 0000000010_001_GRBTESTMAP -1.000000
