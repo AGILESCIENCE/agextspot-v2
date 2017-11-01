@@ -181,7 +181,7 @@ string GammaRayDetector::computeOutputLogName(string _filename, string _outputLo
         outputlogname = _outputLogName;
 	   
 
-    outputlogname +="_"+_filename+"_"+to_string(minThreshold)+"_"+to_string(maxThreshold)+"_"+to_string(squareSize)+".txt";
+    outputlogname +="_"+_filename+".txt";
 	
 	return outputlogname;	
 
