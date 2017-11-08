@@ -51,6 +51,7 @@ test/*
 *.save
 *.exp
 *.gz
+*.fits
 src/ExpRatioEvaluator.cpp
 include/ExpRatioEvaluator.h
 include/MapConverter.h
