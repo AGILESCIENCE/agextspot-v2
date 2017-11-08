@@ -1,4 +1,4 @@
-# AG_extspot-v2 1.0.5
+# AG_extspot-v2 1.1.0
 
 Agextspot è un software di rilevazione automatica di Gamma Ray Burst in un file FITS che contiene la lista di fotoni ad alta energia di una certa regione di cielo.
 
@@ -29,25 +29,23 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 
 	classificationThreshold: la soglia di classificazione, se la percentuale bayesiana di classificazione supera la soglia, il blob i-esimo viene etichettato come GRB ( float )
 
-	imageExpPath: il percorso alla mappa di esposizone (.exp o .exp.gz) ( const char * )
+	imageExpPath: il percorso alla mappa di esposizone (.exp o .exp.gz) ( const char * ). Se il valore è "None" la valutazione exp ratio non verrà effettuata: nel file di output verrà riportato il valore -1.
 	
 	isExpMapNormalized : se il valore è "false", si afferma che la mappa exp in input (imageExpPath) NON è normalizzata. Il software provvederà a normalizzarla.
 	
-(OPZIONALI) -> è possibile specificare "d" per usare il valore di default
-
 	createExpNormalizedMap : se il valore è true verrà scritta su file la mappa normalizzata. ( true/false ) ( default = false)
 
-	createExpRatioMap: se il valore è "true", viene creata una mappa (FITS) nella quale il valore di ogni pixel rappresenta il valore dell'ExpRatioEvaluator calcolato sul medesimo pixel. Se il valore è "false" non viene creata alcuna mappa. ( true/false ) ( default = false)
+	createExpRatioMap: se il valore è "true", viene creata una mappa (FITS) nella quale il valore di ogni pixel rappresenta il valore dell'ExpRatioEvaluator calcolato sul medesimo pixel. Se il valore è "false" non viene creata alcuna mappa.
 
-	minThreshold: la soglia minima sotto la quale il pixel è considerato "bad" per il calcolo dell'exp-ratio ( double ) ( default = 120 )
+	minThreshold: la soglia minima sotto la quale il pixel è considerato "bad" per il calcolo dell'exp-ratio 
 	
-	maxThreshold: la soglia minima sopra la quale il pixel è considerato "bad" per il calcolo dell'exp-ratio ( double ) ( default = 140 )
-
-	squareSize: la dimensione in pixel del lato della regione (quadrato) su cui si calcola l'exp-ratio ( int ) ( default = 10 )
-
+	maxThreshold: la soglia minima sopra la quale il pixel è considerato "bad" per il calcolo dell'exp-ratio
+	
+	squareSize: la dimensione in pixel del lato della regione (quadrato) su cui si calcola l'exp-ratio
+	
 ### Esempio di utilizzo
 
-	./bin/AG_extspot log.txt MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts 95 MAPPE_PER_TEST/MAP1000s_45l_30b.exp false d d d d d
+	./bin/AG_extspot log.txt MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts 95 MAPPE_PER_TEST/MAP1000s_45l_30b.exp false false false 110 150 10
  	
 
 ### Output
