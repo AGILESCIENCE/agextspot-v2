@@ -23,17 +23,17 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 
 ### Input
 
-	outputLogName: il file di output (è possibile specificare anche il percorso) ( const char * )
+	outputLogName: il file di output (è possibile specificare anche il percorso) 
 	
-	imageCtsPath: il percorso alla mappa dei conteggi (.cts o .cts.gz) ( const char * )
+	imageCtsPath: il percorso alla mappa dei conteggi (.cts o .cts.gz) 
 
-	classificationThreshold: la soglia di classificazione, se la percentuale bayesiana di classificazione supera la soglia, il blob i-esimo viene etichettato come GRB ( float )
+	classificationThreshold: la soglia di classificazione, se la percentuale bayesiana di classificazione supera la soglia, il blob i-esimo viene etichettato come GRB
 
-	imageExpPath: il percorso alla mappa di esposizone (.exp o .exp.gz) ( const char * ). Se il valore è "None" la valutazione exp ratio non verrà effettuata: nel file di output verrà riportato il valore -1.
+	imageExpPath: il percorso alla mappa di esposizone (.exp o .exp.gz). Se il valore è "None" la valutazione exp ratio non verrà effettuata: nel file di output verrà riportato il valore -1.
 	
 	isExpMapNormalized : se il valore è "false", si afferma che la mappa exp in input (imageExpPath) NON è normalizzata. Il software provvederà a normalizzarla.
 	
-	createExpNormalizedMap : se il valore è true verrà scritta su file la mappa normalizzata. ( true/false ) ( default = false)
+	createExpNormalizedMap : se il valore è true verrà scritta su file la mappa normalizzata. ( yes/no ) 
 
 	createExpRatioMap: se il valore è "true", viene creata una mappa (FITS) nella quale il valore di ogni pixel rappresenta il valore dell'ExpRatioEvaluator calcolato sul medesimo pixel. Se il valore è "false" non viene creata alcuna mappa.
 
@@ -45,7 +45,7 @@ Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteri
 	
 ### Esempio di utilizzo
 
-	./bin/AG_extspot log.txt MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts 95 MAPPE_PER_TEST/MAP1000s_45l_30b.exp false false false 110 150 10
+	./bin/AG_extspot log.txt MAPPE_PER_TEST/0000000010_001_GRBTESTMAP.cts 95 MAPPE_PER_TEST/MAP1000s_45l_30b.exp yes no no 110 150 10
  	
 
 ### Output
