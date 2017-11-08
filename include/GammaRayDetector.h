@@ -10,7 +10,6 @@
 #pragma once
 
 #include "BayesianClassifierForBlobs.h"
-#include "FitsToCvMatConverter.h"
 #include "BlobsFinder.h"
 #include "FileWriter.h"
 #include "ExpRatioEvaluator.h"
@@ -27,8 +26,9 @@ public:
     /**
         User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
     */
-	GammaRayDetector(string imageCtsPath, string outputLogName, float classificationThreshold, const char * imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, double squareSize); 
+	GammaRayDetector(const char * imageCtsPath, const char * outputLogName, double classificationThreshold, const char * imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, double squareSize); 
 
+	~GammaRayDetector();
 	/**
         Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
     */
@@ -41,19 +41,24 @@ private:
     /**
         Given a blob call Reverend Bayes to predict the probabilities.
     */
-	double classifyBlob(Blob b);
+	double classifyBlob(Blob* b);
 	string extractFileNameFromImagePath(string imagePath);
 	string computeOutputLogName(string filename, string outputLogName, double minThreshold, double maxThreshold, double squareSize);
-
+	int ** mapPathToIntPtr(const char * imagePath);	
 	string imagePath;
 	string outputLogName;
 	string fileName;
 	float classificationThreshold;
 
-	const char *imageExpPath;
 
+	const char *imageExpPath;
+	int** ctsMap;
+	int rows;
+	int cols;
+
+	vector<Blob*> blobs;
 	
 	BayesianClassifierForBlobs reverendBayes;
-	AgileMap agileMapUtils;
-	ExpRatioEvaluator exp;
+	AgileMap agileMapTool;
+	ExpRatioEvaluator* exp;
  };

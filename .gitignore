@@ -51,8 +51,9 @@ test/*
 *.save
 *.exp
 *.gz
-ExpRatioEvaluator.cpp
-ExpRatioEvaluator.h
-MapConverter.h
-MapConverter.cpp
+src/ExpRatioEvaluator.cpp
+include/ExpRatioEvaluator.h
+include/MapConverter.h
+src/MapConverter.cpp
 version
+run.sh

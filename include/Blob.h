@@ -13,19 +13,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>       
 #include <vector>
 #include <string>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
 
 using namespace std;
-using namespace cv;
-
-struct Pixel{
-    int greyLevel;
-    Point p;
+ 
+struct CustomPoint{
+	int x; // colonne
+	int y; // righe
 };
+
 
 class Blob
 {
@@ -37,45 +36,52 @@ class Blob
             Finds the pixels that are inside the blob.
             Finds the number of photons inside the blob.
             Compute the gray level pixel mean of the blob.
+			Compute the photon's closeness
         */
-        Blob(vector<Point>& c, Mat image, Mat photonImage);
+        Blob(vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, double ** image, int ** photonImage, double CDELT1, double CDELT2);
 
 
         /**
             Return the centroid of the blob
         */
-        Point getCentroid();
-        Point getFloatingCentroid();
+        CustomPoint getCentroid();
+
+
         /**
             Return the sum of all the grey levels of the pixels of the blob divided by the number of those pixels.
         */
-        float getPixelsMean();
+        double getPixelsMean();
 
         /**
             Return all the contour points
         */
-        vector<Point> getContour();
+        vector<CustomPoint> getContour();
 
         /**
             Return the number of pixels inside the blob
         */
         int getNumberOfPixels();
 
+		/**
+			Return the blob's area (degree)
+		*/
+		double getArea();
+
         /**
             Return the number of photons inside the blob (before any stretching or smoothing)
         */
-        float getPhotonsInBlob();
+        int getNumberOfPhotonsInBlob();
 
         /**
-            Return all the Pixels (a Point with a grey level) that are inside the blob
+            Return all the Pixels (a CustomPoint with a grey level) that are inside the blob
         */
-        vector<Pixel> getBlobPixels();
+        vector<pair<CustomPoint,int>> getBlobPixels();
 
 
         /**
             Return the sum of the distances of each photons from the centroid divided by the number of photons
         */
-        float getPhotonsCloseness();
+        double getPhotonsCloseness();
 
         /**
             Check if the blob's centroid is included in a range
@@ -85,31 +91,37 @@ class Blob
 
      private:
 
-        vector<Point> contour;
 
 
-        vector<Pixel> blobPixels;
+        vector<CustomPoint> contour;
+
+        vector<pair<CustomPoint,int>> blobPixels;
+
         int numberOfPixels;
-        vector<Pixel> computePixelsOfBlob(vector<Point>& c, Mat image);
 
-        float photonsInBlob;
-        float computePhotonsBlob(Mat photonImage);
+		double pixelArea;
 
-        Point centroid;
-        Point computeCentroid();
+		double blobArea;
+	
+        vector<pair<CustomPoint,int>> photonsInBlob;
 
-        Point floatingCentroid;
-        Point computeFloatingCentroid();
+        CustomPoint centroid;
+ 	
+		double pixelMean;
+
+        double photonsCloseness;
 
 
+       
+ 		vector<pair<CustomPoint,int>> computePhotonsBlob(int ** photonImage);
 
-        float pixelMean;
-        float computePixelMean();
+        CustomPoint computeCentroid();
+       
+        double computePixelMean();
+        
+        double computePhotonsCloseness();
 
-        float photonsCloseness;
-        float computePhotonsCloseness(Mat photonImage);
-
-        float getDistanceFromCentroid(Point p);
+        double getDistanceFromCentroid(CustomPoint p);
 
 
 };
