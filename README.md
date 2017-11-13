@@ -1,6 +1,6 @@
 # AG_extspot-v2 1.1.0
 
-Agextspot è un software di rilevazione automatica di Gamma Ray Burst in un file FITS che contiene la lista di fotoni ad alta energia di una certa regione di cielo.
+Agextspot è un software di rilevazione automatica di possibili blob candidati ad ulteriori analisi al fine di identificare automaticamente Gamma-Ray-Burst da un file FITS che contiene la lista di fotoni ad alta energia di una certa regione di cielo.
 
 La versione 2 è stata migliorata ed adattata ad un contesto di short-term analysis in cui si analizzano mappe con tempo di esposizione da 2 a 100 secondi. 
 
@@ -8,9 +8,9 @@ La rilevazione viene effettuata attraverso il seguente algoritmo:
 * conversione del file FITS in immagine opencv
 * stretching non lineare, smoothing gaussiano, estrazione dei blobs
 * calcolo delle features dei blobs estratti (numero di fotoni,indice di vicinanza fotoni)
-* utilizzo di un Naive Bayes Classifier per classificare i blob come SOURCE o BACKGROUND.
+* utilizzo di un Naive Bayes Classifier per classificare i blobs come SOURCE o BACKGROUND.
 		  
-Viene anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteriori informazioni sulla valutazione exp-ratio si rimanda ad https://github.com/Leofaber/ExpRatioEvaluator
+Può essere anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteriori informazioni sulla valutazione exp-ratio si rimanda ad https://github.com/Leofaber/ExpRatioEvaluator
 
 ### Documentazione: 
 	
