@@ -30,16 +30,23 @@ GammaRayDetector::GammaRayDetector(const char * _imagePath,
 
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
+	string imageExpPathString = _imageExpPath;
 	string outPutLogNameString = _outputLogName;
 	
-    if(imageExpPath!="None")
+   	if(imageExpPathString == "None"){
+		evaluateExpRatio = false;
+		cout << "*No exp-ratio evaluation will be performed"<<endl;
+	}
+	else{
+		cout << "*Exp-ratio evaluation will be performed"<<endl;
+		evaluateExpRatio = true;
 		exp = new ExpRatioEvaluator(_imageExpPath, isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap, minTreshold, maxTreshold, squareSize);
-	else
-		cout << "No exp-ratio evaluation will be performed"<<endl;
+	}
+		
 
 	/*Check AgileMap*/
 	if(agileMapTool.Read(_imagePath) == 202){
-		cout << "File "<< _imagePath << " has not AgileMap format." << endl;
+		cout << "*ERROR: File "<< _imagePath << " has not AgileMap format." << endl;
 		exit(EXIT_FAILURE);
 	}
 		
@@ -120,7 +127,7 @@ void GammaRayDetector::detect()
 
 			// ExpRatioEvaluation
 			expRatioString="-1 ";
-			if(imageExpPath!="None"){
+			if(evaluateExpRatio){
 				expRatioString = to_string(exp->computeExpRatioValues(gaLong,gaLat))+" ";
 			}
 
@@ -147,7 +154,7 @@ void GammaRayDetector::detect()
 
 	FileWriter::write2File(outputLogName,information2PrintForSources);
 
-	cout << "\nCreated Log File: " << outputLogName << "\n" <<endl;
+	cout << "\n*Created Log File: " << outputLogName << "\n" <<endl;
 
 }
 
@@ -251,7 +258,7 @@ int ** GammaRayDetector::mapPathToIntPtr(const char * imagePath)
 			}
 			if (naxis > 2 || naxis == 0)
 			{	
-				fprintf( stderr, "[MapConverter] ERROR 1 - only 1D or 2D images are supported");
+				fprintf( stderr, "*ERROR 1 - only 1D or 2D images are supported");
 				exit(EXIT_FAILURE);
 			}			
 			else
@@ -261,7 +268,7 @@ int ** GammaRayDetector::mapPathToIntPtr(const char * imagePath)
 
 				if (pixels == NULL)
 				{
-					fprintf( stderr, "[MapConverter] ERROR 2 - Memory allocation error");
+					fprintf( stderr, "*ERROR 2 - Memory allocation error");
 					exit(EXIT_FAILURE);
 				}
 				else
@@ -300,7 +307,7 @@ int ** GammaRayDetector::mapPathToIntPtr(const char * imagePath)
 	}
 	if (status>0)
 	{
-		fprintf( stderr, "[MapConverter] ERROR %d",status);
+		fprintf( stderr, "*ERROR %d",status);
 		exit (EXIT_FAILURE);
 		
 	}

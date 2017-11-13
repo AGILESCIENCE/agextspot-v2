@@ -49,7 +49,7 @@ private:
 	string outputLogName;
 	string fileName;
 	float classificationThreshold;
-
+	bool evaluateExpRatio;
 
 	const char *imageExpPath;
 	int** ctsMap;

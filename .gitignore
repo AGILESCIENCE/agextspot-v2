@@ -40,6 +40,7 @@ AgileRealImages/*
 MAPPE_PER_TEST/*
 test/*
 maps/*
+mapsParmi/*
 # Files
 *.cbp
 *.depend
@@ -59,3 +60,4 @@ include/MapConverter.h
 src/MapConverter.cpp
 version
 run.sh
+runNoExp.sh
