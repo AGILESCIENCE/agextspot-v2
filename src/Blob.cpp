@@ -10,87 +10,123 @@
 
 #include "Blob.h"
 
-Blob::Blob(vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, double ** image, int ** photonImage, double CDELT1, double CDELT2)
+Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, double ** image, int ** photonImage, double CDELT1, double CDELT2) : agileMapTool(_filePath.c_str())
 {
-    
+	filePath = _filePath;
+	
 	pixelArea = CDELT1*CDELT2;
 
 	contour = _contourPixels;
 
-    centroid = computeCentroid();
+	centroid = computeCentroid();
 
-    blobPixels = _blobPixels;
+	galacticCentroid = computeGalacticCentroid();
 
-    numberOfPixels = blobPixels.size();
+	blobPixels = _blobPixels;
+
+	numberOfPixels = blobPixels.size();
 
 	blobArea = numberOfPixels*pixelArea;
 
-    pixelMean = computePixelMean();
+	pixelMean = computePixelMean();
 
-    photonsInBlob = computePhotonsBlob(photonImage);
+	photonsInBlob = computePhotonsBlob(photonImage);
 
-    photonsCloseness = computePhotonsCloseness();
+	photonsCloseness = computePhotonsCloseness();
 	
-
-
+ 
+ 
 }
 
 
 
 /// GETTERS
+string Blob::getFilePath(){
+	return filePath;
+}
 vector<CustomPoint> Blob::getContour(){
-    return contour;
+	return contour;
 }
 CustomPoint Blob::getCentroid(){
-    return centroid;
+	return centroid;
 }
-
+CustomPoint Blob::getGalacticCentroid(){
+	return galacticCentroid;
+}
 int Blob:: getNumberOfPixels() {
-    return numberOfPixels;
+	return numberOfPixels;
 }
 int Blob::getNumberOfPhotonsInBlob() {
-    return photonsInBlob.size();
+	return photonsInBlob.size();
 }
 double Blob::getPixelsMean(){
-    return pixelMean;
+	return pixelMean;
 }
 double Blob::getPhotonsCloseness(){
-    return photonsCloseness;
+	return photonsCloseness;
 }
 double Blob::getArea(){
 	return blobArea;
 }
 
 CustomPoint Blob::computeCentroid(){
-    int sumX=0;
-    int sumY=0;
-    for(vector<CustomPoint>::iterator l = contour.begin(); l < contour.end(); l++){
-        CustomPoint p = *l;
-        sumX+=p.x;
-        sumY+=p.y;
-    }
-    CustomPoint c;
-	c.x = sumX/contour.size();
-	c.y = sumY/contour.size();
+	int sumX=0;
+	int sumY=0;
+	for(vector<CustomPoint>::iterator l = contour.begin(); l < contour.end(); l++){
+		CustomPoint p = *l;
+		sumX+=p.x;
+		sumY+=p.y;
+	}
 
-    return c;
+	CustomPoint c(sumY/contour.size(),sumX/contour.size());
+	return c;
 }
 
+CustomPoint Blob::computeGalacticCentroid(){
+	// Changing the reference system
+	int y_euclidean_ref_sys = agileMapTool.Rows() - getCentroid().y;
+	 
 
-vector<pair<CustomPoint,int>> Blob::computePhotonsBlob(int ** photonImage){
-    vector<pair<CustomPoint,int>> photonPixels;
-    for(vector<pair<CustomPoint,int>>::iterator i = blobPixels.begin(); i != blobPixels.end(); i++){
-        pair<CustomPoint,int> p = *i;
+	double l  = agileMapTool.l(centroid.x, y_euclidean_ref_sys );
+	double b  = agileMapTool.b(centroid.x, y_euclidean_ref_sys );
 
-        int greyLevel = photonImage[p.first.y][p.first.x];
-	//cout << photonImage[p.first.y][p.first.x] << " ";
-	for(int j = 0; j < greyLevel; j++){
-		//cout << p.first.y << " " << p.first.x <<endl;
-		photonPixels.push_back(p);
-	}        
- 
-    }
-    return photonPixels;
+	return CustomPoint(l,b);
+	
+}
+vector<CustomPoint> Blob::computePhotonsBlob(int ** photonImage){
+	vector<CustomPoint> photonPixels;
+
+	for(vector<pair<CustomPoint,int>>::iterator i = blobPixels.begin(); i != blobPixels.end(); i++){
+		pair<CustomPoint,int> p = *i;
+
+		int greyLevel = photonImage[p.first.y][p.first.x];
+
+		for(int j = 0; j < greyLevel; j++){
+
+			photonPixels.push_back(p.first);
+		}        
+
+	}
+	if(photonPixels.size()==0){
+		// debug
+		cout << "[Blob "<<centroid.y<<","<<centroid.x<<"]computePhotonsBlob()-> Error: 0 fotoni nel blob! File: "<< filePath << endl;
+		cout << "Number of pixels: " << getNumberOfPixels() << endl;
+		cout << "Number of contour pixels: " << contour.size() << endl;
+
+		for(vector<pair<CustomPoint,int>>::iterator i = blobPixels.begin(); i != blobPixels.end(); i++){
+			pair<CustomPoint,int> p = *i;
+			cout << "(" << p.first.y << "," << p.first.x <<")"<<" gl: "<<p.second<<" photon:" <<photonImage[p.first.y][p.first.x]<<endl;
+		}
+		cout <<"\nContorno:" << endl;
+		for(vector<CustomPoint>::iterator i = contour.begin(); i != contour.end(); i++){
+			CustomPoint p = *i;
+			cout << "(" << p.y << "," << p.x <<")"<<" photon:" <<photonImage[p.y][p.x]<<endl;
+		}
+
+		exit(EXIT_FAILURE);
+	}
+
+	return photonPixels;
 }
 
 
@@ -103,24 +139,24 @@ double Blob::computePixelMean(){
         pair<CustomPoint,int> p= *it;
         greyLevelCount+=p.second;
     }
+
+	//cout << "["<<centroid.y<<","<<centroid.x<<"]" << greyLevelCount << " / " << numberOfBlobPixels << " = "<< greyLevelCount/numberOfBlobPixels << endl;
     return greyLevelCount/numberOfBlobPixels;
 }
 
 double Blob::computePhotonsCloseness(){
     double photonsCloseness = 0;
     double countDistances = 0;
-    double countPhotons = 0;
-
+    double countPhotons = photonsInBlob.size();        
 	
-    for(vector<pair<CustomPoint,int>>::iterator i = photonsInBlob.begin(); i != photonsInBlob.end(); i++){
-        pair<CustomPoint,int> photon = *i;
-        countDistances += getDistanceFromCentroid(photon.first);
+    for(vector<CustomPoint>::iterator i = photonsInBlob.begin(); i != photonsInBlob.end(); i++){
+        CustomPoint photon = *i;
+        countDistances += getDistanceFromCentroid(photon);
         countPhotons++;
     }
     // cout << "countDistances: " << countDistances << endl;
     // cout << "countPhotons: " << countPhotons << endl;
-    if(countPhotons==0)
-        return 0;
+    
     photonsCloseness = countDistances/countPhotons;
     return photonsCloseness;
 }
@@ -134,10 +170,15 @@ double Blob::getDistanceFromCentroid(CustomPoint photon) {
 }
 
 bool Blob::isCentered(){
-    if( centroid.x <= 55 && centroid.x >= 45 && centroid.y <= 55 && centroid.y >= 45 ){
-          return true;
-    }else{
-          return false;
-    }
+    	int centerY = agileMapTool.Rows()/2;
+	int centerX = agileMapTool.Cols()/2;
+	int offset = 15;
+
+	if( centroid.x <= centerX+offset && centroid.x >= centerX-offset && centroid.y <= centerY+offset && centroid.y >= centerY-offset ){
+	 	return true;
+	}else{
+		return false;
+	}
+
 
 }

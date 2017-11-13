@@ -39,6 +39,7 @@ OpenCvLibs/*
 AgileRealImages/*
 MAPPE_PER_TEST/*
 test/*
+maps/*
 # Files
 *.cbp
 *.depend

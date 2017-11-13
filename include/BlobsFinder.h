@@ -14,6 +14,7 @@
 #include <map>
 #include <iostream>
 #include "Blob.h"
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -32,16 +33,19 @@ class BlobsFinder
                 - gaussian filtering
                 - find contours procedure
          */
-        static vector<Blob*> findBlobs(int ** image, int rows, int cols, double CDELT1, double CDELT2);
+        static vector<Blob*> findBlobs(string filePath, int ** image, int rows, int cols, double CDELT1, double CDELT2);
 
     private:
         BlobsFinder();
 	static void nonLinearStretch(Mat* inputImage, float r);
 	static void gaussianBlur(Mat* inputImg, Size kernelSize, double sigma);
-	static vector<pair<CustomPoint,int>> computePixelsOfBlob(vector<Point>& c, Mat image);
-	static void printImageBlobs(int rows,int cols, vector<Blob> blobs, string windowName);
-	static void printImageBlob(Mat inputImage, Blob b, string windowName);
-	static void printImage(Mat image,string windowName);
+	static vector<pair<CustomPoint,int>> computePixelsOfBlob(vector<Point>& c, Mat& image);
+
+	static void printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName);
+	static void printImageBlob(Mat& inputImage, Blob& b, string windowName);
+	static void printImage(Mat& image,string windowName);
+	static void printImageInConsole(Mat& image);
+	static void printImageInConsole(int ** image, int rows, int cols);
 };
 
 #endif // BLOBSFINDER_H

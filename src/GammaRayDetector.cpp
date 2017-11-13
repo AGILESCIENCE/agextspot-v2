@@ -48,7 +48,7 @@ GammaRayDetector::GammaRayDetector(const char * _imagePath,
 
 	
 	
-    fileName = extractFileNameFromImagePath(imagePath);
+   	fileName = extractFileNameFromImagePath(imagePath);
 
 	outputLogName = computeOutputLogName(fileName,outPutLogNameString,minTreshold,maxTreshold,squareSize);
 		
@@ -81,77 +81,73 @@ void GammaRayDetector::detect()
 {
 
 	
-    const char * observationDateUTCtemp = agileMapTool.GetStartDate();
-    string observationDateUTC = observationDateUTCtemp;
+	const char * observationDateUTCtemp = agileMapTool.GetStartDate();
+	string observationDateUTC = observationDateUTCtemp;
+	int observationDateTT = (int)agileMapTool.GetTstart();
 
-	double observationDateTT = agileMapTool.GetTstart();
-	
 
-    /// converte un file fits in un array 2D
+	/// converte un file fits in un array 2D
 	ctsMap = mapPathToIntPtr(imagePath.c_str());
 
-	
-	
-    /// tira fuori una lista con tutti i BLOBS
-    blobs = BlobsFinder::findBlobs(ctsMap,rows,cols,agileMapTool.GetXbin() ,agileMapTool.GetYbin() );
-    
+	/// tira fuori una lista con tutti i BLOBS
+	blobs = BlobsFinder::findBlobs(imagePath, ctsMap,rows,cols,agileMapTool.GetXbin() ,agileMapTool.GetYbin() );
+
 	//cout << "SIZE: " << blobs.size()<<endl;
 
-    string information2PrintForSources = "";
-	
-    string expRatioString = "";
+	string information2PrintForSources = "";
 
-    int index = 1;
-    if(blobs.size() > 0)
-    {
-        for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
-        {
-            information2PrintForSources += to_string(index)+" ";
-            index++;
-            Blob* b = *i;
+	string expRatioString = "";
 
-            // Classification
-            double fluxProbability = classifyBlob(b);
+	int index = 1;
+	if(blobs.size() > 0)
+	{
+		for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
+		{
+			information2PrintForSources += to_string(index)+" ";
+			index++;
+			Blob* b = *i;
+
+			// Classification
+			double fluxProbability = classifyBlob(b);
 
 			// Conversion of blob centroid in galactic coordinates
 			/*
-				CHANGING OF THE REFERENCE SYSTEM FROM Mat to AgileMap
+			CHANGING OF THE REFERENCE SYSTEM FROM Mat to AgileMap
 			*/
-            double gaLong = agileMapTool.l(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
-            double gaLat  = agileMapTool.b(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
- 
+			double gaLong = agileMapTool.l(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
+			double gaLat  = agileMapTool.b(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
+
 
 			// ExpRatioEvaluation
 			expRatioString="-1 ";
-    		if(imageExpPath!="None"){
+			if(imageExpPath!="None"){
 				expRatioString = to_string(exp->computeExpRatioValues(gaLong,gaLat))+" ";
 			}
 
 			// Building of output
 			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
-			
-            /// Labeling
-            if(fluxProbability >= classificationThreshold){
-                 information2PrintForSources += "SOURCE "+tempString;
-            }else{
-                 information2PrintForSources += "BG "+tempString;
 
-            }
-            
-			
-			
-        }
-    }else{
+			/// Labeling
+			if(fluxProbability >= classificationThreshold){
+				information2PrintForSources += "SOURCE "+tempString;
+			}else{
+				information2PrintForSources += "BG "+tempString;
 
-        information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
-    }
-    
-		
-		
-    
-		FileWriter::write2File(outputLogName,information2PrintForSources);
+			}
 
-    cout << "\nCreated Log File: " << outputLogName << "\n" <<endl;
+
+
+		}
+	}else{
+
+		information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
+	}
+
+
+
+	FileWriter::write2File(outputLogName,information2PrintForSources);
+
+	cout << "\nCreated Log File: " << outputLogName << "\n" <<endl;
 
 }
 
@@ -214,14 +210,14 @@ string GammaRayDetector::computeOutputLogName(string _filename, string _outputLo
 	string outputlogname;
 
 	// FIND .txt in outputLogName.
-    size_t foundTxt = _outputLogName.find(".txt");
-    if(foundTxt != string::npos)
-        outputlogname = _outputLogName.substr(0,foundTxt);
-    else
-        outputlogname = _outputLogName;
+	size_t foundTxt = _outputLogName.find(".txt");
+	if(foundTxt != string::npos)
+		outputlogname = _outputLogName.substr(0,foundTxt);
+	else
+		outputlogname = _outputLogName;
 	   
 
-    outputlogname +="_"+_filename+".txt";
+   	outputlogname +="_"+_filename+".txt";
 	
 	return outputlogname;	
 

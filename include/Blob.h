@@ -17,14 +17,22 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "AgileMap.h"
 
 using namespace std;
  
 struct CustomPoint{
-	int x; // colonne
-	int y; // righe
+	int y;  // righe
+	int x;	//colonne
+	CustomPoint(){
+		y = 0;
+		x = 0;
+	}
+	CustomPoint(int _y, int _x){
+		y = _y;
+		x = _x;
+	}
 };
-
 
 class Blob
 {
@@ -38,13 +46,20 @@ class Blob
             Compute the gray level pixel mean of the blob.
 			Compute the photon's closeness
         */
-        Blob(vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, double ** image, int ** photonImage, double CDELT1, double CDELT2);
+        Blob(string filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, double ** image, int ** photonImage, double CDELT1, double CDELT2);
 
+
+	string getFilePath();
 
         /**
             Return the centroid of the blob
         */
         CustomPoint getCentroid();
+
+ 	/**
+            Return the galactic centroid of the blob
+        */
+        CustomPoint getGalacticCentroid();
 
 
         /**
@@ -62,10 +77,10 @@ class Blob
         */
         int getNumberOfPixels();
 
-		/**
-			Return the blob's area (degree)
-		*/
-		double getArea();
+	/**
+		Return the blob's area (degree)
+	*/
+	double getArea();
 
         /**
             Return the number of photons inside the blob (before any stretching or smoothing)
@@ -91,7 +106,9 @@ class Blob
 
      private:
 
+	AgileMap agileMapTool;
 
+	string filePath;
 
         vector<CustomPoint> contour;
 
@@ -99,23 +116,25 @@ class Blob
 
         int numberOfPixels;
 
-		double pixelArea;
+	double pixelArea;
 
-		double blobArea;
+	double blobArea;
 	
-        vector<pair<CustomPoint,int>> photonsInBlob;
+        vector<CustomPoint> photonsInBlob;
 
         CustomPoint centroid;
+
+	CustomPoint galacticCentroid;
  	
-		double pixelMean;
+	double pixelMean;
 
         double photonsCloseness;
 
-
-       
- 		vector<pair<CustomPoint,int>> computePhotonsBlob(int ** photonImage);
+	vector<CustomPoint> computePhotonsBlob(int ** photonImage);
 
         CustomPoint computeCentroid();
+
+	CustomPoint computeGalacticCentroid();
        
         double computePixelMean();
         
