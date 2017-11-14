@@ -145,6 +145,8 @@ class Blob
 
         double getDistanceFromCentroid(CustomPoint p);
 
+	double getSphericalDistanceFromCentroid(CustomPoint p);
+
 
 };
 
