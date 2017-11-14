@@ -53,6 +53,12 @@ CustomPoint Blob::getCentroid(){
 CustomPoint Blob::getGalacticCentroid(){
 	return galacticCentroid;
 }
+double Blob::getGalacticCentroidL(){
+	return galacticCentroid.y;
+}
+double Blob::getGalacticCentroidB(){
+	return galacticCentroid.x;
+}
 int Blob:: getNumberOfPixels() {
 	return numberOfPixels;
 }

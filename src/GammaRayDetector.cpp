@@ -117,12 +117,8 @@ void GammaRayDetector::detect()
 			// Classification
 			double fluxProbability = classifyBlob(b);
 
-			// Conversion of blob centroid in galactic coordinates
-			/*
-			CHANGING OF THE REFERENCE SYSTEM FROM Mat to AgileMap
-			*/
-			double gaLong = agileMapTool.l(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
-			double gaLat  = agileMapTool.b(b->getCentroid().x, (agileMapTool.Rows()-b->getCentroid().y));
+			double gaLong = b->getGalacticCentroidL(); 
+			double gaLat  = b->getGalacticCentroidB();
 
 
 			// ExpRatioEvaluation

@@ -61,6 +61,9 @@ class Blob
         */
         CustomPoint getGalacticCentroid();
 
+	double getGalacticCentroidL();
+	double getGalacticCentroidB();
+
 
         /**
             Return the sum of all the grey levels of the pixels of the blob divided by the number of those pixels.
