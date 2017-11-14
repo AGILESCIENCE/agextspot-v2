@@ -54,10 +54,6 @@ mapsParmi/*
 *.exp
 *.gz
 *.fits
-src/ExpRatioEvaluator.cpp
-include/ExpRatioEvaluator.h
-include/MapConverter.h
-src/MapConverter.cpp
 version
 run.sh
 runNoExp.sh
