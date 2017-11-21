@@ -41,6 +41,7 @@ MAPPE_PER_TEST/*
 test/*
 maps/*
 mapsParmi/*
+COMANDI_UTILI_GIT_BRANCH/*
 # Files
 *.cbp
 *.depend
