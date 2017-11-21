@@ -11,7 +11,8 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(const char * _imagePath, 
+GammaRayDetector::GammaRayDetector(				   double _PSF, 
+								   const char * _imagePath, 
 								   const char * _outputLogName, 
 								   double _classificationThreshold, 
 								   const char * _imageExpPath, 
@@ -27,7 +28,7 @@ GammaRayDetector::GammaRayDetector(const char * _imagePath,
 	
 	
 {
-
+	PSF = _PSF;
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
 	string imageExpPathString = _imageExpPath;
@@ -90,14 +91,13 @@ void GammaRayDetector::detect()
 	
 	const char * observationDateUTCtemp = agileMapTool.GetStartDate();
 	string observationDateUTC = observationDateUTCtemp;
-	int observationDateTT = (int)agileMapTool.GetTstart();
-
-
+	double observationDateTT = agileMapTool.GetTstart();
+		
 	/// converte un file fits in un array 2D
 	ctsMap = mapPathToIntPtr(imagePath.c_str());
 
 	/// tira fuori una lista con tutti i BLOBS
-	blobs = BlobsFinder::findBlobs(imagePath, ctsMap,rows,cols,agileMapTool.GetXbin() ,agileMapTool.GetYbin() );
+	blobs = BlobsFinder::findBlobs(PSF,imagePath, ctsMap,rows,cols,agileMapTool.GetXbin() ,agileMapTool.GetYbin() );
 
 	//cout << "SIZE: " << blobs.size()<<endl;
 

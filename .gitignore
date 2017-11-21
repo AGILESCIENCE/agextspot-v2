@@ -57,6 +57,7 @@ mapsParmi/*
 src/ExpRatioEvaluator.cpp
 include/ExpRatioEvaluator.h
 include/MapConverter.h
+COMANDI_UTILI_GIT_BRANCH
 src/MapConverter.cpp
 version
 run.sh

@@ -26,7 +26,7 @@ public:
     /**
         User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
     */
-	GammaRayDetector(const char * imageCtsPath, const char * outputLogName, double classificationThreshold, const char * imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, double squareSize); 
+	GammaRayDetector(double PSF, const char * imageCtsPath, const char * outputLogName, double classificationThreshold, const char * imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, double squareSize); 
 
 	~GammaRayDetector();
 	/**
@@ -44,7 +44,10 @@ private:
 	double classifyBlob(Blob* b);
 	string extractFileNameFromImagePath(string imagePath);
 	string computeOutputLogName(string filename, string outputLogName, double minThreshold, double maxThreshold, double squareSize);
-	int ** mapPathToIntPtr(const char * imagePath);	
+	int ** mapPathToIntPtr(const char * imagePath);
+
+
+	double PSF;
 	string imagePath;
 	string outputLogName;
 	string fileName;

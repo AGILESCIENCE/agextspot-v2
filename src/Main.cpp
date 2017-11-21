@@ -28,6 +28,7 @@ const char* endString = {
 };
 
 const PilDescription paramsDescr[] = {
+	//{ PilReal, "PSF, Telescope Point Spread Function value (degree)"},
 	{ PilString, 	"outputLogName","Output log file name"},
 	{ PilString, 	"imageCtsPath", "Input ctsMap file path"},
 	{ PilReal, 	"classificationThreshold", "Classification threshold"},
@@ -51,6 +52,7 @@ int main(int argc, char*argv[]){
         return EXIT_FAILURE;
 	    
 	
+	double PSF = 7.5;//params["PSF"];
 	const char * outputLogName 	= params["outputLogName"];
 	const char * imageCtsPath 	= params["imageCtsPath"];
 	double classificationThreshold 	= params["classificationThreshold"];
@@ -65,6 +67,7 @@ int main(int argc, char*argv[]){
 	       
     // PRINT INPUT PARAMETERS -------------------------------------
 	cout << "\n** Inputs: " 	<< endl;
+	cout << "PSF: " << PSF << endl;
     cout << "outfile: " 		<< outputLogName << endl;
     cout << "imageCtsPath: " 		<< imageCtsPath << endl;
     cout << "classificationThreshold: " << classificationThreshold << endl;
@@ -79,6 +82,7 @@ int main(int argc, char*argv[]){
     
 	// CORE LOGIC -----------------------------------------------
 	GammaRayDetector grd(
+							PSF,
 							imageCtsPath, 
 							outputLogName, 
 							classificationThreshold, 
