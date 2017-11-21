@@ -19,7 +19,7 @@ using namespace std;
 
 const char* startString = {
 "################################################################\n"
-"###                   Task AG_extspot-v2 v1.2.0 -               ###"
+"###             Task AG_extspot-v2 v1.2.0 - (degree-based)    ###"
 };
 
 const char* endString = {
