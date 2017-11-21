@@ -1,0 +1,16 @@
+
+# Per mostrare i branch attivi ( quello con * è quello su cui siamo)
+git branch 
+
+# Per creare un nuovo branch
+git branch <nome branch>
+
+# Per cambiare branch
+git checkout <nome branch>
+
+
+# Per eliminare le modifiche locali non ancora aggiunte al repo
+git checkout .
+
+# Per mostrare le differenze tra i due branches (viene generato un file .diff)
+git diff <branch1> <branch2>
