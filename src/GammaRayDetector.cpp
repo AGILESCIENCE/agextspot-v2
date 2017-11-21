@@ -90,7 +90,7 @@ void GammaRayDetector::detect()
 	
 	const char * observationDateUTCtemp = agileMapTool.GetStartDate();
 	string observationDateUTC = observationDateUTCtemp;
-	int observationDateTT = (int)agileMapTool.GetTstart();
+	double observationDateTT = agileMapTool.GetTstart();
 
 
 	/// converte un file fits in un array 2D
