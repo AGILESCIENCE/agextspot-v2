@@ -42,6 +42,7 @@ test/*
 maps/*
 mapsParmi/*
 COMANDI_UTILI_GIT_BRANCH/*
+RealImages/*
 # Files
 *.cbp
 *.depend
