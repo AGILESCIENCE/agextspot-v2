@@ -104,7 +104,7 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 	int kernelSize = (2 * PSF/CDELT2) + 1; 
 	//cout << "Kernel size: " << kernelSize << endl;
 	BlobsFinder::gaussianBlur(&workingImage32F, Size(kernelSize, kernelSize), PSF); // 17x17   2.5    23x23   3	21x21 4
-	//BlobsFinder::printImage(workingImage32F, "gaussianBlur32F", "32F");
+	BlobsFinder::printImage(workingImage32F, "gaussianBlur32F", "32F");
 	//BlobsFinder::printImageInConsole(workingImage32F, "32F");
  
   
@@ -116,7 +116,11 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 
 
 
-	/* Computing Image Histogram 
+
+	
+
+
+	/* Computing Image Histogram */
 	int nimages = 1;
   	int histSize = 256;
 	float range[] = { 0, 256 };
@@ -126,10 +130,33 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 
   	calcHist(&workingImage8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
 
-	//BlobsFinder::drawImageHistogram(hist,histSize);*/
+	//BlobsFinder::drawImageHistogram(hist,histSize);
 	/*......................*/
 
 
+	/* Thresholding -> mean value */
+
+	BlobsFinder::printImageInConsole(workingImage8U, "8U");
+
+	int mean = 0;
+	for( int i = 1; i < histSize; i++ ){
+		 mean += hist.at<float>(i-1); 
+	}
+	 
+	mean = mean/histSize-1;
+ 
+	for(int y = 0; y < rows; y++){
+		for(int x =0; x < cols; x++){
+			unsigned short int gl = (unsigned short int) workingImage8U.at<uchar>(y,x);			
+			if(gl <= mean)
+				workingImage8U.at<uchar>(y,x) = 0;
+ 
+		}
+	}
+	cout << "\n\n" << endl;
+	BlobsFinder::printImageInConsole(workingImage8U, "8U");
+	BlobsFinder::printImage(workingImage8U, "workingImage8U Thresholded", "8U");
+	/* ------------------  */
 
 
  	/* Convert 8UC1 to unsigned short int ** for the Blob's constuctor */
@@ -223,36 +250,43 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 			/*
 				Create Blob
 			*/
-			Blob* b = new Blob(filePath, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs, CDELT1, CDELT2);
+			if(photonsInBlobs.size() > 1) {
 			
-/*
-				Push Blob in list
-			*/
-			blobs.push_back(b);
+				Blob* b = new Blob(filePath, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs, CDELT1, CDELT2);
+				
+				/*
+					Push Blob in list
+				*/
+				blobs.push_back(b);
+			
+				/* Debug */
+				cout << "\nFile: "<<b->getFilePath()<<"  "<<indexx+1<<" su "<<contoursImage8UWithPadding.size()<<endl;			
+				cout << "[Blob "<<b->getCentroid().y<<","<<b->getCentroid().x<<"]" << endl;
+				cout << "Number of pixels: " << b->getNumberOfPixels() << endl;
+				cout << "Number of contour pixels: " << b->getContour().size() << endl;
+				cout << "Photon's closeness: " << b->getPhotonsCloseness() << endl;
+				cout << "Photon's: " << b->getNumberOfPhotonsInBlob() << endl;
+				vector<CustomPoint> photons = b->getPhotonsInBlob();
+				for(vector<CustomPoint>::iterator i = photons.begin(); i != photons.end(); i++){
+					CustomPoint p = *i;
+					cout << "*(" << p.y << "," << p.x <<")  ";
+				}
+				Vec3b color( rand()&255, rand()&255, rand()&255 );
+ 
+				for(vector<CustomPoint>::iterator i = currentCustomContuorNoPadding.begin(); i != currentCustomContuorNoPadding.end(); i++){
+					CustomPoint p = *i;
+					workingImage8U3C.at<Vec3b>(p.y,p.x) = color;
+				}
+				///DRAW CENTROID
+				CustomPoint centroid = b->getCentroid();
+				workingImage8U3C.at<Vec3b>(centroid.y,centroid.x) = Vec3b(0,0,255);
+
+
+			}
 
 
 			 
-			/* Debug */
-			/*cout << "\nFile: "<<b->getFilePath()<<"  "<<indexx+1<<" su "<<contoursImage8UWithPadding.size()<<endl;			
-			cout << "[Blob "<<b->getCentroid().y<<","<<b->getCentroid().x<<"]" << endl;
-			cout << "Number of pixels: " << b->getNumberOfPixels() << endl;
-			cout << "Number of contour pixels: " << b->getContour().size() << endl;
-			cout << "Photon's closeness: " << b->getPhotonsCloseness() << endl;
-			cout << "Photon's: " << b->getNumberOfPhotonsInBlob() << endl;
-			vector<CustomPoint> photons = b->getPhotonsInBlob();
-			for(vector<CustomPoint>::iterator i = photons.begin(); i != photons.end(); i++){
-				CustomPoint p = *i;
-				cout << "*(" << p.y << "," << p.x <<")  ";
-			}
-			Vec3b color( rand()&255, rand()&255, rand()&255 );
-			cout << "color: "<<color << endl;
-			for(vector<CustomPoint>::iterator i = currentCustomContuorNoPadding.begin(); i != currentCustomContuorNoPadding.end(); i++){
-				CustomPoint p = *i;
-				workingImage8U3C.at<Vec3b>(p.y,p.x) = color;
-			}
-			///DRAW CENTROID
-			CustomPoint centroid = b->getCentroid();
-			workingImage8U3C.at<Vec3b>(centroid.y,centroid.x) = Vec3b(0,0,255);*/
+			
 			
 
  
@@ -263,12 +297,12 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 	/*
 		Print contours	
 	*/
-	//BlobsFinder::printImage(workingImage8U3C, "Contours and centroids", "8U");
+	BlobsFinder::printImage(workingImage8U3C, "Contours and centroids", "8U");
 	
 	/*
 		Wait key for images
 	*/
-	//waitKey();
+	waitKey();
 
 	/*
 		!!!!FREE MEMORY!!!!

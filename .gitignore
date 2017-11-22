@@ -41,6 +41,7 @@ MAPPE_PER_TEST/*
 test/*
 maps/*
 mapsParmi/*
+RealImages/*
 # Files
 *.cbp
 *.depend
