@@ -1,4 +1,4 @@
-# AG_extspot-v2 1.1.2
+# AG_extspot-v2 1.1.3
 
 Agextspot è un software di estrazione automatica di possibili blob candidati ad ulteriori analisi al fine di identificare automaticamente eventi astrofisici ad alta energia.
 
