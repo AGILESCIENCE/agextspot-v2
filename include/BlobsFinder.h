@@ -39,8 +39,11 @@ class BlobsFinder
 
     private:
         BlobsFinder();
-	static void nonLinearStretch(Mat* inputImage, double r);
-	static void gaussianBlur(Mat* inputImg, Size kernelSize, double sigma);
+
+
+	static Mat gassusianSmoothing(int ** data, int rows, int cols, double PSF, double CDELT1, double CDELT2, bool debug);
+
+
 	
 	static bool computePixelsAndPhotonsOfBlob(	vector<Point>& contour, 
 							Mat& image, 
@@ -49,7 +52,13 @@ class BlobsFinder
 							vector<CustomPoint>& photonsOfBlobs
 	);
 
-	static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, int ** data);
+
+	static Mat thresholding(Mat image, int rows, int cols, bool debug);
+
+
+	static Mat addPaddingToImage(Mat image8U);
+
+	static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, int ** data, int rows, int cols);
 	
 	static void printImage(Mat& image,string windowName, string type);
 

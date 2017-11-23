@@ -33,7 +33,7 @@ void BlobsFinder::printImage(Mat& image, string windowName, string type){
 	Mat toShow;
 	if( type == "8U" ){
 		toShow = image.clone();
-		toShow = toShow*200;
+		toShow = toShow;
 
 	}
 	else if ( type == "32F" ){
@@ -52,43 +52,7 @@ void BlobsFinder::printImage(Mat& image, string windowName, string type){
 	//waitKey();
 	
 }
-
-vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, int rows, int cols, double CDELT1, double CDELT2) {	
-	
-	vector<Blob*> blobs;
-	/*
-		Algorithm: 
-		
-		input: int ** data
-		output: vector<Blob*> blobs
- 
-			data -> 32FC1 workingImage32F  [for smoothing]			
-
-			32FC1 workingImage32F -> 8UC1 workingImage8U [for findContours]
-
-			8UC1 workingImage8U -> unsigned short int ** blobsImage  [for Blob's constructor]
-
-	*/
-
-
-
-	/*CONVERSION int ** TO 8U Mat*/
-
-	Mat photonsMap(rows, cols, CV_8UC1, Scalar(0));
-
-	for(int y = 0; y < rows; y++){
-		for(int x =0; x < cols; x++){
-			photonsMap.at<uchar>(y,x) = (uchar) data[y][x];
- 
-		}
-	}
-	//BlobsFinder::printImage(photonsMap, "Photons Image", "8U");
-
-
-
-
-
-	/*SMOOTHING*/
+Mat BlobsFinder::gassusianSmoothing(int ** data, int rows, int cols, double PSF, double CDELT1, double CDELT2, bool debug){
 
 	/* For Smoothing operation we use a float pixels matrix. */
 	Mat workingImage32F(rows, cols, CV_32FC1, Scalar(0));
@@ -101,26 +65,27 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 	
 
 	/* Gaussian smoothing */ 
-	int kernelSize = (2 * PSF/CDELT2) + 1; 
-	//cout << "Kernel size: " << kernelSize << endl;
-	BlobsFinder::gaussianBlur(&workingImage32F, Size(kernelSize, kernelSize), PSF); // 17x17   2.5    23x23   3	21x21 4
-	BlobsFinder::printImage(workingImage32F, "gaussianBlur32F", "32F");
-	//BlobsFinder::printImageInConsole(workingImage32F, "32F");
- 
-  
+	int kernelSize = (2 * PSF/CDELT2) + 1;
+	Mat workingImage32FSmoothed;
+	GaussianBlur(workingImage32F, workingImage32FSmoothed, Size(kernelSize, kernelSize), PSF, 0, 0); // 17x17 2.5    23x23 3	21x21 4
+
+	
 	/* Convert back to 8UC1 with linear stretching */
 	Mat workingImage8U; 
 	double minVal, maxVal;
-	minMaxLoc(workingImage32F, &minVal, &maxVal); //find minimum and maximum intensities
-	workingImage32F.convertTo(workingImage8U, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+	minMaxLoc(workingImage32FSmoothed, &minVal, &maxVal); //find minimum and maximum intensities
+	workingImage32FSmoothed.convertTo(workingImage8U, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 
 
-
-
+	if(debug){
+		BlobsFinder::printImage(workingImage32FSmoothed, "gaussianBlur32F", "32F");
+	}
 	
+	return workingImage8U;
+}
 
-
-	/* Computing Image Histogram */
+Mat BlobsFinder::thresholding(Mat workingImage8U, int rows, int cols, bool debug){
+	/* Computing Image Histogram and Thresholding (mean value) */
 	int nimages = 1;
   	int histSize = 256;
 	float range[] = { 0, 256 };
@@ -130,14 +95,8 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 
   	calcHist(&workingImage8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
 
-	//BlobsFinder::drawImageHistogram(hist,histSize);
-	/*......................*/
-
-
-	/* Thresholding -> mean value */
-
-	BlobsFinder::printImageInConsole(workingImage8U, "8U");
-
+	
+	Mat workingImageThresholded8U = workingImage8U.clone(); 
 	int mean = 0;
 	for( int i = 1; i < histSize; i++ ){
 		 mean += hist.at<float>(i-1); 
@@ -147,52 +106,154 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
  
 	for(int y = 0; y < rows; y++){
 		for(int x =0; x < cols; x++){
-			unsigned short int gl = (unsigned short int) workingImage8U.at<uchar>(y,x);			
+			unsigned short int gl = (unsigned short int) workingImageThresholded8U.at<uchar>(y,x);			
 			if(gl <= mean)
-				workingImage8U.at<uchar>(y,x) = 0;
+				workingImageThresholded8U.at<uchar>(y,x) = 0;
  
 		}
 	}
-	cout << "\n\n" << endl;
-	BlobsFinder::printImageInConsole(workingImage8U, "8U");
-	BlobsFinder::printImage(workingImage8U, "workingImage8U Thresholded", "8U");
-	/* ------------------  */
-
-
- 	/* Convert 8UC1 to unsigned short int ** for the Blob's constuctor */
-	unsigned short int ** blobsImage;
-	blobsImage = new unsigned short int *[rows];
-  	
-	for(int y = 0; y < rows; y++){
-		blobsImage[y] = new unsigned short int[cols];
-		for(int x =0; x < cols; x++){
-			blobsImage[y][x] = workingImage32F.at<float>(y,x);
-		}
+	if(debug){
+		//BlobsFinder::drawImageHistogram(hist,histSize);
+		BlobsFinder::printImage(workingImageThresholded8U, "workingImageThresholded8U Thresholded", "8U");
+  		calcHist(&workingImageThresholded8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
+		BlobsFinder::drawImageHistogram(hist,histSize);
 	}
-	
-	/* For printing contours and centroid */	
-	Mat workingImage8U3C(rows, cols, CV_8UC3, Scalar(0,0,0));
-
-
-	/* FIND THE CONTOURS OF EACH BLOB */
-
-    	vector<vector<Point> > contoursImage8UWithPadding;
-    	vector<Vec4i> hierarchy;
-
-
-
+	return workingImageThresholded8U;
+	/* ------------------  */
+}
+Mat BlobsFinder::addPaddingToImage(Mat image8U){
+	int rows = image8U.rows;
+	int cols = image8U.cols;
 	// Adding 1x1 padding (the function does not take into account 1-pixel border of the image, so I dont want a photon pixel border to be clipped)
 	Mat workingImage8UWithPadding(rows+2, cols+2, CV_8UC1, Scalar(0));
 	for(int y = 0; y < rows; y++){
 		for(int x = 0; x < cols; x++){
-			workingImage8UWithPadding.at<uchar>(y+1,x+1) = workingImage8U.at<uchar>(y,x);
+			workingImage8UWithPadding.at<uchar>(y+1,x+1) = image8U.at<uchar>(y,x);
 		}
 	}
+	return workingImage8UWithPadding;
+
+}
+vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, int rows, int cols, double CDELT1, double CDELT2) {	
 	
-     	findContours(workingImage8UWithPadding, contoursImage8UWithPadding, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+
+	bool debug = false;
+
+	vector<Blob*> blobs;
+	
+
+
+	/* Conversion int ** data  -> Mat8U photonsMap */
+	Mat photonsMap(rows, cols, CV_8UC1, Scalar(0));
+	for(int y = 0; y < rows; y++){
+		for(int x =0; x < cols; x++){
+			photonsMap.at<uchar>(y,x) = (uchar) data[y][x];
+ 
+		}
+	}
+
+
+
+
+
+	/* Smoothing */
+	Mat workingImage8U = BlobsFinder::gassusianSmoothing(data, rows, cols, PSF, CDELT1, CDELT2, debug);
+
 
 	
+	/* Thresholding */
+	//Mat workingImageThresholded8U = BlobsFinder::thresholding(workingImage8U, rows, cols, debug);
+	workingImage8U = BlobsFinder::thresholding(workingImage8U, rows, cols, debug);
+ 	
 	
+
+
+
+	/* Add padding to image */	
+	Mat workingImage8UWithPadding = addPaddingToImage(workingImage8U);
+     	
+
+
+	/* Find contours */
+	vector<vector<Point> > contoursImage8UWithPadding;
+    	vector<Vec4i> hierarchy;
+	findContours(workingImage8UWithPadding, contoursImage8UWithPadding, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// test  
+	/* Removing padding and convert to CustomPoint 
+	vector<vector<CustomPoint> > customContoursNoPadding; int index=0;
+	for(vector<vector<Point> >::iterator i = contoursImage8UWithPadding.begin(); i < contoursImage8UWithPadding.end(); i++){
+
+		vector<Point> contuorWithPadding = *i;
+
+		if(hierarchy[index][3]==-1){
+
+			vector<CustomPoint> customContourNoPadding;
+
+			for(vector<Point>::iterator ii = contuorWithPadding.begin(); ii < contuorWithPadding.end(); ii++){
+				Point p = *ii;
+				CustomPoint cp(p.y-1,p.x-1);
+				customContourNoPadding.push_back(cp);
+ 
+			}	
+
+
+			customContoursNoPadding.push_back(customContourNoPadding);
+		}
+
+		index++;
+	}
+	
+	if(debug){
+		 For printing contours and centroid  	
+		Mat workingImage8U3C(rows, cols, CV_8UC3, Scalar(0,0,0));
+		for(vector<vector<CustomPoint>>::iterator i = customContoursNoPadding.begin(); i != customContoursNoPadding.end(); i++){			vector<CustomPoint> contour = *i;
+			Vec3b color( rand()&255, rand()&255, rand()&255 );
+			for(vector<CustomPoint>::iterator ii = contour.begin(); ii != contour.end(); ii++){		
+				CustomPoint p = *ii;
+
+				workingImage8U3C.at<Vec3b>(p.y,p.x) = color;
+			}
+		}
+		BlobsFinder::printImage(workingImage8U3C, "Contours", "8U");
+	}
+
+
+	for(vector<vector<Point> >::iterator i = customContoursNoPadding.begin(); i < customContoursNoPadding.end(); i++){
+		vector<CustomPoint> currentContuorWithPadding = *i;
+
+        	// Creating a blob if and only if it is not contained i another blob
+        	if(hierarchy[indexx][3]==-1){
+
+		}
+	
+	}
+*/
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -202,20 +263,13 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
     	for(vector<vector<Point> >::iterator i = contoursImage8UWithPadding.begin(); i < contoursImage8UWithPadding.end(); i++){
 
 
-
-
-
 	        vector<Point> currentContuorWithPadding = *i;
 
         	// Creating a blob if and only if it is not contained i another blob
         	if(hierarchy[indexx][3]==-1){
 
 			
-
-			
-
-				
-				
+	
 			vector<pair<CustomPoint,int>> pixelsOfBlobsNoPadding;
 			vector<CustomPoint> photonsInBlobs;
 
@@ -244,8 +298,8 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 			/*
 				Handling errors	
 			*/
-			if(!computePixelsAndPhotonsOfBlob)
-				BlobsFinder::reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,filePath,data);
+			//if(!computePixelsAndPhotonsOfBlob)
+				//BlobsFinder::reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,filePath,data,rows,cols);
 			 
 			/*
 				Create Blob
@@ -259,7 +313,7 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 				*/
 				blobs.push_back(b);
 			
-				/* Debug */
+				/* Debug 
 				cout << "\nFile: "<<b->getFilePath()<<"  "<<indexx+1<<" su "<<contoursImage8UWithPadding.size()<<endl;			
 				cout << "[Blob "<<b->getCentroid().y<<","<<b->getCentroid().x<<"]" << endl;
 				cout << "Number of pixels: " << b->getNumberOfPixels() << endl;
@@ -267,19 +321,7 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 				cout << "Photon's closeness: " << b->getPhotonsCloseness() << endl;
 				cout << "Photon's: " << b->getNumberOfPhotonsInBlob() << endl;
 				vector<CustomPoint> photons = b->getPhotonsInBlob();
-				for(vector<CustomPoint>::iterator i = photons.begin(); i != photons.end(); i++){
-					CustomPoint p = *i;
-					cout << "*(" << p.y << "," << p.x <<")  ";
-				}
-				Vec3b color( rand()&255, rand()&255, rand()&255 );
- 
-				for(vector<CustomPoint>::iterator i = currentCustomContuorNoPadding.begin(); i != currentCustomContuorNoPadding.end(); i++){
-					CustomPoint p = *i;
-					workingImage8U3C.at<Vec3b>(p.y,p.x) = color;
-				}
-				///DRAW CENTROID
-				CustomPoint centroid = b->getCentroid();
-				workingImage8U3C.at<Vec3b>(centroid.y,centroid.x) = Vec3b(0,0,255);
+				*/
 
 
 			}
@@ -293,17 +335,18 @@ vector<Blob*> BlobsFinder::findBlobs(double PSF, string filePath, int** data, in
 		}
         	indexx++;
     	}
- 
-	/*
-		Print contours	
-	*/
-	BlobsFinder::printImage(workingImage8U3C, "Contours and centroids", "8U");
-	
-	/*
-		Wait key for images
-	*/
-	waitKey();
+ 	if(debug){
 
+		/*
+			Print contours	
+		*/
+		//BlobsFinder::printImage(workingImage8U3C, "Contours and centroids", "8U");
+	
+		/*
+			Wait key for images
+		*/
+		waitKey();
+	}
 	/*
 		!!!!FREE MEMORY!!!!
 	
@@ -366,13 +409,14 @@ bool BlobsFinder::computePixelsAndPhotonsOfBlob(vector<Point>& contour,
 }
 
 
-void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, int ** data){
+void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, int ** data, int rows, int cols){
 	/** DEBUG **/
 	if(photonsOfBlobs.size()==0){
 		// debug
 		cout << "*BlobsFinder Error: 0 fotoni nel blob! File: "<< filePath << endl;
 		cout << "*Number of pixels: " << pixelsOfBlobs.size() << endl;
 		cout << "*Number of contour pixels: " << contour.size() << endl;
+
 
 		for(vector<pair<CustomPoint,int>>::iterator i = pixelsOfBlobs.begin(); i != pixelsOfBlobs.end(); i++){
 			pair<CustomPoint,int> p = *i;
@@ -383,7 +427,21 @@ void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<C
 			CustomPoint p = *i;
 			cout << "*(" << p.y << "," << p.x <<")"<<" photon:" <<data[p.y][p.x]<<endl;
 		}
+		
+		
+		Mat workingImage8U3C(rows, cols, CV_8UC3, Scalar(0,0,0));
+		
+		Vec3b color( rand()&255, rand()&255, rand()&255 );
 
+		for(vector<CustomPoint>::iterator i = contour.begin(); i != contour.end(); i++)		{					
+			CustomPoint p = *i;
+			workingImage8U3C.at<Vec3b>(p.y,p.x) = color;
+		}
+		///DRAW CENTROID
+		//CustomPoint centroid = b->getCentroid();
+		//workingImage8U3C.at<Vec3b>(centroid.y,centroid.x) = Vec3b(0,0,255);
+		BlobsFinder::printImage(workingImage8U3C, "Debug", "8U");
+		waitKey();
 		exit(EXIT_FAILURE);
 	}	  
 }
@@ -392,50 +450,8 @@ void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<C
 
 
 
-/***********************************
 
-	STRETCHING
-
-***********************************/
-void BlobsFinder::nonLinearStretch(Mat* image, double r)
-{
-   // Mat image = inputImage.clone();
-	int rows = image->rows;
-	int cols = image->cols;
-	for (int i = 0; i < rows; ++i){
-		for (int j = 0; j < cols; ++j){
-			//unsigned int pixelValue = (unsigned int)image->at<uchar>(i, j);
-			//image->at<uchar>(i, j) =  (uchar) pow(255, 1 - r)* pow(pixelValue,r);
-			double pixelValue = image->at<double>(i, j);
-			image->at<double>(i, j) = pow(255, 1 - r)* pow(pixelValue,r);
-		}
-	}
-   // return image;
-
-}
-
-
-
-
-
-
-
-
-
-/**********************************
-
-	SMOOTHING
-
-**********************************/
-void BlobsFinder::gaussianBlur(Mat* image, Size kernelSize, double sigma) {
-	Mat outputImg;
-	GaussianBlur(*image, outputImg, kernelSize, sigma, 0, 0);
  
-	*image = outputImg;
-	//return outputImg;
-}
-
-
 
 /**********************************
 
@@ -558,7 +574,17 @@ for (int i = 0; i < kernelSize; ++i) {
 /*--------------*/
  
 
-
+/* Convert 8UC1 to unsigned short int ** for the Blob's constuctor 
+	unsigned short int ** blobsImage;
+	blobsImage = new unsigned short int *[rows];
+  	
+	for(int y = 0; y < rows; y++){
+		blobsImage[y] = new unsigned short int[cols];
+		for(int x =0; x < cols; x++){
+			blobsImage[y][x] = workingImage32F.at<float>(y,x);
+		}
+	}*/
+	
 
 /*
 Unsigned 8bits uchar 0~255

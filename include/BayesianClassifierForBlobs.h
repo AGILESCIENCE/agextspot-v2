@@ -54,7 +54,7 @@ class BayesianClassifierForBlobs
 	//normal_distribution<double> fluxPhotonsClosenessDistribution = normal_distribution<double>( 1.92534, 1.00237 ); // degrees
 
 	
-	/* PARAMETRIZED KERNEL WITH PSF [31x31 sigma=7.5] , DEGREES DISTANCES */
+	/* PARAMETRIZED KERNEL WITH PSF [31x31 sigma=7.5] , DEGREES DISTANCES 
 
 	// background
 	normal_distribution<double> bgPhotonsInBlobDistribution = normal_distribution<double>( 2.92556, 1.30257 );
@@ -63,11 +63,18 @@ class BayesianClassifierForBlobs
 	// flux
         normal_distribution<double> fluxPhotonsInBlobDistribution = normal_distribution<double>( 4.33456, 2.03592 );
 	normal_distribution<double> fluxPhotonsClosenessDistribution = normal_distribution<double>( 1.96242, 0.999395 );  
+	*/
 
 
+	/* PARAMETRIZED KERNEL WITH PSF [31x31 sigma=7.5] , DEGREES DISTANCES , THRESHOLDING (mean) */
+	
+// background
+	normal_distribution<double> bgPhotonsInBlobDistribution = normal_distribution<double>( 2.92556, 1.30257 );
+  	normal_distribution<double> bgPhotonsClosenessDistribution = normal_distribution<double>( 3.50439, 1.63845 );  
 
-
-
+	// flux
+        normal_distribution<double> fluxPhotonsInBlobDistribution = normal_distribution<double>( 4.33456, 2.03592 );
+	normal_distribution<double> fluxPhotonsClosenessDistribution = normal_distribution<double>( 1.96242, 0.999395 );  
 
 
 
