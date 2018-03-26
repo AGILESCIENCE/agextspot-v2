@@ -11,73 +11,67 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(				   double _PSF, 
-								   const char * _imagePath, 
-								   const char * _outputLogName, 
-								   double _classificationThreshold, 
-								   const char * _imageExpPath, 
-								   bool isExpMapNormalizedBool, 
+GammaRayDetector::GammaRayDetector(double _PSF,
+								   const char * _imagePath,
+								   const char * _outputLogName,
+								   double _classificationThreshold,
+								   const char * _imageExpPath,
+								   bool isExpMapNormalizedBool,
 								   bool createExpNormalizedMap,
-								   bool createExpRatioMap, 
-								   double minTreshold, 
-								   double maxTreshold, 
-								   double squareSize) :	
- 
+								   bool createExpRatioMap,
+								   double minTreshold,
+								   double maxTreshold,
+								   double squareSize,
+							   	   bool _visualizationMode ) :
+
 	reverendBayes(),
 	agileMapTool(_imagePath)
-	
-	
+
+
 {
 	PSF = _PSF;
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
+
+	visualizationMode = _visualizationMode;
+
 	string imageExpPathString = _imageExpPath;
 	string outPutLogNameString = _outputLogName;
-	
+
    	if(imageExpPathString == "None"){
 		evaluateExpRatio = false;
-		cout << "*No exp-ratio evaluation will be performed"<<endl;
+		cout << "\n*No exp-ratio evaluation will be performed\n"<<endl;
 	}
 	else{
-		cout << "*Exp-ratio evaluation will be performed"<<endl;
+		cout << "\n*Exp-ratio evaluation will be performed\n"<<endl;
 		evaluateExpRatio = true;
 		exp = new ExpRatioEvaluator(_imageExpPath, isExpMapNormalizedBool, createExpNormalizedMap, createExpRatioMap, minTreshold, maxTreshold, squareSize);
 	}
-		
+
 
 	/*Check AgileMap*/
 	if(agileMapTool.Read(_imagePath) == 202){
 		cout << "*ERROR: File "<< _imagePath << " has not AgileMap format." << endl;
 		exit(EXIT_FAILURE);
 	}
-		
+
 	rows = agileMapTool.Rows();
 	cols = agileMapTool.Cols();
 
-	
-	
+
+
    	fileName = extractFileNameFromImagePath(imagePath);
 
 	outputLogName = computeOutputLogName(fileName,outPutLogNameString,minTreshold,maxTreshold,squareSize);
-		
+
    	classificationThreshold = _classificationThreshold/100;
-	
+
 }
 
 
 GammaRayDetector::~GammaRayDetector(){
-	/*
-		CANCELLARE ctsMap
-	*/
-	for (  int i = 0; i < rows; i++)
-	{
-		delete [] ctsMap[i];
-	}
-	delete [] ctsMap;
-	ctsMap = 0;
-
 	for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++){
-		Blob * b = *i;		
+		Blob * b = *i;
 		delete b;
 	}
 	blobs.clear();
@@ -88,16 +82,14 @@ GammaRayDetector::~GammaRayDetector(){
 void GammaRayDetector::detect()
 {
 
-	
+
 	const char * observationDateUTCtemp = agileMapTool.GetStartDate();
 	string observationDateUTC = observationDateUTCtemp;
 	double observationDateTT = agileMapTool.GetTstart();
-		
-	/// converte un file fits in un array 2D
-	ctsMap = mapPathToIntPtr(imagePath.c_str());
+
 
 	/// tira fuori una lista con tutti i BLOBS
-	blobs = BlobsFinder::findBlobs(PSF,imagePath, ctsMap,rows,cols,agileMapTool.GetXbin() ,agileMapTool.GetYbin() );
+	blobs = BlobsFinder::findBlobs(imagePath, PSF, agileMapTool.GetXbin() ,agileMapTool.GetYbin(), visualizationMode);
 
 	//cout << "SIZE: " << blobs.size()<<endl;
 
@@ -117,8 +109,13 @@ void GammaRayDetector::detect()
 			// Classification
 			double fluxProbability = classifyBlob(b);
 
-			double gaLong = b->getGalacticCentroidL(); 
+
+			double gaLong = b->getGalacticCentroidL();
 			double gaLat  = b->getGalacticCentroidB();
+
+			cout <<"Blob "<< index-1 <<":\n * centroid (pixel): [ "<<b->getCentroid().y<<" , "<<b->getCentroid().x<<" ]\n * centroid (degree): [ "<<gaLong<<" , "<< gaLat<<" ]\n * flux prob -> " << fluxProbability*100 << "%\n" <<endl;
+
+
 
 
 			// ExpRatioEvaluation
@@ -218,97 +215,11 @@ string GammaRayDetector::computeOutputLogName(string _filename, string _outputLo
 		outputlogname = _outputLogName.substr(0,foundTxt);
 	else
 		outputlogname = _outputLogName;
-	   
+
 
    	outputlogname +="_"+_filename+".txt";
-	
-	return outputlogname;	
+
+	return outputlogname;
 
 
 }
-
-int ** GammaRayDetector::mapPathToIntPtr(const char * imagePath)
-{
-	
-	int ** image;
-	int rows = 0;
-	int cols = 0;
-	
-	//CFITSIO
-	fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
-	int status = 0;   /* CFITSIO status value MUST be initialized to zero! */
-	int bitpix, naxis, ii, anynul;
-	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-	double *pixels;
-	char format[20], hdformat[20];
-	
-	if (!fits_open_file(&fptr, imagePath, READONLY, &status))
-	{									// 16   , 2     , {166,166}
-		if (!fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status))
-		{
-			rows = (int)naxes[0];
-			cols = (int)naxes[1];
-			image = new int*[rows];
-			for (int i = 0; i < rows; ++i){
-				image[i] = new int[cols];
-			}
-			if (naxis > 2 || naxis == 0)
-			{	
-				fprintf( stderr, "*ERROR 1 - only 1D or 2D images are supported");
-				exit(EXIT_FAILURE);
-			}			
-			else
-			{	 
-				/* get memory for 1 row */
-				pixels = (double *)malloc(naxes[0] * sizeof(double));
-
-				if (pixels == NULL)
-				{
-					fprintf( stderr, "*ERROR 2 - Memory allocation error");
-					exit(EXIT_FAILURE);
-				}
-				else
-				{
-					/* loop over all the rows in the image, top to bottom */
-
-					int col_index = 0;
-					int row_index = 0;
-					for (fpixel[1] = naxes[1]; fpixel[1] >= 1; fpixel[1]--)
-					{
-						if (fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, pixels, NULL, &status))  /* read row of pixels */
-							break;  /* jump out of loop on error */
-
-						for (ii = 0; ii < naxes[0]; ii++)
-						{
-							
-							image[row_index][col_index] = (int)pixels[ii];
-
-
-
-							col_index++;
- 
-						}
-						col_index = 0;
-						row_index++;
-					}
-
-					free(pixels);
-				}
-			}
-
-		}
-
-		fits_close_file(fptr, &status);
-
-	}
-	if (status>0)
-	{
-		fprintf( stderr, "*ERROR %d",status);
-		exit (EXIT_FAILURE);
-		
-	}
-
- 	return image;
-
-}
-

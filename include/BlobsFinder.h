@@ -15,78 +15,76 @@
 #include <iostream>
 #include <math.h>  // ceil ( )
 #include <iomanip>
-#include "Blob.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+
+#include "Blob.h"
+#include "MapConverter.h"
+
+
+
 using namespace cv;
-using namespace std;
 
 
 class BlobsFinder
 {
     public:
 
-        /**
-            Return a list of Blobs. In order to find one or more Blob it uses:
-                - non linear stretching
-                - gaussian filtering
-                - find contours procedure
-         */
-        static vector<Blob*> findBlobs(double PSF, string filePath, int ** image, int rows, int cols, double CDELT1, double CDELT2);
+        static vector<Blob*> findBlobs(  string fitsfilePath,
+        								 double PSF,
+        								 double CDELT1,
+        								 double CDELT2,
+                                         bool VISUALIZATION_MODE
+                                      );
 
     private:
+
         BlobsFinder();
 
 
-	static Mat gassusianSmoothing(int ** data, int rows, int cols, double PSF, double CDELT1, double CDELT2, bool debug);
+
+        // EXTRACTION OPERATIONS
+
+        static Mat gassusianSmoothing(  IntMatrixCustomMap * int_matrix_map,
+                                        double PSF,
+                                        double CDELT1,
+                                        double CDELT2,
+                                        bool debug
+                                     );
+
+        static Mat thresholding(Mat image, bool debug);
 
 
-	
-	static bool computePixelsAndPhotonsOfBlob(	vector<Point>& contour, 
-							Mat& image, 
-							int ** data, 
-							vector<pair<CustomPoint,int>>& pixelsOfBlobs, 
-							vector<CustomPoint>& photonsOfBlobs
-	);
+        static Mat addPaddingToImage(Mat image8U);
 
 
-	static Mat thresholding(Mat image, int rows, int cols, bool debug);
+        static void computePixelsAndPhotonsOfBlob(	IntMatrixCustomMap * int_matrix_map_original,
+                                                    Mat& smoothed_and_thresholded_image,
+                                                    vector<Point>& contour,
+                        							vector<pair<CustomPoint,int>>& pixelsOfBlobs,
+                        							vector<CustomPoint>& photonsOfBlobs
+                                                 );
 
 
-	static Mat addPaddingToImage(Mat image8U);
+        // DEBUGGIN
 
-	static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, int ** data, int rows, int cols);
-	
-	static void printImage(Mat& image,string windowName, string type);
+        static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string fitsFilePath, IntMatrixCustomMap * int_matrix_map);
 
-	static void printImageInConsole(Mat& image, string type);
+        static void print01Image(Mat& image,string windowName);
 
+        static void printImage(Mat& image,string windowName, string type);
 
-	static void printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName);
-	static void printImageBlob(Mat& inputImage, Blob& b, string windowName);
+        static void printImageInConsole(Mat& image, string type);
 
-	static void drawImageHistogram(Mat& hist, int histSize);
+        static void printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName);
+
+        static void printImageBlob(Mat& inputImage, Blob& b, string windowName);
+
+        static void drawImageHistogram(Mat& hist, int histSize);
 };
-
-
-
-
-/* NEED C++14
-template<typename T>
-void BlobsFinder::printImageInConsole(Mat& image){
-	cout << "\n\n" << endl;
-	for(int i = 0; i < image.rows; i++){
-		for(int j =0; j < image.cols; j++){
-			cout << image.at<T>(i,j);
-		}
-		cout << "\n";
-	}
-}*/
-
-
 
 
 #endif // BLOBSFINDER_H

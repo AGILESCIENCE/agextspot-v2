@@ -14,7 +14,7 @@ Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<Cu
 {
 
 	filePath = _filePath;
-	
+
 	pixelArea = CDELT1*CDELT2;
 
 	contour = _contourPixels;
@@ -25,7 +25,7 @@ Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<Cu
 
 
 
-	
+
 	centroid = computeCentroid();
 
 	galacticCentroid = computeGalacticCentroid();
@@ -37,10 +37,10 @@ Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<Cu
 	pixelMean = 1;//computePixelMean();
 
 	photonsCloseness = computePhotonsCloseness();
-	
+
 	//cout << 50-centroid.y <<","<<centroid.x << endl;
  	//cout << "photonsCloseness" << photonsCloseness << endl;
- 
+
 }
 
 
@@ -103,13 +103,13 @@ CustomPoint Blob::computeCentroid(){
 CustomPoint Blob::computeGalacticCentroid(){
 	// Changing the reference system
 	int y_euclidean_ref_sys = agileMapTool.Rows() - getCentroid().y;
-	 
+
 
 	double l  = agileMapTool.l(centroid.x, y_euclidean_ref_sys );
 	double b  = agileMapTool.b(centroid.x, y_euclidean_ref_sys );
 
 	return CustomPoint(l,b);
-	
+
 }
 
 
@@ -130,8 +130,8 @@ double Blob::computePixelMean(){
 double Blob::computePhotonsCloseness(){
     double photonsCloseness = 0;
     double countDistances = 0;
-    double countPhotons = photonsInBlob.size();        
-	
+    double countPhotons = photonsInBlob.size();
+
     for(vector<CustomPoint>::iterator i = photonsInBlob.begin(); i != photonsInBlob.end(); i++){
         CustomPoint photon = *i;
         //countDistances += getDistanceFromCentroid(photon);
@@ -140,7 +140,7 @@ double Blob::computePhotonsCloseness(){
     }
     // cout << "countDistances: " << countDistances << endl;
     // cout << "countPhotons: " << countPhotons << endl;
-    
+
     photonsCloseness = countDistances/countPhotons;
     return photonsCloseness;
 }
@@ -168,7 +168,7 @@ double Blob::getSphericalDistanceFromCentroid(CustomPoint photon){
 	return distance;
 }
 bool Blob::isCentered(){
-    	int centerY = agileMapTool.Rows()/2;
+    int centerY = agileMapTool.Rows()/2;
 	int centerX = agileMapTool.Cols()/2;
 	int offset = 15;
 
@@ -196,7 +196,7 @@ vector<CustomPoint> Blob::computePhotonsBlob(){
 		for(int j = 0; j < greyLevel; j++){
 
 			photonPixels.push_back(p.first);
-		}        
+		}
 
 	}
 	if(photonPixels.size()==0){
