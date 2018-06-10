@@ -1,4 +1,4 @@
-# AG_extspot-v2 1.2.3 (degree based)
+# AG_extspot-v2
 
 AG_extspot è un software di estrazione automatica di possibili blob candidati ad ulteriori analisi al fine di identificare automaticamente eventi astrofisici ad alta energia.
 
@@ -15,7 +15,7 @@ Può essere anche calcolata la valutazione exp-ratio per ogni blob trovato. Per 
 ### Documentazione:
 
 	https://docs.google.com/document/d/1jDVoPD5emhgM4K3pjwY5XNF0hRnnHiAWVdoTvMgOEwk/edit#heading=h.568bs0t6yg27
-	
+
 ### Documentazione completa:
 	https://docs.google.com/document/d/12GUmqOhHCWN3L290vGGeJIBehVWHIcdA6kM9zK-BgcQ/edit#
 
