@@ -93,12 +93,12 @@ int main(int argc, char*argv[]){
 
 
 
-   	grd.detect();
+ 	grd.detect();
 
 
 	cout << endString << endl;
 
 
-   	return 0;
+ 	return 0;
 
 }

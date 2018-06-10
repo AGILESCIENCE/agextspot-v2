@@ -6,9 +6,6 @@
  * is property of the AGILE TEAM and is strictly
  * private and confidential.
 */
-
-#pragma once
-
 #include "BayesianClassifierForBlobs.h"
 #include "BlobsFinder.h"
 #include "FileWriter.h"

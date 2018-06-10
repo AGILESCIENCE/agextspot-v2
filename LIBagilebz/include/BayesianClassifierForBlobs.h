@@ -46,6 +46,7 @@ class BayesianClassifierForBlobs
      // Observables:
      //     - PhotonsInBlob : number of photons inside the blobs
      //     - PhotonsCloseness : closeness index among photons inside the blob
+     //     - Area : the blob's area (degree)
      //
      // Generated with https://github.com/Leofaber/AG_extspot-v2-bayesian-model-evaluator
      //
@@ -69,10 +70,12 @@ class BayesianClassifierForBlobs
      //         - IS THE FIRST FLUX FOUND IN j
      //
      // background
+        normal_distribution<double> bgAreaDistribution    = normal_distribution<double>( 259.313, 114.337 );
         normal_distribution<double> bgPhotonsInBlob    = normal_distribution<double>( 2.70782, 1.06004 );
         normal_distribution<double> bgPhotonsCloseness = normal_distribution<double>( 2.8795, 1.41748 );
      //
      // flux
+        normal_distribution<double> fluxAreaDistribution    = normal_distribution<double>( 240.756, 66.9674 );
         normal_distribution<double> fluxPhotonsInBlob    = normal_distribution<double>( 4.26807, 1.97511 );
         normal_distribution<double> fluxPhotonsCloseness = normal_distribution<double>( 1.7331, 0.873429 );
      //
