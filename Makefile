@@ -22,7 +22,7 @@ SHELL = /bin/sh
 
 SYSTEM= $(shell gcc -dumpmachine)
 #ice, ctarta, mpi, cfitsio
-LINKERENV= cfitsio, pil, wcs, agile, opencv
+LINKERENV= pil, opencv, root, cfitsio, agile, wcs
 
 # Applications
 AG_EXTSPOT = AG_extspot-v2
@@ -67,10 +67,11 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g -O2 -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g -std=c++11 -pipe -I $(INCLUDE_DIR)
 
-LIBS += -L${CURDIR}/LIBagilebz/lib -lagilebz
-CXXFLAGS += -I ${CURDIR}/LIBagilebz/include
+LIBS += -lm
+
+LIBS += -L${CURDIR}/libs -lextspot
 
 ifneq (, $(findstring agile, $(LINKERENV)))
     ifeq (, $(findstring -I $(AGILE)/include, $(CXXFLAGS)))
@@ -106,6 +107,25 @@ ifneq (, $(findstring cfitsio, $(LINKERENV)))
     LIBS += -L$(CFITSIO)/lib -lcfitsio
 endif
 
+# Installed in system folder /usr
+#LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc
+
+
+ifneq (, $(findstring pil, $(LINKERENV)))
+    ifeq (,$(findstring -I $(AGILE)/include, $(CXXFLAGS)))
+        CXXFLAGS += -I $(AGILE)/include
+    endif
+    LIBS += -L$(AGILE)/lib -lagilepil
+endif
+#ifneq (, $(findstring root, $(LINKERENV)))
+#    CXXFLAGS += -W -fPIC -D_REENTRANT $(shell root-config --cflags)
+#    LIBS += $(shell root-config --glibs) -lMinuit
+#endif
+#ifneq (, $(findstring cfitsio, $(LINKERENV)))
+#    CXXFLAGS += -I$(CFITSIO)/include
+#    LIBS += -L$(CFITSIO)/lib -lcfitsio
+#endif
+
 LINK     = $(CXX)
 #for link
 LFLAGS = -shared -Wl,-soname,$(TARGET1) -Wl,-rpath,$(DESTDIR)
@@ -139,17 +159,18 @@ MKDIR    = mkdir -p
 #all: compile the entire program.
 all: agextspot performance bayesian
 
-agextspot: $(SOURCE_DIR)/AG_extspot-v2.cpp $(INCLUDE_DIR)/GammaRayDetector.h $(SOURCE_DIR)/GammaRayDetector.cpp
+agextspot: $(SOURCE_DIR)/AG_extspot-v2.cpp
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2.cpp $(INCLUDE_DIR)/GammaRayDetector.h $(SOURCE_DIR)/GammaRayDetector.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
 
-performance: $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp $(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
+performance: $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp $(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp  -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
+	$(COPY_FILE) $(SOURCE_DIR)/draw_performance_plot.py $(EXE_DESTDIR)/draw_performance_plot.py
 
-bayesian: $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
+bayesian: $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
 
 
 

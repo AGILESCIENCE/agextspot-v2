@@ -13,14 +13,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>       
+#include <math.h>
 #include <vector>
 #include <string>
 #include <iostream>
 #include "AgileMap.h"
 
 using namespace std;
- 
+
 struct CustomPoint{
 	int y;  // righe
 	int x;	//colonne
@@ -44,32 +44,31 @@ class Blob
     public:
 
         /**
-            Create a new Blob starting from the contour pixels.
-            Computes the centroid of the blob.
-            Finds the pixels that are inside the blob.
-            Finds the number of photons inside the blob.
-            Compute the gray level pixel mean of the blob.
-			Compute the photon's closeness
+          Create a new Blob starting from the contour pixels.
+          Computes the centroid of the blob.
+          Finds the pixels that are inside the blob.
+          Finds the number of photons inside the blob.
+          Compute the gray level pixel mean of the blob.
+          Compute the photon's closeness
         */
         Blob(string filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, vector<CustomPoint> photonsInBlob, double CDELT1, double CDELT2);
 
 
-	//int getId();
 
-	string getFilePath();
+	       string getFilePath();
 
         /**
             Return the centroid of the blob
         */
         CustomPoint getCentroid();
 
- 	/**
+ 	      /**
             Return the galactic centroid of the blob
         */
         CustomPoint getGalacticCentroid();
 
-	double getGalacticCentroidL();
-	double getGalacticCentroidB();
+      	double getGalacticCentroidL();
+      	double getGalacticCentroidB();
 
 
         /**
@@ -87,10 +86,10 @@ class Blob
         */
         int getNumberOfPixels();
 
-	/**
-		Return the blob's area (degree)
-	*/
-	double getArea();
+        /**
+        	Return the blob's area (degree)
+        */
+        double getArea();
 
         /**
             Return the number of photons inside the blob (before any stretching or smoothing)
@@ -98,7 +97,7 @@ class Blob
         int getNumberOfPhotonsInBlob();
 
 
-	vector<CustomPoint> getPhotonsInBlob();
+	       vector<CustomPoint> getPhotonsInBlob();
 
 
         /**
@@ -120,13 +119,13 @@ class Blob
 
      private:
 
-	//static int ID;
+      	//static int ID;
 
-	//const int blobId;
+      	//const int blobId;
 
-	AgileMap agileMapTool;
+      	AgileMap agileMapTool;
 
-	string filePath;
+      	string filePath;
 
         vector<CustomPoint> contour;
 
@@ -134,33 +133,33 @@ class Blob
 
         int numberOfPixels;
 
-	double pixelArea;
+      	double pixelArea;
 
-	double blobArea;
-	
+      	double blobArea;
+
         vector<CustomPoint> photonsInBlob;
 
         CustomPoint centroid;
 
-	CustomPoint galacticCentroid;
- 	
-	double pixelMean;
+      	CustomPoint galacticCentroid;
+
+      	double pixelMean;
 
         double photonsCloseness;
 
-	//vector<CustomPoint> computePhotonsBlob();
+	       //vector<CustomPoint> computePhotonsBlob();
 
         CustomPoint computeCentroid();
 
-	CustomPoint computeGalacticCentroid();
-       
+        CustomPoint computeGalacticCentroid();
+
         double computePixelMean();
-        
+
         double computePhotonsCloseness();
 
         double getDistanceFromCentroid(CustomPoint p);
 
-	double getSphericalDistanceFromCentroid(CustomPoint p);
+	      double getSphericalDistanceFromCentroid(CustomPoint p);
 
 
 };

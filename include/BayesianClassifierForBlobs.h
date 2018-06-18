@@ -11,7 +11,7 @@
 #ifndef BAYESIANCLASSIFIERFORBLOBS_H
 #define BAYESIANCLASSIFIERFORBLOBS_H
 
-#include <Blob.h>
+#include "Blob.h"
 #include <random>
 
 

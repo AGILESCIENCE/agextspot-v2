@@ -17,9 +17,10 @@
 #include "Blob.h"
 #include "FolderManager.h"
 #include "BlobsFinder.h"
-#include "AgileMap.h"
 #include "BayesianClassifierForBlobs.h"
 #include "FileWriter.h"
+
+#include "AgileMap.h"
 
 
 class PerformanceEvaluator{

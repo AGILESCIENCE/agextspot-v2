@@ -34,9 +34,9 @@ class BlobsFinder
     public:
 
         static vector<Blob*> findBlobs(  string fitsfilePath,
-        								 double PSF,
-        								 double CDELT1,
-        								 double CDELT2,
+                        								 double PSF,
+                        								 double CDELT1,
+                        								 double CDELT2,
                                          bool VISUALIZATION_MODE
                                       );
 
@@ -64,8 +64,8 @@ class BlobsFinder
         static void computePixelsAndPhotonsOfBlob(	IntMatrixCustomMap * int_matrix_map_original,
                                                     Mat& smoothed_and_thresholded_image,
                                                     vector<Point>& contour,
-                        							vector<pair<CustomPoint,int>>& pixelsOfBlobs,
-                        							vector<CustomPoint>& photonsOfBlobs
+                                      							vector<pair<CustomPoint,int>>& pixelsOfBlobs,
+                                      							vector<CustomPoint>& photonsOfBlobs
                                                  );
 
 

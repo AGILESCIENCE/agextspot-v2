@@ -20,7 +20,7 @@ using std::endl;
 
 const char* startString = {
 "################################################################\n"
-"###             Task AG_extspot-v2 v1.2.1 - (degree-based)    ###"
+"###             Task AG_extspot-v2                             ###"
 };
 
 const char* endString = {
