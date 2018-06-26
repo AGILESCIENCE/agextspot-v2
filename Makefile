@@ -18,6 +18,19 @@
 PROJECT= AG_extspot-v2
 SHELL = /bin/sh
 
+####### 0) PREREQUISITES
+ifndef AGILE
+$(error AGILE is not set.)
+endif
+ifndef CFITSIO
+$(error CFITSIO is not set.)
+endif
+ifndef OPENCV
+$(error OPENCV is not set.)
+endif
+
+
+
 ####### 1) Project names and system
 
 SYSTEM= $(shell gcc -dumpmachine)
