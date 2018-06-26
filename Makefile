@@ -22,7 +22,7 @@ SHELL = /bin/sh
 
 SYSTEM= $(shell gcc -dumpmachine)
 #ice, ctarta, mpi, cfitsio
-LINKERENV= pil, opencv, root, cfitsio, agile, wcs
+LINKERENV= pil, agile, opencv, cfitsio, root, wcs
 
 # Applications
 AG_EXTSPOT = AG_extspot-v2
@@ -55,6 +55,7 @@ icondir=$(HOME)/.local/share/applications/
 OBJECTS_DIR = obj
 SOURCE_DIR = src
 INCLUDE_DIR = include
+PROJECTS_DIR = projects
 EXE_DESTDIR  = bin
 CONF_DIR = conf
 ICON_DIR = ui
@@ -67,11 +68,11 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g -std=c++11 -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g -pipe -I $(INCLUDE_DIR)
 
 LIBS += -lm
 
-LIBS += -L${CURDIR}/libs -lextspot
+#LIBS += -L${CURDIR}/libs -lextspot
 
 ifneq (, $(findstring agile, $(LINKERENV)))
     ifeq (, $(findstring -I $(AGILE)/include, $(CXXFLAGS)))
@@ -106,29 +107,14 @@ ifneq (, $(findstring cfitsio, $(LINKERENV)))
     CXXFLAGS += -I$(CFITSIO)/include
     LIBS += -L$(CFITSIO)/lib -lcfitsio
 endif
-
-# Installed in system folder /usr
-#LIBS += -lopencv_core -lopencv_highgui -lopencv_imgproc
-
-
 ifneq (, $(findstring pil, $(LINKERENV)))
     ifeq (,$(findstring -I $(AGILE)/include, $(CXXFLAGS)))
         CXXFLAGS += -I $(AGILE)/include
     endif
     LIBS += -L$(AGILE)/lib -lagilepil
 endif
-#ifneq (, $(findstring root, $(LINKERENV)))
-#    CXXFLAGS += -W -fPIC -D_REENTRANT $(shell root-config --cflags)
-#    LIBS += $(shell root-config --glibs) -lMinuit
-#endif
-#ifneq (, $(findstring cfitsio, $(LINKERENV)))
-#    CXXFLAGS += -I$(CFITSIO)/include
-#    LIBS += -L$(CFITSIO)/lib -lcfitsio
-#endif
 
-LINK     = $(CXX)
-#for link
-LFLAGS = -shared -Wl,-soname,$(TARGET1) -Wl,-rpath,$(DESTDIR)
+
 AR       = ar cqs
 TAR      = tar -cf
 GZIP     = gzip -9f
@@ -143,36 +129,40 @@ CHK_DIR_EXISTS= test -d
 MKDIR    = mkdir -p
 
 
-####### 5) VPATH
+INCLUDE=$(foreach dir,$(INCLUDE_DIR), $(wildcard $(dir)/*.h))
+SOURCE=$(foreach dir,$(SOURCE_DIR), $(wildcard $(dir)/*.cpp))
+OBJECTS=$(addsuffix .o, $(basename $(notdir $(SOURCE))))
 
-####### 6) Files of the project
+# Pattern rule
+%.o : $(SOURCE_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-####### 7) Only for library generation
+#$(info $$CXXFLAGS is [${CXXFLAGS}])
+$(info $$OBJECTS is [${OBJECTS}])
 
-####### 8) Preliminar operations
-
-####### 9) Pattern rules
-
-####### 10) Build rules
 
 
 #all: compile the entire program.
-all: agextspot performance bayesian
+all: makeobjdir agextspot performance bayesian cleanobj
 
-agextspot: $(SOURCE_DIR)/AG_extspot-v2.cpp
-	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
+makeobjdir:
+	test -d $(OBJECTS_DIR) || mkdir -p $(OBJECTS_DIR)
 
-performance: $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp
+agextspot: $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-performance-evaluator.cpp  -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
+
+performance: $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
 	$(COPY_FILE) $(SOURCE_DIR)/draw_performance_plot.py $(EXE_DESTDIR)/draw_performance_plot.py
 
-bayesian: $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp
+bayesian: $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(SOURCE_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
 
-
+cleanobj:
+	$(DEL_FILE) *.o
 
 #clean: delete all files from the current directory that are normally created by building the program.
 clean:
@@ -186,7 +176,6 @@ distclean: clean
 #install: compile the program and copy the executables, libraries,
 #and so on to the file names where they should reside for actual use.
 install: all
-	$(shell echo $(prefix) > prefix)
 
 	# For exe installation
 	test -d $(bindir) || mkdir -p $(bindir)

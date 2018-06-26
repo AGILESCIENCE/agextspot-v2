@@ -107,3 +107,62 @@ Sono state individuate due tipi di soglia: una che minimizza la FPR, una che mas
 
 	Per ulteriori informazioni riguardo ad i valori di performance (formule, training e test set,
 	significato etcetc) si rimanda alla documentazione.
+
+## Dipendenze esterne
+* libagilesci
+	* AgileMap.h
+	* AlikeData5.h
+	* ExpRatioEvaluator.h
+* libagilepil
+	* PilParams.h
+* Opencv 2.4.13
+	* opencv2/core/core.hpp
+	* opencv2/highgui/highgui.hpp
+	* opencv2/imgproc/imgproc.hpp
+* libagilewcs
+	* (?)
+* root
+	* (?)
+
+## Installazione
+* git clone https://github.com/Leofaber/agextspot-v2
+* cd agextspot-v2
+* module load agile-B25-r5
+* make
+
+## Struttura del progetto
+
+* AG_extspot-v2 → GammaRayDetector.h
+	* BayesianClassifierForBlobs.h
+			* Blob.h
+	* BlobsFinder.h
+			* Opencv.h
+			* Blob.h
+			* MapConverter.h
+	* FileWriter.h
+				--
+	*	ExpRatioEvaluator.h
+			* MapConverter.h
+			* FitsUtils.h
+			* AgileMap.h
+			* AlikeData5.h
+	* AgileMap.h
+
+* AG_performance-evaluator → PerformanceEvaluator.h
+		* BlobsFinder.h
+				* Opencv.h
+				* Blob.h
+				* MapConverter.h
+		* BayesianClassifierForBlobs.h
+				* Blob.h
+		* FileWriter.h
+		* FolderManager.h
+		* AgileMap.h
+
+* AG_model-evaluator → BayesianModelEvaluator.h
+	* BlobsFinder.h
+		* Opencv.h
+		* Blob.h
+		* MapConverter.h
+	* FolderManager.h
+	* MapConverter.h		
