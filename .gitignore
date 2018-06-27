@@ -64,6 +64,3 @@ LOGS/*
 
 Other files
 version
-run_agextspot.sh
-run_testing.sh
-run_training.sh

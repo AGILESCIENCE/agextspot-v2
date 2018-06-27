@@ -139,40 +139,42 @@ CHK_DIR_EXISTS= test -d
 MKDIR    = mkdir -p
 
 
+#######  VPATH
+VPATH=$(SOURCE_DIR):$(INCLUDE_DIR):
+vpath %.o $(OBJECTS_DIR)
+
 INCLUDE=$(foreach dir,$(INCLUDE_DIR), $(wildcard $(dir)/*.h))
 SOURCE=$(foreach dir,$(SOURCE_DIR), $(wildcard $(dir)/*.cpp))
 OBJECTS=$(addsuffix .o, $(basename $(notdir $(SOURCE))))
 
 # Pattern rule
-%.o : $(SOURCE_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+#%.o : $(SOURCE_DIR)/%.cpp
+#	$(CXX) $(CXXFLAGS) -c $< -o $@
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $(OBJECTS_DIR)/$@
 
-#$(info $$CXXFLAGS is [${CXXFLAGS}])
-$(info $$OBJECTS is [${OBJECTS}])
 
 
 
 #all: compile the entire program.
-all: makeobjdir agextspot performance bayesian cleanobj
+all: makeobjdir agextspot performance bayesian
 
 makeobjdir:
 	test -d $(OBJECTS_DIR) || mkdir -p $(OBJECTS_DIR)
 
 agextspot: $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
-
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
+ 
 performance: $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
 	$(COPY_FILE) $(SOURCE_DIR)/draw_performance_plot.py $(EXE_DESTDIR)/draw_performance_plot.py
 
 bayesian: $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS) -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
 
-cleanobj:
-	$(DEL_FILE) *.o
 
 #clean: delete all files from the current directory that are normally created by building the program.
 clean:

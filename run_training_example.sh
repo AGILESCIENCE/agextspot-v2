@@ -1,5 +1,5 @@
 #!/bin/sh
-module load agile-B24-r5
+module load agile-B25-r5
 
 make clean
 make bayesian
