@@ -15,11 +15,26 @@ FileWriter::FileWriter()
     //ctor
 }
 
+string FileWriter::convertToString(int number){
+	std::stringstream out;
+	out << number;
+	return out.str();
+}
+string FileWriter::convertToString(float number){
+	std::stringstream out;
+	out << number;
+	return out.str();
+}
+string FileWriter::convertToString(double number){
+	std::stringstream out;
+	out << number;
+	return out.str();
+}
 
 void FileWriter::write2File(string outputFileName,string input){
 	ofstream resultOfAnalysis;
 
-	resultOfAnalysis.open(outputFileName, std::ofstream::trunc);
+	resultOfAnalysis.open(outputFileName.c_str(), std::ofstream::trunc);
 
 	if(resultOfAnalysis.is_open()){
 		resultOfAnalysis << input;
@@ -32,7 +47,7 @@ void FileWriter::write2File(string outputFileName,string input){
 void FileWriter::write2FileAppend(string outputFileName,string input){
 	ofstream resultOfAnalysis;
 
-	resultOfAnalysis.open(outputFileName, std::ofstream::app);
+	resultOfAnalysis.open(outputFileName.c_str(), std::ofstream::app);
 
 	if(resultOfAnalysis.is_open()){
 		resultOfAnalysis << input;

@@ -1,12 +1,11 @@
 #include "stdio.h" // getchar
 #include <iostream>
 #include <vector>
-#include <random> // for normal_distribution<T>
 
 #include "FolderManager.h"
 #include "BlobsFinder.h"
 #include "MapConverter.h"
-
+#include "NormalDistribution.h"
 
 
 class BayesianModelEvaluator{
@@ -25,7 +24,7 @@ class BayesianModelEvaluator{
 												double PSF
 												);
 
-		static pair<vector<Blob *>,vector<Blob *>> getAllBlobsFromTrainingSet(	vector<string> bgFileNames,
+		static pair<vector<Blob *>,vector<Blob *> > getAllBlobsFromTrainingSet(	vector<string> bgFileNames,
 																				 vector<string> fluxFileNames,
 																				 string trainingSetBackgroundPath,
 																				 string trainingSetFluxPath,
@@ -37,7 +36,7 @@ class BayesianModelEvaluator{
 
 		static void printMeanAndDeviation(string type, vector<Blob *>& allBlobs);
 
-		static normal_distribution<double> computeNormalDistribution(vector<double>& attributeValues);
+		static NormalDistribution computeNormalDistribution(vector<double>& attributeValues);
 
 		static void cleanMemory(vector<Blob*>& blobs);
 

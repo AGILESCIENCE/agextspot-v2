@@ -22,7 +22,7 @@ GammaRayDetector::GammaRayDetector(double _PSF,
 								   double minTreshold,
 								   double maxTreshold,
 								   double squareSize,
-							   	   bool _visualizationMode ) :
+							   	 bool _visualizationMode ) :
 
 	reverendBayes(),
 	agileMapTool(_imagePath)
@@ -38,7 +38,7 @@ GammaRayDetector::GammaRayDetector(double _PSF,
 	string imageExpPathString = _imageExpPath;
 	string outPutLogNameString = _outputLogName;
 
-   	if(imageExpPathString == "None"){
+ 	if(imageExpPathString == "None"){
 		evaluateExpRatio = false;
 		cout << "\n*No exp-ratio evaluation will be performed\n"<<endl;
 	}
@@ -60,11 +60,11 @@ GammaRayDetector::GammaRayDetector(double _PSF,
 
 
 
-   	fileName = extractFileNameFromImagePath(imagePath);
+ 	fileName = extractFileNameFromImagePath(imagePath);
 
 	outputLogName = computeOutputLogName(fileName,outPutLogNameString,minTreshold,maxTreshold,squareSize);
 
-   	classificationThreshold = _classificationThreshold/100;
+ 	classificationThreshold = _classificationThreshold/100;
 
 }
 
@@ -76,6 +76,7 @@ GammaRayDetector::~GammaRayDetector(){
 	}
 	blobs.clear();
 }
+
 
 
 
@@ -102,7 +103,9 @@ void GammaRayDetector::detect()
 	{
 		for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
 		{
-			information2PrintForSources += to_string(index)+" ";
+
+
+			information2PrintForSources += FileWriter::convertToString(index)+" ";
 			index++;
 			Blob* b = *i;
 
@@ -121,11 +124,15 @@ void GammaRayDetector::detect()
 			// ExpRatioEvaluation
 			expRatioString="-1 ";
 			if(evaluateExpRatio){
-				expRatioString = to_string(exp->computeExpRatioValues(gaLong,gaLat))+" ";
+				expRatioString = FileWriter::convertToString(exp->computeExpRatioValues(gaLong,gaLat))+" ";
 			}
 
 			// Building of output
-			string tempString = to_string(gaLong)+" "+to_string(gaLat)+" "+to_string(fluxProbability*100)+" "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
+			string tempString = FileWriter::convertToString(gaLong)+" "+
+													FileWriter::convertToString(gaLat)+" "+
+													FileWriter::convertToString(fluxProbability*100)+" "+observationDateUTC+" "+
+													FileWriter::convertToString(observationDateTT)+" "+
+													FileWriter::convertToString(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
 
 			/// Labeling
 			if(fluxProbability >= classificationThreshold){
@@ -140,7 +147,7 @@ void GammaRayDetector::detect()
 		}
 	}else{
 
-		information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+to_string(observationDateTT)+" "+to_string(classificationThreshold*100)+" "+fileName+"\n";
+		information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+FileWriter::convertToString(observationDateTT)+" "+FileWriter::convertToString(classificationThreshold*100)+" "+fileName+"\n";
 	}
 
 

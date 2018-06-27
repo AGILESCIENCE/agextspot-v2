@@ -12,8 +12,12 @@ PerformanceEvaluator::PerformanceEvaluator(string _testSetPath, double _min_thre
 	CDELT2 = _CDELT2;
 	PSF = _PSF;
 
-	outfilename_log_file = "output_for_log_from"+to_string(minThreshold)+"_to_"+to_string(maxThreshold)+"_psf_"+to_string(PSF)+"cdelt1_"+to_string(CDELT1)+"_time_"+to_string(time(&timer))+".txt";
-	outfilename_log_for_plot = "output_for_plot"+to_string(minThreshold)+"_to_"+to_string(maxThreshold)+"_psf_"+to_string(PSF)+"cdelt1_"+to_string(CDELT1)+"_time_"+to_string(time(&timer))+".txt";
+	std::stringstream ss;
+	ss <<	time(&timer);
+	std::string timeStr = ss.str();
+
+	outfilename_log_file = "output_for_log_from"+FileWriter::convertToString(minThreshold)+"_to_"+FileWriter::convertToString(maxThreshold)+"_psf_"+FileWriter::convertToString(PSF)+"cdelt1_"+FileWriter::convertToString(CDELT1)+"_time_"+timeStr+".txt";
+	outfilename_log_for_plot = "output_for_plot"+FileWriter::convertToString(minThreshold)+"_to_"+FileWriter::convertToString(maxThreshold)+"_psf_"+FileWriter::convertToString(PSF)+"cdelt1_"+FileWriter::convertToString(CDELT1)+"_time_"+timeStr+".txt";
 
 	if(maxThreshold > 100)
 		maxThreshold = 100;
@@ -100,7 +104,7 @@ void PerformanceEvaluator::createTestSetMap() {
 
 			string blobIdentifier = imagePathName;
 
-			blobIdentifier.append("_BLOB" + to_string(countBlob));
+			blobIdentifier.append("_BLOB" + FileWriter::convertToString(countBlob));
 
 
 			if( imageName.compare(0,1,"B") == 0 ){
@@ -299,7 +303,7 @@ void PerformanceEvaluator::computePerformance(map< string, pair < Blob* , char >
 
 
 			double errorDistanceIstance = agileMapTool.SrcDist(predictedCentroid.x, predictedCentroid.y, agileMapTool.GetMapCenterL(),agileMapTool.GetMapCenterB());
-			//cout << "Error distance: [ "<< to_string(predictedCentroid.y) <<" , "<< to_string(predictedCentroid.x) <<" ] "<< errorDistanceIstance << endl;
+			//cout << "Error distance: [ "<< FileWriter::convertToString(predictedCentroid.y) <<" , "<< FileWriter::convertToString(predictedCentroid.x) <<" ] "<< errorDistanceIstance << endl;
 			errorDistancesTotal += errorDistanceIstance;
 			errorDistances.push_back(errorDistanceIstance);
 
@@ -386,13 +390,13 @@ void PerformanceEvaluator::computePerformance(map< string, pair < Blob* , char >
 		DATA FOR LOG FILE
 	*/
 	string output2write = "";
-	output2write.append(to_string(currentThreshold)+" "+to_string(totalInstances)+" "+to_string( TP + TN )+" "+to_string( FP + FN )+" "+to_string(k_choen)+" "+to_string(falseNegativeRate)+" "+to_string(falsePositiveRate)+" "+to_string(accuracy)+" "+to_string(f_measure)+" "+to_string(errorDistancesMean)+"\n");
+	output2write.append(FileWriter::convertToString(currentThreshold)+" "+FileWriter::convertToString(totalInstances)+" "+FileWriter::convertToString( TP + TN )+" "+FileWriter::convertToString( FP + FN )+" "+FileWriter::convertToString(k_choen)+" "+FileWriter::convertToString(falseNegativeRate)+" "+FileWriter::convertToString(falsePositiveRate)+" "+FileWriter::convertToString(accuracy)+" "+FileWriter::convertToString(f_measure)+" "+FileWriter::convertToString(errorDistancesMean)+"\n");
 	FileWriter::write2FileAppend(outfilename_log_file, output2write);
 
 	/*
 		DATA FOR CHART
 	*/
 	string outputChart2write = "";
-	outputChart2write.append(to_string(currentThreshold)+" "+to_string(accuracy) + " " +to_string(k_choen) + " " + to_string(f_measure)+ " " + to_string(truePositiveRate) + " " + to_string(falsePositiveRate) + " "+ to_string(errorDistancesMean) + " "+ to_string(errorDistancesDeviation) + "\n");
+	outputChart2write.append(FileWriter::convertToString(currentThreshold)+" "+FileWriter::convertToString(accuracy) + " " +FileWriter::convertToString(k_choen) + " " + FileWriter::convertToString(f_measure)+ " " + FileWriter::convertToString(truePositiveRate) + " " + FileWriter::convertToString(falsePositiveRate) + " "+ FileWriter::convertToString(errorDistancesMean) + " "+ FileWriter::convertToString(errorDistancesDeviation) + "\n");
 	FileWriter::write2FileAppend(outfilename_log_for_plot, outputChart2write);
 }

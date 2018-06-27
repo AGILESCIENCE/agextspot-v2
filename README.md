@@ -132,23 +132,26 @@ Sono state individuate due tipi di soglia: una che minimizza la FPR, una che mas
 
 ## Struttura del progetto
 
-* AG_extspot-v2 → GammaRayDetector.h
-	* BayesianClassifierForBlobs.h
-			* Blob.h
-	* BlobsFinder.h
-			* Opencv.h
-			* Blob.h
-			* MapConverter.h
-	* FileWriter.h
-				--
-	*	ExpRatioEvaluator.h
-			* MapConverter.h
-			* FitsUtils.h
-			* AgileMap.h
-			* AlikeData5.h
-	* AgileMap.h
+* AG_extspot-v2
+	* GammaRayDetector.h
+		* BayesianClassifierForBlobs.h
+				* Blob.h
+				* NormalDistribution.h
+		* BlobsFinder.h
+				* Opencv.h
+				* Blob.h
+				* MapConverter.h
+		* FileWriter.h
+					--
+		*	ExpRatioEvaluator.h
+				* MapConverter.h
+				* FitsUtils.h
+				* AgileMap.h
+				* AlikeData5.h
+		* AgileMap.h
 
-* AG_performance-evaluator → PerformanceEvaluator.h
+* AG_performance-evaluator
+	* PerformanceEvaluator.h
 		* BlobsFinder.h
 				* Opencv.h
 				* Blob.h
@@ -159,10 +162,12 @@ Sono state individuate due tipi di soglia: una che minimizza la FPR, una che mas
 		* FolderManager.h
 		* AgileMap.h
 
-* AG_model-evaluator → BayesianModelEvaluator.h
-	* BlobsFinder.h
-		* Opencv.h
-		* Blob.h
-		* MapConverter.h
-	* FolderManager.h
-	* MapConverter.h		
+* AG_model-evaluator
+	* BayesianModelEvaluator.h
+		* BlobsFinder.h
+			* Opencv.h
+			* Blob.h
+			* MapConverter.h
+		* FolderManager.h
+		* MapConverter.h		
+		* NormalDistribution.h

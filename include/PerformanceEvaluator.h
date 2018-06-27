@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <time.h>
+#include <sstream>
 
 #include "Blob.h"
 #include "FolderManager.h"

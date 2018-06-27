@@ -64,14 +64,14 @@ class BlobsFinder
         static void computePixelsAndPhotonsOfBlob(	IntMatrixCustomMap * int_matrix_map_original,
                                                     Mat& smoothed_and_thresholded_image,
                                                     vector<Point>& contour,
-                                      							vector<pair<CustomPoint,int>>& pixelsOfBlobs,
+                                      							vector<pair<CustomPoint,int> >& pixelsOfBlobs,
                                       							vector<CustomPoint>& photonsOfBlobs
                                                  );
 
 
         // DEBUGGIN
 
-        static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string fitsFilePath, IntMatrixCustomMap * int_matrix_map);
+        static void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int> >& pixelsOfBlobs, vector<CustomPoint>& contour, string fitsFilePath, IntMatrixCustomMap * int_matrix_map);
 
         static void print01Image(Mat& image,string windowName);
 

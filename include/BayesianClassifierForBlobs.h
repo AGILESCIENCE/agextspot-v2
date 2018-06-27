@@ -6,22 +6,26 @@
  * is property of the AGILE TEAM and is strictly
  * private and confidential.
 */
-
-
 #ifndef BAYESIANCLASSIFIERFORBLOBS_H
 #define BAYESIANCLASSIFIERFORBLOBS_H
 
 #include "Blob.h"
-#include <random>
-
-
+#include "NormalDistribution.h"
 
 class BayesianClassifierForBlobs
 {
     public:
 
         // Uses already computed distribution values, hard-coded as class attributes.
-        BayesianClassifierForBlobs();
+        BayesianClassifierForBlobs() :
+              bgFrequency(0.5),
+              fluxFrequency(0.5),
+              bgAreaDistribution( 259.313, 114.337 ),
+              bgPhotonsInBlob( 2.70782, 1.06004 ),
+              bgPhotonsCloseness( 2.8795, 1.41748 ),
+              fluxAreaDistribution( 240.756, 66.9674 ),
+              fluxPhotonsInBlob( 4.26807, 1.97511 ),
+              fluxPhotonsCloseness( 1.7331, 0.873429 ) { }
 
 
         // Compute the probability for a Blob to be background and flux. Returns [ ("background", x%) , ("flux",1-x%) ]
@@ -34,9 +38,20 @@ class BayesianClassifierForBlobs
         double bgFrequency; // Assuming 0.5
         double fluxFrequency; // Assuming 0.5
 
+        // background
+        NormalDistribution bgAreaDistribution;
+        NormalDistribution bgPhotonsInBlob;
+        NormalDistribution bgPhotonsCloseness;
+
+        // flux
+        NormalDistribution fluxAreaDistribution;
+        NormalDistribution fluxPhotonsInBlob;
+        NormalDistribution fluxPhotonsCloseness;
+
+
         // Compute the probability of an attribute value, given a distribution, from the Gaussian Equation.
         // This probability will be inserted in the Bayesian Theorem in the classify() method.
-        double computeProbabilityFromDistribution(double x,normal_distribution<double> distribution);
+        double computeProbabilityFromDistribution(double x, NormalDistribution distribution);
 
 
      //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,26 +84,19 @@ class BayesianClassifierForBlobs
      //         - CONTAINS A NUMBER OF PHOTONs > 1
      //         - IS THE FIRST FLUX FOUND IN j
      //
-     // background
-        normal_distribution<double> bgAreaDistribution    = normal_distribution<double>( 259.313, 114.337 );
-        normal_distribution<double> bgPhotonsInBlob    = normal_distribution<double>( 2.70782, 1.06004 );
-        normal_distribution<double> bgPhotonsCloseness = normal_distribution<double>( 2.8795, 1.41748 );
-     //
-     // flux
-        normal_distribution<double> fluxAreaDistribution    = normal_distribution<double>( 240.756, 66.9674 );
-        normal_distribution<double> fluxPhotonsInBlob    = normal_distribution<double>( 4.26807, 1.97511 );
-        normal_distribution<double> fluxPhotonsCloseness = normal_distribution<double>( 1.7331, 0.873429 );
-     //
      ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
      /*
      // background
-        normal_distribution<double> bgPhotonsInBlob    = normal_distribution<double>( 2.92556, 1.30257 );
-        normal_distribution<double> bgPhotonsCloseness = normal_distribution<double>( 3.50439, 1.63845 );
+        NormalDistribution bgPhotonsInBlob( 2.92556, 1.30257 );
+        NormalDistribution bgPhotonsCloseness( 3.50439, 1.63845 );
      //
      // flux
-        normal_distribution<double> fluxPhotonsInBlob    = normal_distribution<double>( 4.33456, 2.03592 );
-        normal_distribution<double> fluxPhotonsCloseness = normal_distribution<double>( 1.96242, 0.999395 );
+        NormalDistribution fluxPhotonsInBlob( 4.33456, 2.03592 );
+        NormalDistribution fluxPhotonsCloseness( 1.96242, 0.999395 );
      //
      */
 };

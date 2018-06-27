@@ -86,7 +86,7 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
     	// Creating a blob if and only if it is not contained i another blob
     	if(hierarchy[indexx][3]==-1){
 
-			vector<pair<CustomPoint,int>> pixelsOfBlobsNoPadding;
+			vector<pair<CustomPoint,int> > pixelsOfBlobsNoPadding;
 			vector<CustomPoint> photonsInBlobs;
 
 			/* Compute blob's pixels */
@@ -235,7 +235,7 @@ Mat BlobsFinder::addPaddingToImage(Mat image8U){
 void BlobsFinder::computePixelsAndPhotonsOfBlob( 	IntMatrixCustomMap * int_matrix_map_original,
 													Mat& padded_smoothed_and_thresholded_image,
 													vector<Point>& contour,
-													vector<pair<CustomPoint,int>>& pixelsOfBlobs,
+													vector<pair<CustomPoint,int> >& pixelsOfBlobs,
 													vector<CustomPoint>& photonsOfBlobs
 ){
 
@@ -277,7 +277,7 @@ void BlobsFinder::computePixelsAndPhotonsOfBlob( 	IntMatrixCustomMap * int_matri
 //	DEBUGGING
 
 
-void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int>>& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, IntMatrixCustomMap * int_matrix_map){
+void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int> >& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, IntMatrixCustomMap * int_matrix_map){
 
 	int rows = int_matrix_map->rows;
 	int cols = int_matrix_map->cols;
@@ -288,7 +288,7 @@ void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<C
 	cout << "*Number of contour pixels: " << contour.size() << endl;
 
 
-	for(vector<pair<CustomPoint,int>>::iterator i = pixelsOfBlobs.begin(); i != pixelsOfBlobs.end(); i++){
+	for(vector<pair<CustomPoint,int> >::iterator i = pixelsOfBlobs.begin(); i != pixelsOfBlobs.end(); i++){
 		pair<CustomPoint,int> p = *i;
 		cout << "*(" << p.first.y << "," << p.first.x <<")"<<" gl: "<<p.second<<" photon:" <<int_matrix_map->image[p.first.y][p.first.x]<<endl;
 	}

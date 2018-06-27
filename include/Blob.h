@@ -51,7 +51,7 @@ class Blob
           Compute the gray level pixel mean of the blob.
           Compute the photon's closeness
         */
-        Blob(string filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, vector<CustomPoint> photonsInBlob, double CDELT1, double CDELT2);
+        Blob(string filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int> >& _blobPixels, vector<CustomPoint> photonsInBlob, double CDELT1, double CDELT2);
 
 
 
@@ -103,7 +103,7 @@ class Blob
         /**
             Return all the Pixels (a CustomPoint with a grey level) that are inside the blob
         */
-        vector<pair<CustomPoint,int>> getBlobPixels();
+        vector<pair<CustomPoint,int> > getBlobPixels();
 
 
         /**
@@ -129,7 +129,7 @@ class Blob
 
         vector<CustomPoint> contour;
 
-        vector<pair<CustomPoint,int>> blobPixels;
+        vector<pair<CustomPoint,int> > blobPixels;
 
         int numberOfPixels;
 

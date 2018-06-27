@@ -54,7 +54,7 @@ void BayesianModelEvaluator::computeModel(string trainingSetPath, double CDELT1,
 }
 
 
-pair<vector<Blob *>,vector<Blob *>> BayesianModelEvaluator::getAllBlobsFromTrainingSet(
+pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrainingSet(
 							vector<string> bgFileNames,
 							vector<string> fluxFileNames,
 							string trainingSetBackgroundPath,
@@ -243,28 +243,28 @@ void BayesianModelEvaluator::printMeanAndDeviation(string type, vector<Blob *>& 
 
 
 	// computing normal distributions
-	normal_distribution<double> AREA = computeNormalDistribution(area);
+	NormalDistribution AREA = computeNormalDistribution(area);
 
-	normal_distribution<double> PHOTONS = computeNormalDistribution(photons);
+	NormalDistribution PHOTONS = computeNormalDistribution(photons);
 
-	normal_distribution<double> PHOTONS_CLOSENESS = computeNormalDistribution(photons_closeness);
+	NormalDistribution PHOTONS_CLOSENESS = computeNormalDistribution(photons_closeness);
 
-    //	normal_distribution<double> PIXEL_MEAN = computeNormalDistribution(pixel_mean);
+    //	NormalDistribution PIXEL_MEAN = computeNormalDistribution(pixel_mean);
 	// ** add attribute
 
 
 	// print mean and deviation
 	cout << "\n*"<<type<<endl;
-	cout << "AR  "<< AREA.mean() 			<< " " << AREA.stddev() 		<< endl;
-	cout << "PH  "<< PHOTONS.mean() 		<< " " << PHOTONS.stddev() 		<< endl;
-	cout << "PC  "<< PHOTONS_CLOSENESS.mean() 	<< " " << PHOTONS_CLOSENESS.stddev() 	<< endl;
-	//cout << "PM  "<< PIXEL_MEAN.mean() 		<< " " << PIXEL_MEAN.stddev() 		<< endl;
+	cout << "AR  "<< AREA.getMean() 			<< " " << AREA.getStdDev() 		<< endl;
+	cout << "PH  "<< PHOTONS.getMean() 		<< " " << PHOTONS.getStdDev() 		<< endl;
+	cout << "PC  "<< PHOTONS_CLOSENESS.getMean() 	<< " " << PHOTONS_CLOSENESS.getStdDev() 	<< endl;
+	//cout << "PM  "<< PIXEL_MEAN.getMean() 		<< " " << PIXEL_MEAN.getStdDev() 		<< endl;
 	// ** add attribute
 
 
 }
 
-normal_distribution<double>  BayesianModelEvaluator::computeNormalDistribution(vector<double>& attributeValues){
+NormalDistribution BayesianModelEvaluator::computeNormalDistribution(vector<double>& attributeValues){
 
 	double mean = 0;
 	double deviation = 0;
@@ -283,7 +283,7 @@ normal_distribution<double>  BayesianModelEvaluator::computeNormalDistribution(v
         }
         deviation = sqrt(deviation/total);
 
-	normal_distribution<double> nd(mean,deviation);
+	NormalDistribution nd(mean,deviation);
 	return nd;
 }
 

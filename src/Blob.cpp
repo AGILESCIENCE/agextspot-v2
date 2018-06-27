@@ -10,7 +10,7 @@
 
 #include "Blob.h"
 
-Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int>>& _blobPixels, vector<CustomPoint> _photonsInBlob, double CDELT1, double CDELT2) : agileMapTool(_filePath.c_str())//, blobId(ID++)
+Blob::Blob(string _filePath, vector<CustomPoint>& _contourPixels, vector<pair<CustomPoint,int> >& _blobPixels, vector<CustomPoint> _photonsInBlob, double CDELT1, double CDELT2) : agileMapTool(_filePath.c_str())//, blobId(ID++)
 {
 
 	filePath = _filePath;
@@ -118,7 +118,7 @@ double Blob::computePixelMean(){
     double numberOfBlobPixels = (double)blobPixels.size();
     double greyLevelCount = 0;
 
-    for (vector<pair<CustomPoint,int>>::iterator it = blobPixels.begin(); it != blobPixels.end(); ++it){
+    for (vector<pair<CustomPoint,int> >::iterator it = blobPixels.begin(); it != blobPixels.end(); ++it){
         pair<CustomPoint,int> p= *it;
         greyLevelCount+=p.second;
     }

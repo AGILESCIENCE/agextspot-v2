@@ -11,13 +11,7 @@
 #include "BayesianClassifierForBlobs.h"
 
 
-
-BayesianClassifierForBlobs::BayesianClassifierForBlobs(){
-    /// WE ASSUME THAT THE FREQUENCIES OF THE CLASSES ARE THE SAME
-    bgFrequency = 0.5;
-    fluxFrequency = 0.5;
-}
-
+ 
 
 
 vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
@@ -71,9 +65,9 @@ vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
 }
 
 
-double BayesianClassifierForBlobs::computeProbabilityFromDistribution(double x,normal_distribution<double> distribution){
-    double mean = distribution.mean();
-    double stddev = distribution.stddev();
+double BayesianClassifierForBlobs::computeProbabilityFromDistribution(double x,NormalDistribution distribution){
+    double mean = distribution.getMean();
+    double stddev = distribution.getStdDev();
 
 
     double probability = 0;

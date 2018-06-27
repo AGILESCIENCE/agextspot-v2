@@ -81,11 +81,9 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g -O2 -pipe -I $(INCLUDE_DIR)
 
 LIBS += -lm
-
-#LIBS += -L${CURDIR}/libs -lextspot
 
 ifneq (, $(findstring agile, $(LINKERENV)))
     ifeq (, $(findstring -I $(AGILE)/include, $(CXXFLAGS)))
@@ -102,7 +100,6 @@ endif
 ifneq (, $(findstring opencv, $(LINKERENV)))
     ifeq (, $(findstring -I $(OPENCV)/include, $(CXXFLAGS)))
         CXXFLAGS += -I $(OPENCV)/include
-	CXXFLAGS += -std=c++11
     endif
     LIBS += -L$(OPENCV)/lib -lopencv_core -lopencv_highgui -lopencv_imgproc
 endif

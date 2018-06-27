@@ -14,7 +14,7 @@
 #include <AgileMap.h>
 
 
-using namespace std;
+
 
 class GammaRayDetector
 {
