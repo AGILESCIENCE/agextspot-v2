@@ -17,17 +17,17 @@ FileWriter::FileWriter()
 
 string FileWriter::convertToString(int number){
 	std::stringstream out;
-	out << number;
+	out << std::fixed << number;
 	return out.str();
 }
 string FileWriter::convertToString(float number){
 	std::stringstream out;
-	out << number;
+	out << std::fixed << number;
 	return out.str();
 }
 string FileWriter::convertToString(double number){
-	std::stringstream out;
-	out << number;
+ 	std::stringstream out;
+	out << std::fixed << number;
 	return out.str();
 }
 

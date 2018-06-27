@@ -6,4 +6,4 @@ make clean
 make agextspot
 
 
-./bin/AG_extspot-v2 logs/LOG 7.5 /home/baroncelli/AG_extspot-v2-TESTING/TestSetRealImages/F100724B.cts 50 no None
+./bin/AG_extspot-v2 logs/LOG 7.5 /home/baroncelli/AG_extspot-v2-TESTING/TestSetRealImages/F100724B.cts 50 yes None

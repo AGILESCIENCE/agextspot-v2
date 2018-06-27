@@ -86,8 +86,7 @@ void GammaRayDetector::detect()
 
 	const char * observationDateUTCtemp = agileMapTool.GetStartDate();
 	string observationDateUTC = observationDateUTCtemp;
-	double observationDateTT = agileMapTool.GetTstart();
-
+	int observationDateTT = (int) agileMapTool.GetTstart();
 
 	/// tira fuori una lista con tutti i BLOBS
 	blobs = BlobsFinder::findBlobs(imagePath, PSF, agileMapTool.GetXbin() ,agileMapTool.GetYbin(), visualizationMode);
@@ -133,7 +132,7 @@ void GammaRayDetector::detect()
 													FileWriter::convertToString(gaLat)+" "+
 													FileWriter::convertToString(fluxProbability*100)+" "+observationDateUTC+" "+
 													FileWriter::convertToString(observationDateTT)+" "+
-													FileWriter::convertToString(classificationThreshold*100)+" "+fileName+" "+expRatioString+"\n";
+													FileWriter::convertToString(classificationThreshold*100)+" "+outputLogName+" "+expRatioString+"\n";
 
 			/// Labeling
 			if(fluxProbability >= classificationThreshold){
@@ -148,7 +147,9 @@ void GammaRayDetector::detect()
 		}
 	}else{
 
-		information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+FileWriter::convertToString(observationDateTT)+" "+FileWriter::convertToString(classificationThreshold*100)+" "+fileName+"\n";
+		information2PrintForSources += "NO_BLOBS "+observationDateUTC+" "+
+																		FileWriter::convertToString(observationDateTT)+" "+
+																		FileWriter::convertToString(classificationThreshold*100)+" "+outputLogName+"\n";
 	}
 
 
