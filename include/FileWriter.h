@@ -14,6 +14,7 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>
 
 using std::string;
 using std::ofstream;
@@ -21,8 +22,7 @@ using std::ofstream;
 class FileWriter
 {
     public:
-      static void write2File(string outputFileName,string input);
-	    static void write2FileAppend(string outputFileName,string input);
+      static void write2File(string outputFileName, string input, bool append);
       static string convertToString(int number);
       static string convertToString(float number);
       static string convertToString(double number);

@@ -26,7 +26,7 @@ PerformanceEvaluator::PerformanceEvaluator(string _testSetPath, double _min_thre
 
 	string header2write = "";
 	header2write.append("Threshold Accuracy K_statistic FMeasure TPR FPR DistErrMean DistErrDev\n");
-	FileWriter::write2File(outfilename_log_for_plot, header2write);
+	FileWriter::write2File(outfilename_log_for_plot, header2write, false);
 	//}
 
 	//if(remove(outfilename_log_file.c_str()) == 0 ) {
@@ -34,7 +34,7 @@ PerformanceEvaluator::PerformanceEvaluator(string _testSetPath, double _min_thre
 
 	header2write = "";
 	header2write.append("Threshold Total Instances\t Correctly Classified\t Incorrectly Classified\t K statistic\t FNR\t    FPR\t   Accuracy\t FMeasure\t EDM\n");
-	FileWriter::write2File(outfilename_log_file, header2write);
+	FileWriter::write2File(outfilename_log_file, header2write, false);
 	//}
 
 }
@@ -391,12 +391,12 @@ void PerformanceEvaluator::computePerformance(map< string, pair < Blob* , char >
 	*/
 	string output2write = "";
 	output2write.append(FileWriter::convertToString(currentThreshold)+" "+FileWriter::convertToString(totalInstances)+" "+FileWriter::convertToString( TP + TN )+" "+FileWriter::convertToString( FP + FN )+" "+FileWriter::convertToString(k_choen)+" "+FileWriter::convertToString(falseNegativeRate)+" "+FileWriter::convertToString(falsePositiveRate)+" "+FileWriter::convertToString(accuracy)+" "+FileWriter::convertToString(f_measure)+" "+FileWriter::convertToString(errorDistancesMean)+"\n");
-	FileWriter::write2FileAppend(outfilename_log_file, output2write);
+	FileWriter::write2File(outfilename_log_file, output2write, true);
 
 	/*
 		DATA FOR CHART
 	*/
 	string outputChart2write = "";
 	outputChart2write.append(FileWriter::convertToString(currentThreshold)+" "+FileWriter::convertToString(accuracy) + " " +FileWriter::convertToString(k_choen) + " " + FileWriter::convertToString(f_measure)+ " " + FileWriter::convertToString(truePositiveRate) + " " + FileWriter::convertToString(falsePositiveRate) + " "+ FileWriter::convertToString(errorDistancesMean) + " "+ FileWriter::convertToString(errorDistancesDeviation) + "\n");
-	FileWriter::write2FileAppend(outfilename_log_for_plot, outputChart2write);
+	FileWriter::write2File(outfilename_log_for_plot, outputChart2write, true);
 }

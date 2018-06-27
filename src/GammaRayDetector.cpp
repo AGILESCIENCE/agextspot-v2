@@ -101,6 +101,7 @@ void GammaRayDetector::detect()
 	int index = 1;
 	if(blobs.size() > 0)
 	{
+		cout << "\nDetections:" << endl;
 		for(vector<Blob*>::iterator i = blobs.begin(); i != blobs.end(); i++)
 		{
 
@@ -116,7 +117,7 @@ void GammaRayDetector::detect()
 			double gaLong = b->getGalacticCentroidL();
 			double gaLat  = b->getGalacticCentroidB();
 
-			cout <<"Blob "<< index-1 <<":\n * centroid (pixel): [ "<<b->getCentroid().y<<" , "<<b->getCentroid().x<<" ]\n * centroid (degree): [ "<<gaLong<<" , "<< gaLat<<" ]\n * flux prob -> " << fluxProbability*100 << "%\n" <<endl;
+			cout <<"\nBlob "<< index-1 <<":\n * centroid (pixel): [ "<<b->getCentroid().y<<" , "<<b->getCentroid().x<<" ]\n * centroid (degree): [ "<<gaLong<<" , "<< gaLat<<" ]\n * flux prob -> " << fluxProbability*100 << "%\n" <<endl;
 
 
 
@@ -152,7 +153,7 @@ void GammaRayDetector::detect()
 
 
 
-	FileWriter::write2File(outputLogName,information2PrintForSources);
+	FileWriter::write2File(outputLogName, information2PrintForSources, false);
 
 	cout << "\n*Created Log File: " << outputLogName << "\n" <<endl;
 
