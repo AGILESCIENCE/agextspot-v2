@@ -106,6 +106,7 @@ La cartella del training set deve avere la seguente struttura:
 * training-set
 	* /bg
 	* /flux
+
 Le mappe simulate devono essere inserite all'interno delle corrispondenti cartelle a seconda se presentano una sorgente o solo background. Il tool provvederà a
 creare il training-set effettivo, estraendo i BLOBs da queste mappe etichettandoli ed analizzandone le features.
 
@@ -113,7 +114,7 @@ creare il training-set effettivo, estraendo i BLOBs da queste mappe etichettando
 ```bash
 git clone https://github.com/Leofaber/agextspot-v2
 cd agextspot-v2
-set AGILE, CFITSIO, OPENCV environment variables
+export AGILE=.. CFITSIO=.. OPENCV=..
 make training
 ./bin/AG_extspot-v2-bayesian-model-evaluator <path-training-set> <CDELT1> <CDELT2> <PSF>
 ```
@@ -126,6 +127,7 @@ make training
 
 ### AG_extspot-v2-performance-evaluator
 Lo scopo di questo tool è valutare le performances del classificatore Bayesiano di AG_extspot-v2. Per ogni step-soglia nell'intervallo [minTreshold, maxThreshold] si calcolano le seguenti variabili di prestazione:
+
 	* TP (True Positive);
 	* FP (False Positive);
 	* TN (True Negative);
@@ -152,7 +154,7 @@ Il tool provvederà a creare il test-set effettivo, estraendo i BLOBs da queste 
 ```bash
 git clone https://github.com/Leofaber/agextspot-v2
 cd agextspot-v2
-set AGILE, CFITSIO, OPENCV environment variables
+export AGILE=.. CFITSIO=.. OPENCV=..
 make training
  ./bin/AG_extspot-v2-performance-evaluator <test-set-path> <minThreshold> <maxThreshold> <step> <CDELT1> <CDELT2> <PSF>
 python draw_performance_plot.py <file-di-performances>
