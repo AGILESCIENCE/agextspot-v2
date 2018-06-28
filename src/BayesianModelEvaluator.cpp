@@ -71,7 +71,7 @@ pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrai
 	// flux blobs
 	vector<Blob *> fluxBlobs;
 
-	cout << "* Looking up for blobs in training set backgroud images.. ["<< bgFileNames.size() <<"] files"<< endl;
+	cout << "* Looking up for blobs in training set background images.. ["<< bgFileNames.size() <<"] files"<< endl;
 	int total = bgFileNames.size();
 	int count = 0;
 	int step = total/10;
