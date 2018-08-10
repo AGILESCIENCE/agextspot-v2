@@ -10,7 +10,7 @@ La rilevazione viene effettuata attraverso il seguente algoritmo:
 * calcolo delle features dei blobs estratti (numero di fotoni,indice di vicinanza fotoni)
 * utilizzo di un Naive Bayes Classifier per classificare i blobs come SOURCE o BACKGROUND.
 
-Può essere anche calcolata la valutazione exp-ratio per ogni blob trovato. Per ulteriori informazioni sulla valutazione exp-ratio si rimanda ad https://github.com/Leofaber/ExpRatioEvaluator
+Può essere anche calcolata la valutazione exp-ratio per ogni blob trovato. La routine exp-ratio permette di valutare quando una “detection” o “spot” è troppo vicina ai bordi dell’exposure del telescopio. Tutte le valutazioni vengono fatte su di una mappa exp NORMALIZZATA. (se la mappa in input NON è normalizzata, il software provvederà a normalizzarla) Restituisce un numero compreso tra 0 e 100 (0 bad).
 
 **Documentazione completa del software:** https://docs.google.com/document/d/12GUmqOhHCWN3L290vGGeJIBehVWHIcdA6kM9zK-BgcQ/
 
