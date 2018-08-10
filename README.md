@@ -188,7 +188,7 @@ python draw_performance_plot.py <file-di-performances>
 
 
 
-## Struttura del progetto
+## Albero delle dipendenze tra le classi
 
 * AG_extspot-v2
 	* GammaRayDetector.h
