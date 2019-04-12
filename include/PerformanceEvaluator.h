@@ -36,7 +36,7 @@
 
 #include "Blob.h"
 #include "FolderManager.h"
-#include "BlobsFinder.h"
+#include "AgileCountMapsBlobsFinder.h"
 #include "BayesianClassifierForBlobs.h"
 #include "FileWriter.h"
 
@@ -84,4 +84,5 @@ class PerformanceEvaluator{
 		// Confronta ogni elemento di testSet con il corrispondente elemento di predictions.
 		void computePerformance(map< string, pair < Blob * , char > >& predictions,double currentThreshold);
 
+		BlobsFinder * blobs_finder;
 };

@@ -41,6 +41,7 @@ PerformanceEvaluator::PerformanceEvaluator(string _testSetPath, double _min_thre
 	CDELT2 = _CDELT2;
 	PSF = _PSF;
 
+	blobs_finder = new AgileCountMapsBlobsFinder(PSF, CDELT1, CDELT2);
 	std::stringstream ss;
 	ss <<	time(&timer);
 	std::string timeStr = ss.str();
@@ -120,7 +121,7 @@ void PerformanceEvaluator::createTestSetMap() {
 
 
 		// Trovo i blobs all'interno dell'imagine tramite Blobs finder
-		vector<Blob*> blobs = BlobsFinder::findBlobs(imagePathName, PSF, agileMapTool.GetXbin() ,agileMapTool.GetYbin(), false);
+		vector<Blob*> blobs = blobs_finder->findBlobs(imagePathName, false);
 
 		int countBlob = 0;
 		bool fluxFound = false;

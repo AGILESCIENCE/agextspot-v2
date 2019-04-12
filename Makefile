@@ -39,8 +39,9 @@ LINKERENV= pil, agile, opencv, cfitsio, root, wcs
 
 # Applications
 AG_EXTSPOT = AG_extspot-v2
-AG_EXTSPOT-PERFORMANCE-EVALUATOR = AG_extspot-v2-performance-evaluator
-AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR = AG_extspot-v2-bayesian-model-evaluator
+AG_EXTSPOT-PERFORMANCE-EVALUATOR = AG_extspot_v2_performance_evaluator
+AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR = AG_extspot_v2_bayesian_model_evaluator
+AG_EXTSPOT-BLOBS-LIST-GENERATOR = AG_extspot_v2_blobs_list_generator
 
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -81,7 +82,7 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g -O2 -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g  -std=c++11 -O2 -pipe -I $(INCLUDE_DIR)
 
 LIBS += -lm
 
@@ -124,6 +125,8 @@ ifneq (, $(findstring pil, $(LINKERENV)))
     LIBS += -L$(AGILE)/lib -lagilepil
 endif
 
+CXXFLAGS += -I rapidjson
+
 
 AR       = ar cqs
 TAR      = tar -cf
@@ -147,12 +150,15 @@ INCLUDE=$(foreach dir,$(INCLUDE_DIR), $(wildcard $(dir)/*.h))
 SOURCE=$(foreach dir,$(SOURCE_DIR), $(wildcard $(dir)/*.cpp))
 OBJECTS=$(addsuffix .o, $(basename $(notdir $(SOURCE))))
 
+
+
+
+
 # Pattern rule
 #%.o : $(SOURCE_DIR)/%.cpp
 #	$(CXX) $(CXXFLAGS) -c $< -o $@
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $(OBJECTS_DIR)/$@
-
 
 
 
@@ -165,7 +171,7 @@ makeobjdir:
 agextspot: $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT) $(LIBS)
- 
+
 performance: $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT-PERFORMANCE-EVALUATOR) $(LIBS) #$(INCLUDE_DIR)/PerformanceEvaluator.h $(SOURCE_DIR)/PerformanceEvaluator.cpp
@@ -174,6 +180,12 @@ performance: $(PROJECTS_DIR)/AG_extspot-v2-performance-evaluator.cpp $(OBJECTS)
 bayesian: $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot-v2-bayesian-model-evaluator.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BAYESIAN-MODEL-EVALUATOR) $(LIBS) # $(INCLUDE_DIR)/BayesianModelEvaluator.h $(SOURCE_DIR)/BayesianModelEvaluator.cpp
+
+blobslistgen:  $(PROJECTS_DIR)/AG_extspot_v2_blobs_list_generator.cpp $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CXXFLAGS) $(PROJECTS_DIR)/AG_extspot_v2_blobs_list_generator.cpp $(OBJECTS_DIR)/*.o -o $(EXE_DESTDIR)/$(AG_EXTSPOT-BLOBS-LIST-GENERATOR) $(LIBS)
+
+
 
 
 #clean: delete all files from the current directory that are normally created by building the program.

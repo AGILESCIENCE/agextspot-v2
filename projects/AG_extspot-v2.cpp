@@ -67,7 +67,7 @@ int main(int argc, char*argv[]){
 	double squareSize 				= params["squareSize"];
 	double visualizationMode 		= params["visualizationMode"];
 
-    // PRINT INPUT PARAMETERS -------------------------------------
+  // PRINT INPUT PARAMETERS -------------------------------------
 	params.Print();
 
 	cout << "CDELT=0.5" << endl;

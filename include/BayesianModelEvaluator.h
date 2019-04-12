@@ -32,7 +32,7 @@
 #include <vector>
 
 #include "FolderManager.h"
-#include "BlobsFinder.h"
+#include "AgileCountMapsBlobsFinder.h"
 #include "MapConverter.h"
 #include "NormalDistribution.h"
 

@@ -30,7 +30,7 @@
 #include "GammaRayDetector.h"
 
 
-GammaRayDetector::GammaRayDetector(double _PSF,
+GammaRayDetector::GammaRayDetector(double _psf,
 								   const char * _imagePath,
 								   const char * _outputLogName,
 								   double _classificationThreshold,
@@ -48,7 +48,7 @@ GammaRayDetector::GammaRayDetector(double _PSF,
 
 
 {
-	PSF = _PSF;
+	psf = _psf;
 	imagePath = _imagePath;
 	imageExpPath = _imageExpPath;
 
@@ -85,6 +85,8 @@ GammaRayDetector::GammaRayDetector(double _PSF,
 
  	classificationThreshold = _classificationThreshold/100;
 
+	blobs_finder = new AgileCountMapsBlobsFinder(psf, agileMapTool.GetXbin() ,agileMapTool.GetYbin());
+
 }
 
 
@@ -108,7 +110,7 @@ void GammaRayDetector::detect()
 	int observationDateTT = (int) agileMapTool.GetTstart();
 
 	/// tira fuori una lista con tutti i BLOBS
-	blobs = BlobsFinder::findBlobs(imagePath, PSF, agileMapTool.GetXbin() ,agileMapTool.GetYbin(), visualizationMode);
+	blobs = blobs_finder->findBlobs(imagePath, visualizationMode);
 
 	//cout << "SIZE: " << blobs.size()<<endl;
 

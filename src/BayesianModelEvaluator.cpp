@@ -51,7 +51,7 @@ void BayesianModelEvaluator::computeModel(string trainingSetPath, double CDELT1,
 
 
 
-    cout << "\nAnalysis started: " << fileNamesBackground.size() + fileNamesFlux.size() << " files need to be analyzed." << endl;
+  cout << "\nAnalysis started: " << fileNamesBackground.size() + fileNamesFlux.size() << " files need to be analyzed." << endl;
 
 	// Get all training instances
 	pair<vector<Blob *> , vector<Blob *> > bgAndfluxBlobs = BayesianModelEvaluator::getAllBlobsFromTrainingSet(fileNamesBackground,fileNamesFlux,  trainingSetBackgroundPath, trainingSetFluxPath, CDELT1, CDELT2, PSF);
@@ -112,9 +112,10 @@ pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrai
 		string filename = *it;
 		string fitsFilePath = trainingSetBackgroundPath + "/" + filename;
 
+		BlobsFinder * blobs_finder = new AgileCountMapsBlobsFinder(PSF, CDELT1, CDELT2);
 
 		// search for blobs
-		vector<Blob *> blobs = BlobsFinder::findBlobs(fitsFilePath, PSF, CDELT1, CDELT2, false);
+		vector<Blob *> blobs = blobs_finder->findBlobs(fitsFilePath, false);
 
 
 		// add blobs to all blobs list
@@ -150,8 +151,9 @@ pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrai
 		string filename = *it;
 		string fitsFilePath = trainingSetFluxPath + "/" + filename;
 
+		BlobsFinder * blobs_finder = new AgileCountMapsBlobsFinder(PSF, CDELT1, CDELT2);
 		// search blobs
-		vector<Blob *> blobs = BlobsFinder::findBlobs(fitsFilePath, PSF, CDELT1, CDELT2, false);
+		vector<Blob *> blobs = blobs_finder->findBlobs(fitsFilePath, false);
 
 		int countFlux = 0;
 

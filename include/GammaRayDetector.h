@@ -27,30 +27,32 @@
  */
 ////////////////////////////////////////////////////////////////////////////////////
 
-#include "BayesianClassifierForBlobs.h"
-#include "BlobsFinder.h"
-#include "FileWriter.h"
-#include "ExpRatioEvaluator.h"
 
+#ifndef GAMMARAYDETECTOR_H
+#define GAMMARAYDETECTOR_H
+
+#include <ExpRatioEvaluator.h>
 #include <AgileMap.h>
 
-
+#include "BayesianClassifierForBlobs.h"
+#include "AgileCountMapsBlobsFinder.h"
+#include "FileWriter.h"
 
 
 class GammaRayDetector
 {
 public:
 
-    /**
-        User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
-    */
+  /**
+      User has to specify the path to the FITS file, the name of the output file, the classification threshold as an interger or a floating point number
+  */
 	GammaRayDetector(double PSF, const char * imageCtsPath, const char * outputLogName, double classificationThreshold, const char * imageExpPath, bool isExpMapNormalizedBool, bool createExpNormalizedMap,bool createExpRatioMap, double minTreshold, double maxTreshold, double squareSize, bool visualizationMode);
 
 	~GammaRayDetector();
 	/**
-        Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
-    */
-    void detect();
+			Open the fits file, convert it to Mat image, extract blobs, classify them with bayesian classifier.
+	*/
+	void detect();
 
 
 private:
@@ -65,7 +67,7 @@ private:
 
 
 
-	double PSF;
+	double psf;
 	string imagePath;
 	string outputLogName;
 	string fileName;
@@ -83,4 +85,7 @@ private:
 	BayesianClassifierForBlobs reverendBayes;
 	AgileMap agileMapTool;
 	ExpRatioEvaluator* exp;
+	BlobsFinder * blobs_finder;
  };
+
+#endif

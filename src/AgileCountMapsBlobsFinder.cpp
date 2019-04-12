@@ -28,27 +28,27 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-#include "BlobsFinder.h"
+#include "AgileCountMapsBlobsFinder.h"
 
-BlobsFinder::BlobsFinder()
+AgileCountMapsBlobsFinder::AgileCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf) : BlobsFinder(_cdelt1, _cdelt2, _psf)
 {
-    //ctor
+	file_format = "AGILE COUNT MAP";
 }
+
+string AgileCountMapsBlobsFinder::get_format()
+{
+		return file_format;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 //		Extraction of blobs from FITS sky images
 //
 
-vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
-										double PSF,
-										double CDELT1,
-										double CDELT2,
-										bool VISUALIZATION_MODE
-									) {
+vector<Blob*> AgileCountMapsBlobsFinder::findBlobs(string fitsfilePath, bool debug) {
 
-
-	bool debug = VISUALIZATION_MODE;
 
 	vector<Blob*> blobs;
 
@@ -70,30 +70,30 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
 
 			}
 		}
-		BlobsFinder::print01Image(photonsMap,"original");
+		print01Image(photonsMap,"original");
 	}
 
 
 
 
 	/* Smoothing */
-	Mat workingImage8U = BlobsFinder::gassusianSmoothing(int_matrix_map, PSF, CDELT1, CDELT2, debug);
+	Mat workingImage8U = gassusianSmoothing(int_matrix_map, psf, cdelt1, cdelt2, debug);
 
 
 
 	/* Thresholding */
-	workingImage8U = BlobsFinder::thresholding(workingImage8U, debug);
+	workingImage8U = thresholding(workingImage8U, debug);
 
 
 
 	/* Add padding to image */
-	Mat workingImage8UWithPadding = BlobsFinder::addPaddingToImage(workingImage8U);
+	Mat workingImage8UWithPadding = addPaddingToImage(workingImage8U);
 
 
 
 	/* Find contours */
 	vector<vector<Point> > contoursImage8UWithPadding;
-    vector<Vec4i> hierarchy;
+  vector<Vec4i> hierarchy;
 	findContours(workingImage8UWithPadding, contoursImage8UWithPadding, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
 
@@ -101,7 +101,7 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
 	int indexx=0;
 	for(vector<vector<Point> >::iterator i = contoursImage8UWithPadding.begin(); i < contoursImage8UWithPadding.end(); i++){
 
-        vector<Point> currentContuorWithPadding = *i;
+      vector<Point> currentContuorWithPadding = *i;
 
     	// Creating a blob if and only if it is not contained i another blob
     	if(hierarchy[indexx][3]==-1){
@@ -110,13 +110,13 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
 			vector<CustomPoint> photonsInBlobs;
 
 			/* Compute blob's pixels */
-			BlobsFinder::computePixelsAndPhotonsOfBlob(
-															int_matrix_map,
-															workingImage8UWithPadding,
-															currentContuorWithPadding,
-													 		pixelsOfBlobsNoPadding,
-													 		photonsInBlobs
-														);
+			computePixelsAndPhotonsOfBlob(
+																			int_matrix_map,
+																			workingImage8UWithPadding,
+																			currentContuorWithPadding,
+																	 		pixelsOfBlobsNoPadding,
+																	 		photonsInBlobs
+																	 );
 
 			/* Remove padding from contour & Convert vector<Point> to vector<CustomPoint> */
 			vector<CustomPoint> currentCustomContuorNoPadding;
@@ -135,12 +135,13 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
 				made by only 1 photon and this can alter the photon closeness distribution.
 			*/
 			if( photonsInBlobs.size() >= 2) {
-				Blob* b = new Blob(fitsfilePath, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs, CDELT1, CDELT2);
+				//cout << "DEBUG: " << cdelt1 << cdelt2 << psf << rows << cols << endl;
+				Blob* b = new Blob(fitsfilePath, cdelt1, cdelt2, psf, rows, cols, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs);
 				blobs.push_back(b);
 			}
 			/* Handling errors
 			else if(photonsInBlobs.size() == 0){
-				BlobsFinder::reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,fitsfilePath,int_matrix_map);
+				reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,fitsfilePath,int_matrix_map);
 				exit(EXIT_FAILURE);
 			}*/
 		}
@@ -158,7 +159,7 @@ vector<Blob*> BlobsFinder::findBlobs(	string fitsfilePath,
 
 
 
-Mat BlobsFinder::gassusianSmoothing(IntMatrixCustomMap * int_matrix_map, double PSF, double CDELT1, double CDELT2, bool debug){
+Mat AgileCountMapsBlobsFinder::gassusianSmoothing(IntMatrixCustomMap * int_matrix_map, float psf, float cdelt1, float cdelt2, bool debug){
 
 	int rows = int_matrix_map->rows;
 	int cols = int_matrix_map->cols;
@@ -174,9 +175,9 @@ Mat BlobsFinder::gassusianSmoothing(IntMatrixCustomMap * int_matrix_map, double 
 
 
 	/* Gaussian smoothing */
-	int kernelSize = (2 * PSF/CDELT2) + 1;
+	int kernelSize = (2 * psf/cdelt2) + 1;
 	Mat workingImage32FSmoothed;
-	GaussianBlur(workingImage32F, workingImage32FSmoothed, Size(kernelSize, kernelSize), PSF, 0, 0); // 17x17 2.5    23x23 3	21x21 4
+	GaussianBlur(workingImage32F, workingImage32FSmoothed, Size(kernelSize, kernelSize), psf, 0, 0); // 17x17 2.5    23x23 3	21x21 4
 
 
 	/* Convert back to 8UC1 with linear stretching */
@@ -187,13 +188,13 @@ Mat BlobsFinder::gassusianSmoothing(IntMatrixCustomMap * int_matrix_map, double 
 
 
 	if(debug){
-		BlobsFinder::printImage(workingImage32FSmoothed, "gaussianBlur32F", "32F");
+		printImage(workingImage32FSmoothed, "gaussianBlur32F", "32F");
 	}
 
 	return workingImage8U;
 }
 
-Mat BlobsFinder::thresholding(Mat workingImage8U, bool debug){
+Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U, bool debug){
 
 	int rows = workingImage8U.rows;
 	int cols = workingImage8U.cols;
@@ -226,10 +227,10 @@ Mat BlobsFinder::thresholding(Mat workingImage8U, bool debug){
 		}
 	}
 	if(debug){
-		//BlobsFinder::drawImageHistogram(hist,histSize);
-		BlobsFinder::printImage(workingImageThresholded8U, "workingImageThresholded8U Thresholded", "8U");
-  		calcHist(&workingImageThresholded8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
-		BlobsFinder::drawImageHistogram(hist,histSize);
+		//drawImageHistogram(hist,histSize);
+		printImage(workingImageThresholded8U, "workingImageThresholded8U Thresholded", "8U");
+  	calcHist(&workingImageThresholded8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
+		drawImageHistogram(hist,histSize);
 	}
 	return workingImageThresholded8U;
 	/* ------------------  */
@@ -237,7 +238,7 @@ Mat BlobsFinder::thresholding(Mat workingImage8U, bool debug){
 
 
 
-Mat BlobsFinder::addPaddingToImage(Mat image8U){
+Mat AgileCountMapsBlobsFinder::addPaddingToImage(Mat image8U){
 	int rows = image8U.rows;
 	int cols = image8U.cols;
 
@@ -252,7 +253,7 @@ Mat BlobsFinder::addPaddingToImage(Mat image8U){
 
 }
 
-void BlobsFinder::computePixelsAndPhotonsOfBlob( 	IntMatrixCustomMap * int_matrix_map_original,
+void AgileCountMapsBlobsFinder::computePixelsAndPhotonsOfBlob( 	IntMatrixCustomMap * int_matrix_map_original,
 													Mat& padded_smoothed_and_thresholded_image,
 													vector<Point>& contour,
 													vector<pair<CustomPoint,int> >& pixelsOfBlobs,
@@ -297,13 +298,13 @@ void BlobsFinder::computePixelsAndPhotonsOfBlob( 	IntMatrixCustomMap * int_matri
 //	DEBUGGING
 
 
-void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int> >& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, IntMatrixCustomMap * int_matrix_map){
+void AgileCountMapsBlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int> >& pixelsOfBlobs, vector<CustomPoint>& contour, string filePath, IntMatrixCustomMap * int_matrix_map){
 
 	int rows = int_matrix_map->rows;
 	int cols = int_matrix_map->cols;
 
 
-	cout << "*BlobsFinder Error: 0 fotoni nel blob! File: "<< filePath << endl;
+	cout << "*AgileCountMapsBlobsFinder Error: 0 fotoni nel blob! File: "<< filePath << endl;
 	cout << "*Number of pixels: " << pixelsOfBlobs.size() << endl;
 	cout << "*Number of contour pixels: " << contour.size() << endl;
 
@@ -330,7 +331,7 @@ void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<C
 	///DRAW CENTROID
 	//CustomPoint centroid = b->getCentroid();
 	//workingImage8U3C.at<Vec3b>(centroid.y,centroid.x) = Vec3b(0,0,255);
-	BlobsFinder::printImage(workingImage8U3C, "Debug", "8U");
+	printImage(workingImage8U3C, "Debug", "8U");
 	waitKey();
 
 
@@ -340,7 +341,7 @@ void BlobsFinder::reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<C
 
 
 
-void BlobsFinder::printImageInConsole(Mat& image, string type){
+void AgileCountMapsBlobsFinder::printImageInConsole(Mat& image, string type){
 	cout << "\n\n" << endl;
 	for(int i = 0; i < image.rows; i++){
 		for(int j =0; j < image.cols; j++){
@@ -354,14 +355,14 @@ void BlobsFinder::printImageInConsole(Mat& image, string type){
 }
 
 
-void BlobsFinder::print01Image(Mat& image, string windowName){
+void AgileCountMapsBlobsFinder::print01Image(Mat& image, string windowName){
 	Mat toShow = image.clone();
 	image.convertTo(toShow, CV_8U, 255.0, 0);
 	resize(toShow, toShow, Size(), 4, 4, INTER_LINEAR);
 	namedWindow(windowName, CV_WINDOW_AUTOSIZE);
 	imshow(windowName, toShow);
 }
-void BlobsFinder::printImage(Mat& image, string windowName, string type){
+void AgileCountMapsBlobsFinder::printImage(Mat& image, string windowName, string type){
 
 	Mat toShow;
 	if( type == "8U" ){
@@ -382,14 +383,14 @@ void BlobsFinder::printImage(Mat& image, string windowName, string type){
 
 }
 
-void BlobsFinder::printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName){
+void AgileCountMapsBlobsFinder::printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName){
 	Mat temp3ChannelImage(rows,cols, CV_32FC3, Scalar(0,0,0));
 	for(vector<Blob>::iterator i = blobs.begin(); i != blobs.end(); i++){
 		printImageBlob(temp3ChannelImage,*i,windowName);
 	}
 //	waitKey(0);
 }
-void BlobsFinder::printImageBlob(Mat& inputImage, Blob& b, string windowName) {
+void AgileCountMapsBlobsFinder::printImageBlob(Mat& inputImage, Blob& b, string windowName) {
 
 	Mat tempInputImage = inputImage.clone();
 
@@ -412,7 +413,7 @@ void BlobsFinder::printImageBlob(Mat& inputImage, Blob& b, string windowName) {
 }
 
 
-void BlobsFinder::drawImageHistogram(Mat& hist, int histSize){
+void AgileCountMapsBlobsFinder::drawImageHistogram(Mat& hist, int histSize){
 
 	int hist_w = 512;
 	int hist_h = 400;
