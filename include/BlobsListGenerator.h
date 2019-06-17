@@ -4,6 +4,7 @@
 #include <string>
 
 #include "AgileCountMapsBlobsFinder.h"
+#include "HealPixCountMapsBlobsFinder.h"
 #include "FolderManager.h"
 
 using std::string;

@@ -28,7 +28,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef AGILECOUNTMAPSBLOBSFINDER_H
-#define AGILECOUNTMAPSBLOBSFINDER_H_H
+#define AGILECOUNTMAPSBLOBSFINDER_H
 
 #include <map>
 #include <iostream>
@@ -45,6 +45,8 @@
 #include "BlobsFinder.h"
 
 using namespace cv;
+using std::make_pair;
+using std::fixed;
 
 class AgileCountMapsBlobsFinder : public BlobsFinder
 {

@@ -30,8 +30,12 @@
 #ifndef BAYESIANCLASSIFIERFORBLOBS_H
 #define BAYESIANCLASSIFIERFORBLOBS_H
 
+#include <utility> // std::pair
+
 #include "Blob.h"
 #include "NormalDistribution.h"
+
+using std::make_pair;
 
 class BayesianClassifierForBlobs
 {

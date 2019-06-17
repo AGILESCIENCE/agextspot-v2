@@ -8,7 +8,16 @@ BlobsListGenerator::BlobsListGenerator(string _counts_map_folder_path, bool _hea
   cdelt1 = _cdelt1;
   cdelt2 = _cdelt2;
   psf = _psf;
-  blobs_finder = new AgileCountMapsBlobsFinder(cdelt1, cdelt2, psf);
+
+  if( healpix == true ){
+
+    blobs_finder = new HealPixCountMapsBlobsFinder(cdelt1, cdelt2, psf);
+
+  }else{
+
+    blobs_finder = new AgileCountMapsBlobsFinder(cdelt1, cdelt2, psf);
+
+  }
 
 }
 
@@ -25,6 +34,7 @@ void BlobsListGenerator::generate(bool shuffle_dataset) {
 
     cout << "Format: " << blobs_finder->get_format() << endl;
     vector<Blob*> blobs = blobs_finder->findBlobs(fits_file_path, false);
+    exit(0);
 
     for(vector<Blob *>::iterator blob_it = blobs.begin() ; blob_it < blobs.end(); blob_it++){
 
