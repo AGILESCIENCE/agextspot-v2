@@ -31,6 +31,7 @@
 #define BAYESIANCLASSIFIERFORBLOBS_H
 
 #include "AgileBlob.h"
+#include <utility> // std::pair
 #include "NormalDistribution.h"
 
 using std::make_pair;
@@ -109,7 +110,7 @@ class BayesianClassifierForBlobs
      //
      ////////////////////////////////////////////////////////////////////////////////////////////
 
-
+ 
 
 
      /*

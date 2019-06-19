@@ -35,7 +35,7 @@ endif
 
 SYSTEM= $(shell gcc -dumpmachine)
 #ice, ctarta, mpi, cfitsio
-LINKERENV= pil, agile, opencv, cfitsio, root, wcs
+LINKERENV= pil, agile, opencv, cfitsio, root, wcs, healpix
 
 # Applications
 AG_EXTSPOT = AG_extspot-v2
@@ -82,7 +82,7 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g  -std=c++11 -O2 -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g -std=c++11 -O2 -pipe -I $(INCLUDE_DIR)
 
 LIBS += -lm
 
@@ -123,6 +123,12 @@ ifneq (, $(findstring pil, $(LINKERENV)))
         CXXFLAGS += -I $(AGILE)/include
     endif
     LIBS += -L$(AGILE)/lib -lagilepil
+endif
+ifneq (, $(findstring healpix, $(LINKERENV)))
+    ifeq (,$(findstring -I $(HEALPIX_INCDIR), $(CXXFLAGS)))
+        CXXFLAGS += -I $(HEALPIX_INCDIR)
+    endif
+    LIBS += -L$(HEALPIX_LIBDIR) -lhealpix_cxx -lcxxsupport -lsharp -lfftpack -lc_utils -lcfitsio#-lsharp -lfftpack -lcxxsupport -lc_utils
 endif
 
 CXXFLAGS += -I rapidjson

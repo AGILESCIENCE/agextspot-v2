@@ -27,33 +27,56 @@
  */
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BLOBS_FINDER_H
-#define BLOBS_FINDER_H
+#ifndef HEALPIX_COUNT_MAPS_BLOBS_FINDER_H
+#define HEALPIX_COUNT_MAPS_BLOBS_FINDER_H
 
-#include <string>
+#include <map>
+#include <iostream>
+#include <math.h>  // ceil ( )
+#include <iomanip>
+#include <iostream>
+#include <vector>
+// #include <cmath>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <healpix_map.h>
+#include <healpix_base.h>
+#include <healpix_map_fitsio.h>
 
 #include "Blob.h"
+#include "BlobsFinder.h"
+#include "MapConverter.h"
 
 using std::string;
+using std::cout;
+using std::endl;
+using std::vector;
+using namespace cv;
 
-class BlobsFinder {
+
+class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
   public:
 
-    BlobsFinder(float _cdelt1, float _cdelt2, float _psf): cdelt1(_cdelt1), cdelt2(_cdelt2), psf(_psf) {}
+    HealPixCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
 
-    virtual vector<Blob *> find_blobs(string fitsfilePath, bool debug) = 0;
+    vector<Blob*> findBlobs(string fitsfilePath, bool debug);
 
-    virtual string get_format() = 0;
+    string get_format();
 
-  protected:
+  private:
 
-    float cdelt1;
-    float cdelt2;
-    float psf;
-    string file_format;
+    float * gassusianSmoothing(Healpix_Map<int> map, float * convolved_data, int nPix, int mresRound, float max, float psf, float cdelt1, float cdelt2, bool debug);
+
+    float ** filterCreation(int kernel_side);
+
+    Healpix_Map<float> thresholding(float * convolved_data, long int nPix, int mresRound);
+
+    vector <pair<int,int>> findConnectedComponent(Healpix_Map<float> thresholdedMap, int mresRound);
+
 
 };
-
 
 #endif

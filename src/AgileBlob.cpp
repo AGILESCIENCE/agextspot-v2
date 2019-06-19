@@ -121,7 +121,7 @@ double AgileBlob::get_spherical_distance_from_centroid(MapCoords photon)
 }
 
 
-void AgileBlob::build_json_encoding(string filepath, float cdelt1, float cdelt2, float psf, int kernel_side_size)
+void AgileBlob::build_json_encoding(string filepath)
 {
   // take these from the parent
   rapidjson::Value& json_meta = get_json_meta();
@@ -132,17 +132,17 @@ void AgileBlob::build_json_encoding(string filepath, float cdelt1, float cdelt2,
   rapidjson::Value f_p(rapidjson::StringRef(filepath.c_str()));
 	json_meta.AddMember("file_path", f_p, allocator);
 
-	rapidjson::Value cd_1(cdelt1);
-	json_meta.AddMember("cdelt1", cd_1, allocator);
+	//rapidjson::Value cd_1(cdelt1);
+	//json_meta.AddMember("cdelt1", cd_1, allocator);
 
-	rapidjson::Value cd_2(cdelt2);
-	json_meta.AddMember("cdelt2", cd_2, allocator);
+	//rapidjson::Value cd_2(cdelt2);
+	//json_meta.AddMember("cdelt2", cd_2, allocator);
 
-	rapidjson::Value p(psf);
-	json_meta.AddMember("psf", p, allocator);
+	//rapidjson::Value p(psf);
+	//json_meta.AddMember("psf", p, allocator);
 
-	rapidjson::Value kss(kernel_side_size);
-	json_meta.AddMember("gauss_kernel_side_size", kss, allocator);
+	//rapidjson::Value kss(kernel_side_size);
+	//json_meta.AddMember("gauss_kernel_side_size", kss, allocator);
 
 
   rapidjson::Value pix_centr(rapidjson::kObjectType);

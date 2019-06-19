@@ -44,6 +44,8 @@
 #include "BlobsFinder.h"
 
 using namespace cv;
+using std::make_pair;
+using std::fixed;
 
 using std::make_pair;
 using std::fixed;

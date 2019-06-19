@@ -203,3 +203,6 @@ IntMatrixCustomMap* MapConverter::fitsMapToIntMatrix(const char * imagePath){
 
  	return map;
 }
+
+
+}

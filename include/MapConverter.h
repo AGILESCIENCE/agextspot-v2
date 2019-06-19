@@ -31,8 +31,14 @@
 #define MAPCONVERTER_H
 
 #include "FitsUtils.h"
+
+#include <healpix_map.h>
+#include <healpix_base.h>
+#include <healpix_map_fitsio.h>
+
 #include <iostream>
 #include <string>
+#include <math.h>
 
 using std::string;
 using std::cout;
@@ -56,7 +62,7 @@ class IntMatrixCustomMap {
 
 
 		~IntMatrixCustomMap(){
-			for (  int i = 0; i < rows; i++){
+			for (  int i = 0; i < rows; i++ ){
 				delete [] image[i];
 			}
 			delete [] image;
@@ -122,7 +128,7 @@ class MapConverter
 		// Convert an image in a **double matrix
 		static DoubleMatrixCustomMap * fitsMapToDoubleMatrix(const char * fitsImagePath);
 
-		// Convert an image in a **double matrix
+		// Convert an image in a **int matrix
 		static IntMatrixCustomMap * fitsMapToIntMatrix(const char * fitsImagePath);
 
 

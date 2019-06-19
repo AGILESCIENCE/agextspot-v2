@@ -117,7 +117,7 @@ class Blob
 		// VIRTUAL
 		virtual MapCoords compute_centroid() = 0; // Subclasses must implement this
 		virtual float compute_blobs_area_degrees() = 0;  // Subclasses must implement this
-
+    virtual void build_json_encoding(string filepath) = 0; // Subclasses must implement this
 
 
 		float compute_grey_levels_mean();
