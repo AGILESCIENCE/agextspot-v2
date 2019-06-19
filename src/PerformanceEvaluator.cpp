@@ -121,7 +121,7 @@ void PerformanceEvaluator::createTestSetMap() {
 
 
 		// Trovo i blobs all'interno dell'imagine tramite Blobs finder
-		vector<Blob*> blobs = blobs_finder->findBlobs(imagePathName, false);
+		vector<Blob*> blobs = blobs_finder->find_blobs(imagePathName, false);
 
 		int countBlob = 0;
 		bool fluxFound = false;
@@ -130,7 +130,8 @@ void PerformanceEvaluator::createTestSetMap() {
 
 		for(vector<Blob *>::const_iterator it = blobs.begin(); it < blobs.end(); ++it ) {
 
-			Blob * b = *it;
+
+			AgileBlob * b = static_cast<AgileBlob *>(*it);
 
 			string blobIdentifier = imagePathName;
 
@@ -140,7 +141,7 @@ void PerformanceEvaluator::createTestSetMap() {
 			if( imageName.compare(0,1,"B") == 0 ){
 				testSet.insert(make_pair(blobIdentifier, make_pair(b,'B')));
 			}
-			else if(b->getNumberOfPhotonsInBlob() > 1 && b->isCentered() && !fluxFound ){
+			else if(b->get_number_of_photons() > 1 && b->is_centered() && !fluxFound ){
 				fluxFound = true;
 				testSet.insert(make_pair(blobIdentifier, make_pair(b, 'F')));
 			}
@@ -182,7 +183,6 @@ map< string, pair < Blob * , char > > PerformanceEvaluator::createPredictionsMap
 		// blob pointer
 		Blob * blobPtr = i->second.first;
 
-		CustomPoint centroid = blobPtr->getGalacticCentroid();
 
 		vector<pair<string,double> > predicted = reverendBayes.classify(blobPtr);
 
@@ -321,7 +321,7 @@ void PerformanceEvaluator::computePerformance(map< string, pair < Blob* , char >
 		*/
 		if(realLabel == 'F' && predictedLabel == 'F'){
 			// predicted centroid
-			CustomPoint predictedCentroid = blob->getCentroid();
+			MapCoords predictedCentroid = blob->get_galactic_centroid();
 
 			string newPath = "";
 			size_t foundPatternBLOB = predictionInstanceIdentifier.find("_BLOB");

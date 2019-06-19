@@ -5,24 +5,21 @@
 
 #include "AgileCountMapsBlobsFinder.h"
 #include "FolderManager.h"
+#include "FileWriter.h"
 
 using std::string;
 
 
-class BlobsListGenerator {
+class BlobsListGenerator
+{
 
   public:
 
-    BlobsListGenerator(string counts_map_folder_path, bool healpix, float cdelt1, float cdelt2, float psf);
+    BlobsListGenerator( string map_format, float cdelt1, float cdelt2, float psf);
 
-    void generate(bool shuffle_dataset);
+    void generate(string counts_map_folder_path, string output_filepath, bool shuffle_dataset);
 
   private:
-    string counts_map_folder_path;
-    bool healpix;
-    float cdelt1;
-    float cdelt2;
-    float psf;
 
     BlobsFinder * blobs_finder;
 };

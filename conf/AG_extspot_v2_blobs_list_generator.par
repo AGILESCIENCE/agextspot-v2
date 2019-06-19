@@ -1,6 +1,7 @@
 counts_map_folder_path,s,ql,"/default/location",,,"The path to the folder that contains the dataset."
-healpix,b,ql,no,,,"If 'yes' (or 'y') it is asserted that the map is in HealPix format. Insert 'no' (or 'n') if the maps are in AGILE counts map format."
+map_format,b,ql,agile,,,"'agile','healpix'"
 cdelt1,r,ql,0.5,,,"Degree pixel size (width)"
 cdelt2,r,ql,0.5,,,"Degree pixel size (height))"
 psf,r,ql,7.5,,,"The telescope's spread point function (degree)"
 shuffle_dataset,b,ql,no,,,"If 'yes' (or 'y') the filenames will be shuffled. Insert 'no' (or 'n') instead."
+output_filepath,s,ql,blobs.json,,,"The name of the output file"

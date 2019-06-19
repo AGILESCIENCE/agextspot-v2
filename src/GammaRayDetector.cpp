@@ -31,17 +31,17 @@
 
 
 GammaRayDetector::GammaRayDetector(double _psf,
-								   const char * _imagePath,
-								   const char * _outputLogName,
-								   double _classificationThreshold,
-								   const char * _imageExpPath,
-								   bool isExpMapNormalizedBool,
-								   bool createExpNormalizedMap,
-								   bool createExpRatioMap,
-								   double minTreshold,
-								   double maxTreshold,
-								   double squareSize,
-							   	 bool _visualizationMode ) :
+																   const char * _imagePath,
+																   const char * _outputLogName,
+																   double _classificationThreshold,
+																   const char * _imageExpPath,
+																   bool isExpMapNormalizedBool,
+																   bool createExpNormalizedMap,
+																   bool createExpRatioMap,
+																   double minTreshold,
+																   double maxTreshold,
+																   double squareSize,
+															   	 bool _visualizationMode ) :
 
 	reverendBayes(),
 	agileMapTool(_imagePath)
@@ -110,7 +110,7 @@ void GammaRayDetector::detect()
 	int observationDateTT = (int) agileMapTool.GetTstart();
 
 	/// tira fuori una lista con tutti i BLOBS
-	blobs = blobs_finder->findBlobs(imagePath, visualizationMode);
+	blobs = blobs_finder->find_blobs(imagePath, visualizationMode);
 
 	//cout << "SIZE: " << blobs.size()<<endl;
 
@@ -134,10 +134,10 @@ void GammaRayDetector::detect()
 			double fluxProbability = classifyBlob(b);
 
 
-			double gaLong = b->getGalacticCentroidL();
-			double gaLat  = b->getGalacticCentroidB();
+			double gaLong = b->get_galactic_centroid_l();
+			double gaLat  = b->get_galactic_centroid_b();
 
-			cout <<"\nBlob "<< index-1 <<":\n * centroid (pixel): [ "<<b->getCentroid().y<<" , "<<b->getCentroid().x<<" ]\n * centroid (degree): [ "<<gaLong<<" , "<< gaLat<<" ]\n * flux prob -> " << fluxProbability*100 << "%\n" <<endl;
+			cout <<"\nBlob "<< index-1 <<":\n * centroid (degree): [ "<<gaLong<<" , "<< gaLat<<" ]\n * flux prob -> " << fluxProbability*100 << "%\n" <<endl;
 
 
 

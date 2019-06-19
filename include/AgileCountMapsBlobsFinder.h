@@ -1,9 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DESCRIPTION
 //       AGILE Science Tools
-//       AG_ap5
+//       agextspot-v2
 //       First release: 2017
-//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it, Giancarlo Zollino
+//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it,
+//                Giancarlo Zollino giancarlo.zollino@gmail.com
 //
 // NOTICE
 //       Any information contained in this software
@@ -11,7 +12,6 @@
 //       private and confidential.
 //       Copyright (C) 2005-2019 AGILE Team. All rights reserved.
 /*
-
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -24,11 +24,10 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////*/
 
 #ifndef AGILECOUNTMAPSBLOBSFINDER_H
-#define AGILECOUNTMAPSBLOBSFINDER_H_H
+#define AGILECOUNTMAPSBLOBSFINDER_H
 
 #include <map>
 #include <iostream>
@@ -40,11 +39,15 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 
-#include "Blob.h"
+#include "AgileBlob.h"
 #include "MapConverter.h"
 #include "BlobsFinder.h"
 
 using namespace cv;
+
+using std::make_pair;
+using std::fixed;
+
 
 class AgileCountMapsBlobsFinder : public BlobsFinder
 {
@@ -53,28 +56,28 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 
       AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
 
-      vector<Blob*> findBlobs(string fitsfilePath, bool debug);
+      vector<Blob * > find_blobs(string fitsfilePath, bool debug);
 
       string get_format();
 
     private:
 
-        Mat gassusianSmoothing(IntMatrixCustomMap * int_matrix_map, float PSF, float CDELT1, float CDELT2, bool debug);
+        Mat gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float PSF, float CDELT1, float CDELT2, bool debug);
 
         Mat thresholding(Mat image, bool debug);
 
-        Mat addPaddingToImage(Mat image8U);
+        Mat add_padding_to_image(Mat image8U);
 
-        void computePixelsAndPhotonsOfBlob(	IntMatrixCustomMap * int_matrix_map_original,
-                                            Mat& smoothed_and_thresholded_image,
-                                            vector<Point>& contour,
-                              							vector<pair<CustomPoint,int> >& pixelsOfBlobs,
-                              							vector<CustomPoint>& photonsOfBlobs
-                                          );
+        void compute_pixels_and_photons_of_blob(	IntMatrixCustomMap * int_matrix_map_original,
+                                                  Mat& smoothed_and_thresholded_image,
+                                                  vector<Point>& contour,
+                                    							vector<pair<MapCoords,int> >& pixelsOfBlobs,
+                                    							vector<pair<MapCoords,int> >&  photonsOfBlobs
+                                                );
 
         // DEBUGGING
         float sumImagePixels();
-        void reportError(vector<CustomPoint>& photonsOfBlobs, vector<pair<CustomPoint,int> >& pixelsOfBlobs, vector<CustomPoint>& contour, string fitsFilePath, IntMatrixCustomMap * int_matrix_map);
+        void reportError(vector<MapCoords>& photonsOfBlobs, vector<pair<MapCoords,int> >& pixelsOfBlobs, vector<MapCoords>& contour, string fitsFilePath, IntMatrixCustomMap * int_matrix_map);
         void print01Image(Mat& image,string windowName);
         void printImage(Mat& image,string windowName, string type);
         void printImageInConsole(Mat& image, string type);
@@ -85,4 +88,4 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 };
 
 
-#endif
+#endif // AGILECOUNTMAPSBLOBSFINDER_H

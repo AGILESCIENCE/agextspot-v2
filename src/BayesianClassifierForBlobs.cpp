@@ -33,14 +33,17 @@
 
 
 
-vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* b){
+vector<pair<string,double> > BayesianClassifierForBlobs::classify(Blob* _b){
+
+    AgileBlob * b = static_cast<AgileBlob *>(_b);
+
 
     vector<pair<string,double> > prediction;
 
     //double pixelMean = b->getPixelsMean();
-    double area = b->getArea();
-    double photons = b->getNumberOfPhotonsInBlob();
-    double photonsCloseness = b->getPhotonsCloseness();
+    double area = b->get_blob_area_deg();
+    double photons = b->get_number_of_photons();
+    double photonsCloseness = b->get_photons_closeness();
     /// ADD ATTRIBUTE
 
     //double bgPM = computeProbabilityFromDistribution(pixelMean,bgPixelMeanDistribution);

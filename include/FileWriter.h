@@ -36,6 +36,7 @@
 
 using std::string;
 using std::ofstream;
+using std::ifstream;
 
 class FileWriter
 {
@@ -44,6 +45,7 @@ class FileWriter
       static string convertToString(int number);
       static string convertToString(float number);
       static string convertToString(double number);
+      static bool is_empty(string filename);
 
     private:
       FileWriter();

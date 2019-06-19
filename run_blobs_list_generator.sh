@@ -8,4 +8,4 @@ export PFILES=$PWD/conf
 #make agextspot
 
 
-./bin/AG_extspot_v2_blobs_list_generator /home/rt/baroncelli.leonardo/maps_for_agextspot no 0.5 0.5 7.5 yes
+./bin/AG_extspot_v2_blobs_list_generator /home/rt/baroncelli.leonardo/maps_for_agextspot blobs_list.json no 0.5 0.5 7.5 yes

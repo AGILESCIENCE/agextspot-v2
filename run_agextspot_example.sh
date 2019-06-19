@@ -1,9 +1,10 @@
 #!/bin/sh
 module load agile-B25-r5
+module load opencv-2.4.13.6
+
 export PFILES=$PWD/conf
 
-make clean
-make agextspot
+#make clean
+#make agextspot
 
-
-./bin/AG_extspot-v2 logs/LOG 7.5 /home/baroncelli/AG_extspot-v2-TESTING/TestSetRealImages/F100724B.cts 50 yes None
+./bin/AG_extspot-v2 logs/log 7.5 /home/rt/baroncelli.leonardo/agextspot-v2/real_images/F090510x.cts 50 no None

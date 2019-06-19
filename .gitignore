@@ -64,3 +64,6 @@ LOGS/*
 core*
 Other files
 version
+models/
+logs/
+

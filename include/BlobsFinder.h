@@ -10,7 +10,7 @@ class BlobsFinder {
 
     BlobsFinder(float _cdelt1, float _cdelt2, float _psf): cdelt1(_cdelt1), cdelt2(_cdelt2), psf(_psf) {}
 
-    virtual vector<Blob *> findBlobs(string fitsfilePath, bool debug) = 0;
+    virtual vector<Blob *> find_blobs(string fitsfilePath, bool debug) = 0;
 
     virtual string get_format() = 0;
 

@@ -115,7 +115,7 @@ pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrai
 		BlobsFinder * blobs_finder = new AgileCountMapsBlobsFinder(PSF, CDELT1, CDELT2);
 
 		// search for blobs
-		vector<Blob *> blobs = blobs_finder->findBlobs(fitsFilePath, false);
+		vector<Blob *> blobs = blobs_finder->find_blobs(fitsFilePath, false);
 
 
 		// add blobs to all blobs list
@@ -153,16 +153,16 @@ pair<vector<Blob *>,vector<Blob *> > BayesianModelEvaluator::getAllBlobsFromTrai
 
 		BlobsFinder * blobs_finder = new AgileCountMapsBlobsFinder(PSF, CDELT1, CDELT2);
 		// search blobs
-		vector<Blob *> blobs = blobs_finder->findBlobs(fitsFilePath, false);
+		vector<Blob *> blobs = blobs_finder->find_blobs(fitsFilePath, false);
 
 		int countFlux = 0;
 
 		// handling background blobs found in flux images
 		for(vector<Blob *>::iterator it = blobs.begin() ; it < blobs.end(); it++){
 
-			Blob * b = *it;
+			AgileBlob * b = static_cast<AgileBlob *>(*it);
 
-			if( b->isCentered() && ( b->getNumberOfPhotonsInBlob()>1 ) && countFlux==0 ){
+			if( b->is_centered() && ( b->get_number_of_photons()>1 ) && countFlux==0 ){
 				// add blobs to flux blobs list
 				fluxBlobs.push_back(b);
 				countFlux++;
@@ -250,11 +250,11 @@ void BayesianModelEvaluator::printMeanAndDeviation(string type, vector<Blob *>& 
 	// population the attribute values vectors
 	for(vector<Blob*>::iterator i = allBlobs.begin(); i != allBlobs.end(); i++){
 
-		Blob * b = *i;
+		AgileBlob * b = static_cast<AgileBlob *>(*i);
 
- 		area.push_back(b->getArea());
-		photons.push_back(b->getNumberOfPhotonsInBlob());
-		photons_closeness.push_back(b->getPhotonsCloseness());
+ 		area.push_back(b->get_blob_area_deg());
+		photons.push_back(b->get_number_of_photons());
+		photons_closeness.push_back(b->get_photons_closeness());
 		//pixel_mean.push_back(b->getPixelsMean());
 		// ** add attribute
 

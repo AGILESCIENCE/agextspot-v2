@@ -69,3 +69,9 @@ void FileWriter::write2File(string outputFileName, string input, bool append){
 		exit(EXIT_FAILURE);
 	}
 }
+
+bool FileWriter::is_empty(string filename)
+{
+		ifstream ifs (filename, std::ifstream::in);
+		return ifs.peek() == std::ifstream::traits_type::eof();
+}
