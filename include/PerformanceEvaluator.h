@@ -1,9 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DESCRIPTION
 //       AGILE Science Tools
-//       AG_ap5
+//       agextspot-v2
 //       First release: 2017
-//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it, Giancarlo Zollino
+//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it,
+//                Giancarlo Zollino giancarlo.zollino@gmail.com
 //
 // NOTICE
 //       Any information contained in this software
@@ -11,7 +12,6 @@
 //       private and confidential.
 //       Copyright (C) 2005-2019 AGILE Team. All rights reserved.
 /*
-
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -24,8 +24,10 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////*/
+
+#ifndef PERFORMANCEEVAULATOR_H
+#define PERFORMANCEEVAULATOR_H
 
 #include <map>
 #include <vector>
@@ -86,3 +88,5 @@ class PerformanceEvaluator{
 
 		BlobsFinder * blobs_finder;
 };
+
+#endif
