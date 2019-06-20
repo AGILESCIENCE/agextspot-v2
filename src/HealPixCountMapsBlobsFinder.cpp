@@ -65,7 +65,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool 
 
   int status = 0;
 	/*Create a grey-scale image from the counting just done*/
-	Healpix_Map<int> map(mresRound,NEST); // NEST is chosen for seek of efficency
+  Healpix_Map<int> map(mresRound,NEST); // NEST is chosen for seek of efficency
 
 	read_Healpix_map_from_fits(fitsfilePath.c_str(), map);
   long int nPix = map.Npix();
@@ -676,8 +676,9 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
         {
           countPixel ++;
           labeledWorkingMap.neighbors(j,neighbors);
+          // cout<<"Il pixel "<<j<< " ha come vicini: "<<endl;
 
-          for(int k = 1; k < (int)neighbors.size(); k=k+2)
+          for(int k = 0; k < (int)neighbors.size(); k=k+2)
           {
 
             if( foundPixelContour == false && labeledWorkingMap[neighbors[k]] == 0)
