@@ -31,12 +31,13 @@ int main(int argc, char*argv[]){
 	cout << startString << endl;
 
 	const PilDescription paramsDescr[] = {
-		{ PilString, "counts_map_folder_path","The path to the folder that contains the dataset."},
-		{ PilBool,   "healpix","If 'yes' (or 'y') it is asserted that the map is in HealPix format. Insert 'no' (or 'n') if the maps are in AGILE counts map format"},
+		{ PilString, "counts_map_folder_path", "The path to the folder that contains the dataset."},
+		{ PilBool,   "map_format", "'agile','healpix'"},
 		{ PilReal,   "cdelt1", "Degree pixel size (width)"},
 		{ PilReal,   "cdelt2", "Degree pixel size (height)"},
 		{ PilReal, 	 "psf", "The telescope's spread point function (degree)"},
 		{ PilBool,   "shuffle_dataset","If 'yes' (or 'y') the filenames will be shuffled. Insert 'no' (or 'n') instead"},
+		{ PilString, "output_filepath", "The name of the output file."},
 		{ PilNone, 	 "", "" }
 	};
 
@@ -45,21 +46,22 @@ int main(int argc, char*argv[]){
   if (!params.Load(argc, argv))
       return EXIT_FAILURE;
 
-	const char * counts_map_folder_path	= params["counts_map_folder_path"];
-	bool healpix  = params["healpix"];
+	string counts_map_folder_path	= string(params["counts_map_folder_path"]);
+	string map_format  = string(params["map_format"]);
 	double cdelt1 = params["cdelt1"];
 	double cdelt2 = params["cdelt2"];
 	double psf 		= params["psf"];
   bool shuffle_dataset = params["shuffle_dataset"];
+	string output_filepath  = string(params["output_filepath"]);
 
 	params.Print();
 
 	int kernelSize = (2 * psf/cdelt2) + 1;
 	cout << "Smoothing with:\n * kernel size: ["<<kernelSize<<"x"<<kernelSize<<"] (formula: 2 * psf/cdelt2 + 1)\n * sigma (psf): "<<psf<<endl;
 
-  BlobsListGenerator blg(counts_map_folder_path, healpix, cdelt1, cdelt2, psf);
+  BlobsListGenerator blg(map_format, cdelt1, cdelt2, psf);
 
-  blg.generate(shuffle_dataset);
+  blg.generate(counts_map_folder_path, output_filepath, shuffle_dataset);
 
 	cout << endString << endl;
 

@@ -1,9 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DESCRIPTION
 //       AGILE Science Tools
-//       AG_ap5
+//       agextspot-v2
 //       First release: 2017
-//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it, Giancarlo Zollino
+//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it,
+//                Giancarlo Zollino giancarlo.zollino@gmail.com
 //
 // NOTICE
 //       Any information contained in this software
@@ -11,7 +12,6 @@
 //       private and confidential.
 //       Copyright (C) 2005-2019 AGILE Team. All rights reserved.
 /*
-
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -24,8 +24,8 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////*/
+
 #ifndef FILEWRITER_H
 #define FILEWRITER_H
 
@@ -36,6 +36,7 @@
 
 using std::string;
 using std::ofstream;
+using std::ifstream;
 
 class FileWriter
 {
@@ -44,6 +45,7 @@ class FileWriter
       static string convertToString(int number);
       static string convertToString(float number);
       static string convertToString(double number);
+      static bool is_empty(string filename);
 
     private:
       FileWriter();

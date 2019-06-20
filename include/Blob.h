@@ -1,9 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DESCRIPTION
 //       AGILE Science Tools
-//       AG_ap5
+//       agextspot-v2
 //       First release: 2017
-//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it, Giancarlo Zollino
+//       Authors: Leonardo Baroncelli leonardo.baroncelli@inaf.it,
+//                Giancarlo Zollino giancarlo.zollino@gmail.com
 //
 // NOTICE
 //       Any information contained in this software
@@ -11,7 +12,6 @@
 //       private and confidential.
 //       Copyright (C) 2005-2019 AGILE Team. All rights reserved.
 /*
-
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -24,8 +24,7 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////*/
 
 #ifndef BLOB_H
 #define BLOB_H
@@ -36,8 +35,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-
-#include "AgileMap.h"
 
 // Rapidjson
 #include "document.h"
@@ -52,109 +49,88 @@ using std::pair;
 using std::cout;
 using std::endl;
 
-struct CustomPoint{
-	int y;  // righe
-	int x;	//colonne
-	CustomPoint(){ y = 0; x = 0; }
-	CustomPoint(int _y, int _x){ y = _y; x = _x; }
+enum f_class
+{   BG = 0,
+    GRB = 1,
+		UNKOWN = -1
 };
 
 
+
+struct MapCoords{
+	int y;
+	int x;
+	string type; // gal , pix
+ 	MapCoords(){ y = 0; x = 0; }
+	MapCoords(int _y, int _x, string _t){ y = _y; x = _x; type = _t; }
+};
+
 class Blob
 {
-    public:
+	public:
 
-        /**
-          Create a new Blob starting from the contour pixels.
-          Computes the centroid of the blob.
-          Finds the pixels that are inside the blob.
-          Finds the number of photons inside the blob.
-          Compute the gray level pixel mean of the blob.
-          Compute the photon's closeness
-        */
-        Blob(string _filePath, float _cdelt1, float _cdelt2, float _psf, int _map_rows, int _map_cols, vector<CustomPoint > & _contourPixels, vector<pair<CustomPoint,int> > & _blobPixels, vector<CustomPoint > & _photonsInBlob);
+		// constructor
+		Blob(vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
 
+		// to json
+		string to_json_str();
 
-				/**
-					getters
-				*/
-	      string getFilePath();
-        CustomPoint getCentroid();
-        CustomPoint getGalacticCentroid();
-      	double getGalacticCentroidL();
-      	double getGalacticCentroidB();
-      	float getPixelsMean();
-				float getArea();
-				float getPhotonsCloseness();
-				int getNumberOfPixels();
-				int getNumberOfPhotonsInBlob();
-        vector<CustomPoint> getContour();
-	      vector<CustomPoint> getPhotonsInBlob();
+    // virtual
+    virtual void build_json_encoding(string filepath) = 0; // Subclasses must implement this
 
-        /**
-          Checks if the blob's centroid is included in a range
-        */
-        bool isCentered();
+		// getters
+		inline vector<MapCoords > get_contour() { return blob_contour_points; }
+		inline vector<pair<MapCoords,int> > get_points() { return blob_points; }
+		inline vector<pair<MapCoords,int> > get_photons() { return blob_photon_points; }
+		inline MapCoords get_galactic_centroid() { return centroid; }
+		inline double get_galactic_centroid_l() { return centroid.y; }
+		inline double get_galactic_centroid_b() { return centroid.x; }
+		inline int get_number_of_photons() { return number_of_photons; }
+		inline float get_blob_area_deg() { return blob_area_deg; }
 
+	protected: //attributes
 
-				/**
-					Returns a Json string
-				*/
-				string toJsonString();
+		// Blob data
+		MapCoords centroid; // not computed
+		vector<MapCoords> blob_contour_points;
+		vector<pair<MapCoords,int> > blob_points;
+		vector<pair<MapCoords,int> > blob_photon_points;
 
+		// Blob features
+		f_class feature_class;
+		int number_of_pixels; // the number of points
+		float blob_area_deg;	// the area of the Blobs expressed in degree^2
+		float grey_level_mean; // the sum of all the grey levels of the pixels of the blob divided by the number of those pixels.
+		int number_of_photons; // the number of gamma photons inside the Blob
+		int contour_size; // the number of points that belong to the contour of the Blob
+		float circulary_ratio; // Area (pixel^2) / perimetro alla seconda (pixel)
+		float rectangularity; // Area / area rettangolo che contiene la shape
+		float eccentricity; // asse maggiore / asse minore (or of the bounding rectangle)
 
-     private:
-
-				// Map meta informations
-				string filePath;
-				int map_rows;
-				int map_cols;
-				float cdelt1;
-				float cdelt2;
-				float psf;
-				float pixelArea;
+		// Json document
+		rapidjson::Document json_blob;
+		rapidjson::Document::AllocatorType& allocator;
+		rapidjson::Value json_meta;
+		rapidjson::Value json_features;
 
 
-				// Blob informations
-        vector<CustomPoint> photonsInBlob;
-				CustomPoint centroid;
-				CustomPoint galacticCentroid;
-				vector<pair<CustomPoint,int> > blobPixels;
-				vector<CustomPoint> contour;
 
-				// Blob features
-				int numberOfPixels;
-      	float blobArea;
-      	float pixelMean;
-        float photonsCloseness;
-				int number_of_photons;
-				int contour_size;
-				float circulary_ratio; // Area (pixel^2) / perimetro alla seconda (pixel)
-				float rectangularity; // Area / area rettangolo che contiene la shape
-				float eccentricity; // asse maggiore / asse minore (or of the bounding rectangle)
+	protected: // methods
 
-				// utilities
-				AgileMap agileMapTool;
-
-				CustomPoint computeCentroid();
-
-				CustomPoint computeGalacticCentroid();
-
-				double getDistanceFromCentroid(CustomPoint p);
-
-				double getSphericalDistanceFromCentroid(CustomPoint p);
-
-				float computePixelMean(); // Return the sum of all the grey levels of the pixels of the blob divided by the number of those pixels.
-
-				float computePhotonsCloseness(); // Return the sum of the distances of each photons from the centroid divided by the number of photons
-
-				float computeCircularyRatio(); // Area (pixel^2) / perimetro alla seconda (pixel)
-
-				float computeRectangularity(); // Area / area rettangolo che contiene la shape
-
-				float computeEccentricity(); // asse maggiore / asse minore (or of the bounding rectangle)
+		// VIRTUAL
+		virtual MapCoords compute_centroid() = 0; // Subclasses must implement this
+		virtual float compute_blobs_area_degrees() = 0;  // Subclasses must implement this
 
 
+
+		float compute_grey_levels_mean();
+		float compute_rectangularity();
+		float compute_circulary_ratio();
+		float compute_eccentricity();
+
+
+		rapidjson::Value& get_json_meta();
+		rapidjson::Value& get_json_features();
 
 };
 #endif // BLOB_H

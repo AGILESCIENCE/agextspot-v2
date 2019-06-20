@@ -26,26 +26,11 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////////////////*/
 
-#ifndef FOLDERMANAGER_H
-#define FOLDERMANAGER_H
-#include <dirent.h>
-#include <iostream>
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
-#include <vector>
+#ifndef HEALPIX_BLOB_H
+#define HEALPIX_BLOB_H
 
-using namespace std;
+class HealpixBlob {
 
+}
 
-class FolderManager
-{
-    public:
-
-        static vector<string> getFileNamesFromFolder(string folderPath);
-
-    private:
-        FolderManager();
-};
-
-#endif // FOLDERMANAGER_H
+#endif
