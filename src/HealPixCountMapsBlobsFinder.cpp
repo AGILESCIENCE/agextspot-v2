@@ -85,17 +85,13 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool 
   Healpix_Map <int> labeledMap;
   labeledMap= findConnectedComponent(thresholded_map, mresRound);
 
-
   saveHealpixINTImage("./labelelled_map.fits",labeledMap);
 
-  //Find contours
-  // int status = 0;
-  // computePixelsAndPhotonsOfBlob(labeledMap);
+  //Compute number of pixels and contours of Blobs
   vector < pair <int, pair < int, vector<int> > > > allBlobs;
   computePixelsAndCountourBlob(labeledMap, mresRound, &allBlobs);
-  cout << "all Blobs size: "<<allBlobs.size()<<endl;
 
-
+  // ***** DEBUG PRINT *****
   // for ( vector < pair <int, pair < int, vector<int> > > > :: iterator it = allBlobs.begin(); it < allBlobs.end(); it ++)
   // {
   //   pair <int, pair < int, vector<int> > > currentBlob = *it;
@@ -103,15 +99,16 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool 
   //   pair < int, vector<int> > pixelAndContour = currentBlob.second;
   //
   //   vector<int> contour = pixelAndContour.second;
-
-    // cout << "Il blob "<<currentBlob.first<< " possiede: " << pixelAndContour.first << " pixel e "<<contour.size()<<" sono di contorno.\n";
-    // for (vector<int> :: iterator ii = contour.begin(); ii < contour.end(); ii++ )
-    // {
-    //   int pixel = *ii;
-    //   cout <<pixel<< ", ";
-    // }
-    // cout <<"\n";
+  //
+  //   cout << "Il blob "<<currentBlob.first<< " possiede: " << pixelAndContour.first << " pixel e il contorno è formato dai seguenti "<< contour.size()<<" pixel:\n";
+  //   for (vector<int> :: iterator ii = contour.begin(); ii < contour.end(); ii++ )
+  //   {
+  //     int pixel = *ii;
+  //     cout <<pixel<< ", ";
+  //   }
+  //   cout <<"\n";
   // }
+  // ***** ***** *****
 
 
 
@@ -612,34 +609,35 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_
 
   }
 
-  vector <pair<int,int>> connectedComponent;
-  int id = 0;
+  // ***** FOR DEBUG *****
 
-  std::sort(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  auto last = std::unique(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  equivalenceClassVector.erase(last, equivalenceClassVector.end());
-  equivalenceClassVector.erase(equivalenceClassVector.begin());
-  for (const auto& i : equivalenceClassVector)
-  {
-    id++;
-    connectedComponent.push_back(std::make_pair(id,i));
-    // std::cout << i << " ";
-  }
-  std::cout << "\n";
-
-  for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
-  {
-    pair<int,int> current = *it;
-    cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
-  }
+  // vector <pair<int,int>> connectedComponent;
+  // int id = 0;
+  //
+  // std::sort(equivalenceClassVector.begin(), equivalenceClassVector.end());
+  // auto last = std::unique(equivalenceClassVector.begin(), equivalenceClassVector.end());
+  // equivalenceClassVector.erase(last, equivalenceClassVector.end());
+  // equivalenceClassVector.erase(equivalenceClassVector.begin());
+  // for (const auto& i : equivalenceClassVector)
+  // {
+  //   id++;
+  //   connectedComponent.push_back(std::make_pair(id,i));
+  //   // std::cout << i << " ";
+  // }
+  // std::cout << "\n";
+  //
+  // for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
+  // {
+  //   pair<int,int> current = *it;
+  //   cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
+  // }
+  // ***** ***** ***** *****
 
   return labeledMap;
 
 }
 
 
-// int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound){
-// vector < pair <int, pair < int, vector<int> > > > HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > allBlobs){
 int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > * allBlobs){
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
@@ -650,8 +648,8 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
     contourToPrintMap[i]=0;
   }
 
-  // vector < pair <int, pair < int, vector<int> > > > allBlobs;
-  pair <int, pair < int, vector<int> > > pixelAndContourBlob;
+
+  pair <int, pair < int, vector<int> > > labelNpixelAndContourBlob;
   pair < int, vector < int > > pixelAndContour;
   vector<int> contour;
   int idLabel = 0;
@@ -661,8 +659,6 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
 
 
   fix_arr<int,8> neighbors; //holds temporary neighbors
-  vector < pair <int,int> > blobPixel;
-  pair<int,int> count;
   bool foundPixelContour;
 
   for( int i = 0; i < labeledWorkingMap.Npix(); i++ )
@@ -671,14 +667,12 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
     {
       foundPixelContour = false;
       countPixel=0;
-      count.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
-      // idLabel = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
-      pixelAndContourBlob.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
-      // cout << "\nIl blob "<<labeledWorkingMap[i]<<" ha come contorno i pixel: "<<endl;
+      pixelAndContour.second.clear();
+      labelNpixelAndContourBlob.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
 
       for( int j = 0; j < labeledWorkingMap.Npix(); j++ )
       {
-        if(labeledWorkingMap[j] == count.first)
+        if(labeledWorkingMap[j] == labelNpixelAndContourBlob.first )
         {
           countPixel ++;
           labeledWorkingMap.neighbors(j,neighbors);
@@ -690,48 +684,25 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
             {
               foundPixelContour = true;
               contourToPrintMap[j]=1;
-              contour.push_back(j);
-              // cout <<j<<" ";
+              pixelAndContour.second.push_back(j);
             }
-            pixelAndContour.second= contour;
-            // getchar();
           }
           labeledWorkingMap[j] = -100; // Qui setto a -100 il pixel per non riconsiderarlo negli step successivi
           foundPixelContour = false;
         }
       }
-      // cout<<"\n";
-      // getchar();
-
-      // count.second = countPixel;
       pixelAndContour.first = countPixel;
 
-      // pixelAndContour.make_pair(countPixel, contour );
-      // pixelAndContourBlob.insert(idLabel, pixelAndContour);
-      // pixelAndContourBlob.first = idLabel;
-      pixelAndContourBlob.second = pixelAndContour;
-      allBlobs->push_back(pixelAndContourBlob);
-      // pixelAndContourBlob.insert( pair < int, vector < int > >(idLabel, pixelAndContour) );
-      blobPixel.push_back(count);
+      labelNpixelAndContourBlob.second = pixelAndContour;
+      allBlobs->push_back(labelNpixelAndContourBlob);
 
     }
 
   }
 
-  // cout << "La dimensione di blobPixel è: " << blobPixel.size()<< endl;
-  //
-  // for ( vector<pair<int,int>> ::iterator it = blobPixel.begin(); it < blobPixel.end(); it ++)
-  // {
-  //   pair<int,int> current = *it;
-  //   cout << "Il blob "<< current.first<< " ha "<< current.second << " pixels."<<endl;
-  // }
-
   saveHealpixINTImage("./contour.fits",contourToPrintMap);
 
-  cout <<"Inside function allBlobs size is: "<<allBlobs->size()<<endl;
-
   return 0;
-
 
 }
 
@@ -744,6 +715,7 @@ int HealPixCountMapsBlobsFinder :: saveHealpixINTImage( string imageName, Healpi
    handleC.create(imageName.c_str());
    write_Healpix_map_to_fits(handleC,map,PLANCK_INT32);
    handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+   cout << "Write new file: " << imageName << endl;
 }
 
 
@@ -757,4 +729,5 @@ int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Heal
    handleC.create(imageName.c_str());
    write_Healpix_map_to_fits(handleC,map,PLANCK_FLOAT32);
    handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+   cout << "Write new file: " << imageName << endl;
 }
