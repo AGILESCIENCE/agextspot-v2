@@ -31,7 +31,7 @@
 #ifndef GAMMARAYDETECTOR_H
 #define GAMMARAYDETECTOR_H
 
-// #include <ExpRatioEvaluator.h>
+#include <ExpRatioEvaluator.h>
 #include <AgileMap.h>
 
 #include "BayesianClassifierForBlobs.h"

@@ -15,7 +15,7 @@ BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cd
 }
 
 /*
-  It writes a Json list [{}, {}, ..] 
+  It writes a Json list [{}, {}, ..]
 */
 void BlobsListGenerator::generate(string counts_map_folder_path, string output_filepath, bool shuffle_dataset)
 {
@@ -44,7 +44,6 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
     vector<Blob*> blobs = blobs_finder->find_blobs(fits_file_path, false);
 
     cout << "Format: " << blobs_finder->get_format() << endl;
-    vector<Blob*> blobs = blobs_finder->findBlobs(fits_file_path, false);
 
     cout << "\n\n ==> QUITTING FOR DEBUGGING PURPOSES" << endl;
     exit(0);

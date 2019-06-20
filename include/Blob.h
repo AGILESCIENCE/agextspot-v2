@@ -75,6 +75,9 @@ class Blob
 		// to json
 		string to_json_str();
 
+    // virtual
+    virtual void build_json_encoding(string filepath) = 0; // Subclasses must implement this
+
 		// getters
 		inline vector<MapCoords > get_contour() { return blob_contour_points; }
 		inline vector<pair<MapCoords,int> > get_points() { return blob_points; }
@@ -117,7 +120,7 @@ class Blob
 		// VIRTUAL
 		virtual MapCoords compute_centroid() = 0; // Subclasses must implement this
 		virtual float compute_blobs_area_degrees() = 0;  // Subclasses must implement this
-    virtual void build_json_encoding(string filepath) = 0; // Subclasses must implement this
+
 
 
 		float compute_grey_levels_mean();
