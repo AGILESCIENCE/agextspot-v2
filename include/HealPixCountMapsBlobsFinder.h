@@ -68,13 +68,25 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
   private:
 
-    float * gassusianSmoothing(Healpix_Map<int> map, float * convolved_data, int nPix, int mresRound, float max, float psf, float cdelt1, float cdelt2, bool debug);
+        //NEW NEW version
+    Healpix_Map<float> gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2, bool debug);
 
     float ** filterCreation(int kernel_side);
 
-    Healpix_Map<float> thresholding(float * convolved_data, long int nPix, int mresRound);
+    //new VERSION
+    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound);
 
-    vector <pair<int,int>> findConnectedComponent(Healpix_Map<float> thresholdedMap, int mresRound);
+    //new VERSION
+    Healpix_Map <int> findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound);
+
+    int computePixelsAndPhotonsOfBlob(Healpix_Map <int> labeledMap);
+
+    int saveHealpixINTImage( string imageName, Healpix_Map<int> map);
+
+    int saveHealpixFLOATImage( string imageName, Healpix_Map<float> map);
+
+    // pair <int, pair < int, vector<int> > > computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > allBlobs);
+    int computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > * allBlobs);
 
 
 };

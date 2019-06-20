@@ -66,274 +66,332 @@ vector<Blob*> HealPixCountMapsBlobsFinder::findBlobs(string fitsfilePath, bool d
   int status = 0;
 	/*Create a grey-scale image from the counting just done*/
 	Healpix_Map<int> map(mresRound,NEST); // NEST is chosen for seek of efficency
-  // cout << "nPix value map before read: " << map.Npix() << endl;
+
 	read_Healpix_map_from_fits(fitsfilePath.c_str(), map);
   long int nPix = map.Npix();
-	int max = -1;
-  // cout << "nPix value map after read: " << nPix << endl;
-	for(int i=0;i<nPix;i++){
-		if(map[i]>= max){
-			max = (int)map[i];
-		}
-	}
+
+    // Smoothing NEW NEW VERSION
+  Healpix_Map<float> convolved_map;
+  convolved_map = gassusianSmoothing(map, nPix, mresRound, psf, cdelt1, cdelt2, debug);
+
+  saveHealpixFLOATImage("./convolved_map.fits",convolved_map);
 
 
-  // Smoothing
-  float convolved_data[nPix];
-  gassusianSmoothing(map, convolved_data, nPix, mresRound, max, psf, cdelt1, cdelt2, debug);
+  // NEW VERSION Thresholding
+  Healpix_Map<float> thresholded_map;
+  thresholded_map = thresholding(convolved_map, nPix, mresRound);
+
+  saveHealpixFLOATImage("./thresholded_map.fits",thresholded_map);
 
 
-  // Thresholding
-  Healpix_Map<float> thresholded_data;
-  thresholded_data = thresholding(convolved_data, nPix, mresRound);
+  // New version Find ConnectedComponent
+  Healpix_Map <int> labeledMap;
+  labeledMap= findConnectedComponent(thresholded_map, mresRound);
 
-  // Create Thresholed Map
-  fitshandle handleC2 = fitshandle() ;
-	handleC2.create("./thresholded_map.fits");
-	write_Healpix_map_to_fits(handleC2,thresholded_data,PLANCK_FLOAT32);
-  handleC2.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
 
-  // Find ConnectedComponent
-  vector <pair<int,int>> connectedComponent;
-  connectedComponent = findConnectedComponent(thresholded_data, mresRound);
+  saveHealpixINTImage("./labelelled_map.fits",labeledMap);
 
 
   // DEBUGGING PRINT
-  for(vector <pair<int,int>> :: iterator it=connectedComponent.begin(); it < connectedComponent.end(); it ++ )
-  {
-    pair<int,int> current = *it;
-    cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
-
-  }
+  // for(vector <pair<int,int>> :: iterator it=connectedComponent.begin(); it < connectedComponent.end(); it ++ )
+  // {
+  //   pair<int,int> current = *it;
+  //   cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
+  //
+  // }
 
   //Find contours
+  // int status = 0;
+  // computePixelsAndPhotonsOfBlob(labeledMap);
+  vector < pair <int, pair < int, vector<int> > > > allBlobs;
+  computePixelsAndCountourBlob(labeledMap, mresRound, &allBlobs);
+  cout << "all Blobs size: "<<allBlobs.size()<<endl;
+
+
+  for ( vector < pair <int, pair < int, vector<int> > > > :: iterator it = allBlobs.begin(); it < allBlobs.end(); it ++)
+  {
+    pair <int, pair < int, vector<int> > > currentBlob = *it;
+
+    pair < int, vector<int> > pixelAndContour = currentBlob.second;
+
+    vector<int> contour = pixelAndContour.second;
+
+    cout << "Il blob "<<currentBlob.first<< " possiede: " << pixelAndContour.first << " pixel e "<<contour.size()<<" sono di contorno.\n";
+    // for (vector<int> :: iterator ii = contour.begin(); ii < contour.end(); ii++ )
+    // {
+    //   int pixel = *ii;
+    //   cout <<pixel<< ", ";
+    // }
+    // cout <<"\n";
+  }
 
 
 
 
 }
 
-float * HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map<int> map, float * convolved_data, int nPix, int mresRound, float max, float psf, float cdelt1, float cdelt2, bool debug){
 
-  // float convolved_data[nPix];
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2, bool debug)
+{
 
-  bool smooth = true;
- 	if(smooth){
-
-
- 	 float data[nPix];
- 		for(int i=0;i<nPix;i++){
- 			data[i] = ((float)map[i]*255.0)/(float)max;
- 		}
- 		for(int i=0;i<nPix;i++){
- 				convolved_data[i]=0;
- 		}
-
- 		float kernel_side = 19;
-    // int kernel_side = round((2 * psf/cdelt1) + 1);
-    cout << "Kernel size: " << kernel_side << endl;
-
-    float ** kernel_generated;
-    kernel_generated = filterCreation(19);
-
- 	  float kernel_reordered_Array[MAX_NEIGHBOORS][8*MAX_NEIGHBOORS];
- 		int lim = (kernel_side/2.0)-1; //counts how many neighborhoods must be extracted
-    cout <<"Neighbours to be extract: " << lim << endl;
-
- 		/*Reorder the kernel according to neighborhoods representation */
- 		int centre = kernel_side/2.0;
-    cout << "Kernel center: " << centre << endl;
+  float convolved_data[nPix];
+  int max = -1;
 
 
- 		float k_1 = kernel_generated[centre][centre]; // central element
- 		for(int times=0;times<centre;times++){
- 			int i=0;
- 			int count=0;
- 			int cursor_row = centre+(1*times)+2;
- 			int cursor_column = centre-(times+1);
- 			while(count<3+(2*times)){ // left side
- 				cursor_row--;
- 				kernel_reordered_Array[times][i]= kernel_generated[cursor_row][cursor_column];
- 				i++;
- 				count++;
- 			}
- 			count=0;
- 			while(count<2+(2*times)){ //up side
- 				cursor_column++;
- 				count++;
- 				kernel_reordered_Array[times][i]= kernel_generated[cursor_row][cursor_column];
- 				i++;
- 			}
- 			count=0;
- 			while(count<2+(2*times)){ // right side
- 				cursor_row++;
- 				count++;
- 				kernel_reordered_Array[times][i]= kernel_generated[cursor_row][cursor_column];
- 				i++;
- 			}
- 			count=0;
- 			while(count<1+(2*times)){ // down side
- 				cursor_column--;
- 				count++;
- 				kernel_reordered_Array[times][i]= kernel_generated[cursor_row][cursor_column];
- 				i++;
- 			}
-
- 		}
+  for( int i = 0; i < nPix; i++ )
+  {
+		if( map[i] >= max )
+    {
+			max = (int)map[i];
+		}
+	}
 
 
+  float data[nPix];
+	for( int i = 0; i < nPix; i++ )
+  {
+		data[i] = ( (float)map[i] * 255.0) / (float)max;
+	}
 
- 		fix_arr<int,81> arr[MAX_NEIGHBOORS]; // array for holding the (i+1)-neighborood
- 		fix_arr<int,8> tempA; //holds temporary neighbors
- 		float temp; // accumulator for convolution sums
- 		for(int i=0;i<nPix;i++){
- 			temp=0;
- 			temp +=data[i]*k_1; // product of central elements
+	for( int i = 0; i < nPix; i++ )
+  {
+			convolved_data[i]=0;
+	}
 
- 			map.neighbors(i,tempA);//extract the 8-neighborood of the i-th pixel
+	float kernel_side = 19;
+  // int kernel_side = round((2 * psf/cdelt1) + 1);
+  cout << "Kernel size: " << kernel_side << endl;
+
+  float ** kernel_generated;
+  kernel_generated = filterCreation(19);
+
+  float kernel_reordered_Array[MAX_NEIGHBOORS][8*MAX_NEIGHBOORS];
+
+  int lim = ( kernel_side / 2.0 ) - 1; //counts how many neighborhoods must be extracted
+  cout <<"Neighbours to be extract: " << lim << endl;
+
+	/*Reorder the kernel according to neighborhoods representation */
+	int centre = kernel_side / 2.0;
+  cout << "Kernel center: " << centre << endl;
 
 
- 			for(int j=0;j<8;j++){
+	float k_1 = kernel_generated[centre][centre]; // central element
 
- 				arr[0][j]=tempA[j];
-        // cout << i << ", " << tempA[j] << endl;
-        // getchar();
+  for( int times = 0; times < centre; times++ )
+  {
+		int i=0;
+		int count=0;
+		int cursor_row = centre+(1*times)+2;
+		int cursor_column = centre-(times+1);
 
- 			}
+    while( count < 3 + ( 2 * times ) )   // left side
+    {
+			cursor_row--;
+			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
+			i++;
+			count++;
+		}
+		count=0;
 
- 			int z = 0; //used to select neighbors
- 			int separator; //indexing dividing arr[times][s] to reflect sides of neighborhood matrix
+    while( count < 2 + ( 2 * times ) )//up side
+    {
+			cursor_column++;
+			count++;
+			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
+			i++;
+		}
+		count=0;
 
- 			/* if necessary extract the other neighbors */
- 			for(int times=0;times<lim;times++){ //if kernel side is 3 there is no need to extract other neighbors
- 				separator = 2*(times+1);
- 				for(int s=0;s<8+(8*times);s++){
- 					if(s==0){//bottom-left corner
- 						if(arr[times][s]!= -1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborhood of arr[s]}
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 							arr[times+1][s+(15+(8*times))]= tempA[7]; // last neighbor pixel
- 						}else{ //if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 							arr[times+1][s+(15+(8*times))]= -1;
- 						}
- 					}else if((s!=0) && (s<separator)){//left side
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+1]=tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+1]=-1;
- 						}
- 					}else if(s==separator){ // top-left corner
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 						}
- 					}else if((s>separator)&& (s<separator*2)){//up-side
- 						if(arr[times][s]!=0-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+3]=tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+(times+1)]=-1;
- 						}
- 					}else if(s==separator*2){ // top-right corner
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 						}
- 					}else if((s>separator*2)&& (s<separator*3)){// right side
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+5]=tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+5]=-1;
- 						}
- 					}else if(s==separator*3){ //bottom-right corner
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+z]= tempA[z];
- 							z++;
- 							arr[times+1][s+z]= tempA[z];
- 							z++;//z=7
- 							arr[times+1][s+z]= tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+z]= -1;
- 							z++;
- 							arr[times+1][s+z]= -1;
- 							z++;//z=7
- 							arr[times+1][s+z]= -1;
- 						}
- 					}else if((s>separator*3)&& (s<separator*4)){ // bottom side
- 						if(arr[times][s]!=-1){
- 							map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
- 							arr[times+1][s+7]=tempA[z];
- 						}else{//if arr[times][s] does not exit also his neighbor does not exist
- 							arr[times+1][s+7]=-1;
- 						}
- 					}
- 				}
- 				z=0;
- 			}
+		while( count < 2 + ( 2 * times ) )   // right side
+    {
+			cursor_row++;
+			count++;
+			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
+			i++;
+		}
+		count=0;
+
+		while( count < 1 + ( 2 * times ) )   // down side
+    {
+			cursor_column--;
+			count++;
+			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
+			i++;
+		}
+
+	}
 
 
 
- 			/*Finally calculates the convolution sum */
- 			for(int q=0;q<lim+1;q++){
- 				for(int k=0;k<8*(q+1);k++){
- 					if(arr[q][k]!=-1){
- 						temp += data[arr[q][k]]*kernel_reordered_Array[q][(k+4*(q+1))%(8*(q+1))];
- 					}
- 				}
- 			}
- 			convolved_data[i] = temp;
- 		}
- 	}
+	fix_arr<int,81> arr[MAX_NEIGHBOORS]; // array for holding the (i+1)-neighborood
+	fix_arr<int,8> tempA; //holds temporary neighbors
+	float temp; // accumulator for convolution sums
+	for( int i = 0; i < nPix; i++ )
+  {
+		temp=0;
+		temp +=data[i]*k_1; // product of central elements
+
+		map.neighbors(i,tempA);//extract the 8-neighborood of the i-th pixel
+
+
+		for( int j = 0; j < 8; j++ )
+    {
+
+			arr[0][j]=tempA[j];
+      // cout << i << ", " << tempA[j] << endl;
+
+		}
+
+		int z = 0; //used to select neighbors
+		int separator; //indexing dividing arr[times][s] to reflect sides of neighborhood matrix
+
+		/* if necessary extract the other neighbors */
+		for( int times = 0; times < lim; times++)  //if kernel side is 3 there is no need to extract other neighbors
+    {
+			separator = 2*(times+1);
+			for( int s = 0; s < 8 + ( 8 * times ); s++)
+      {
+				if( s == 0 )  //bottom-left corner
+        {
+					if(arr[times][s]!= -1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborhood of arr[s]}
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+						arr[times+1][s+(15+(8*times))]= tempA[7]; // last neighbor pixel
+					}else{ //if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+						arr[times+1][s+(15+(8*times))]= -1;
+					}
+				}else if((s!=0) && (s<separator)){//left side
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+1]=tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+1]=-1;
+					}
+				}else if(s==separator){ // top-left corner
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+					}
+				}else if((s>separator)&& (s<separator*2)){//up-side
+					if(arr[times][s]!=0-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+3]=tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+(times+1)]=-1;
+					}
+				}else if(s==separator*2){ // top-right corner
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+					}
+				}else if((s>separator*2)&& (s<separator*3)){// right side
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+5]=tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+5]=-1;
+					}
+				}else if(s==separator*3){ //bottom-right corner
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+z]= tempA[z];
+						z++;
+						arr[times+1][s+z]= tempA[z];
+						z++;//z=7
+						arr[times+1][s+z]= tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+z]= -1;
+						z++;
+						arr[times+1][s+z]= -1;
+						z++;//z=7
+						arr[times+1][s+z]= -1;
+					}
+				}else if((s>separator*3)&& (s<separator*4)){ // bottom side
+					if(arr[times][s]!=-1){
+						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
+						arr[times+1][s+7]=tempA[z];
+					}else{//if arr[times][s] does not exit also his neighbor does not exist
+						arr[times+1][s+7]=-1;
+					}
+				}
+			}
+			z=0;
+		}
+
+
+
+		/*Finally calculates the convolution sum */
+		for( int q = 0; q < lim+1 ; q++)
+    {
+			for( int k = 0; k < 8 *( q+1 ); k++)
+      {
+				if( arr[q][k] != -1 )
+        {
+					temp += data[arr[q][k]] * kernel_reordered_Array[q][(k+4*(q+1))%(8*(q+1))];
+				}
+			}
+		}
+		convolved_data[i] = temp;
+	}
+
 
   Healpix_Map<float> convolved_map(mresRound,NEST); /* copies the data into the Healpix map */
 
 
   for(int i=0;i<nPix;i++){
     // cout << "i: " << i;
-    convolved_map[i]= convolved_data[i] ;
+    convolved_map[i]= convolved_data[i];
   }
 
-  fitshandle handleC = fitshandle() ;
-	handleC.create("./convolved_map.fits");
-	write_Healpix_map_to_fits(handleC,convolved_map,PLANCK_FLOAT32);
-  handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+  // if( remove( "./convolved_mapInsideGaussian.fits" ) == 0 )
+	// 	cout << "Deleted old file: " << "././convolved_mapInsideGaussian.fits" << endl;
+  //
+  // fitshandle handleC = fitshandle() ;
+	// handleC.create("./convolved_mapInsideGaussian.fits");
+	// write_Healpix_map_to_fits(handleC,convolved_map,PLANCK_FLOAT32);
+  // handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
 
-  return 0;
+  return convolved_map;
 
 }
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(float * convolved_data, long int nPix, int mresRound){
+
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound){
 
   float thresh=0.98;
+  float convolved_data[nPix];
+
+  for( int i = 0; i < nPix; i ++ )
+  {
+    convolved_data[i] = convolved_map[i];
+  }
+
   /*first create the histogram*/
   int histogram[255];
   for(int i=0;i<256;i++){
@@ -370,20 +428,15 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(float * convolved
     }
   }
 
-  Healpix_Map<float> convolved_map(mresRound,NEST); /* copies the data into the Healpix map */
-
-
-  cout << "Npix new map:" << convolved_map.Npix() << endl;
-  cout << "Npix old map: " <<nPix << endl;
-
+  Healpix_Map<float> thresholded_map(mresRound,NEST); /* copies the data into the Healpix map */
 
   for(int i=0;i<nPix;i++){
     // cout << "i: " << i;
-    convolved_map[i]= convolved_data[i] ;
+    thresholded_map[i] = convolved_data[i] ;
   }
 
 
-  return convolved_map;
+  return thresholded_map;
 
 }
 
@@ -439,12 +492,15 @@ float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
 
 }
 
-vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_Map<float> thresholded_data, int mresRound) {
 
-  long int nPix = thresholded_data.Npix();
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound) {
+
+  long int nPix = thresholded_map.Npix();
 
   Healpix_Map<int> labeledMap(mresRound,NEST);
-  for(int i=0;i<nPix;i++){
+
+  for( int i = 0; i < nPix; i++ )
+  {
     labeledMap[i] = 0;
   }
 
@@ -465,12 +521,10 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
   for(int i=0;i<nPix;i++)
   {
 
-    if(thresholded_data[i] > 0)
+    if(thresholded_map[i] > 0) // Check if the pixel i is labeled
     {
 
-      // cout << "\nIl pixel " << i << " ha valore maggiore di 0" << endl;
-
-      thresholded_data.neighbors(i,neighbors);//extract the 8-neighborood of the i-th pixel
+      thresholded_map.neighbors(i,neighbors);//extract the 8-neighborood of the i-th pixel
 
       if(labeledMap[i]==0)
       {
@@ -485,22 +539,17 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
         found_label = false;
 
         int tempLabel=0;
-        for(int j=0; j<neighbors.size(); j++)
+        for(int j=0; j<(int)neighbors.size(); j++)
         {
 
           if(labeledMap[neighbors[j]]>0) {
 
             // cout << "Pixel: "<<i<<", la label del pixel vicino: "<<neighbors[j]<< " vale : "<<labeledMap[neighbors[j]]<<endl;
 
-
-            // cout << "Il vicino " << neighbors[j] << " è labellizzato" << endl;
             found_label = true;
 
             if(equivalenceClassVector[tempLabel]!=equivalenceClassVector[labeledMap[neighbors[j]]] && tempLabel>0)
             {
-              // cout <<equivalenceClassVector[tempLabel]<<" != "<<equivalenceClassVector[labeledMap[neighbors[j]]]<<endl;
-
-              // cout << "La label di un vicino è settata a " << tempLabel<< " è diversa dalla label del vicino "<<j<<" del pixel "<<i<<" : "<< labeledMap[neighbors[j]]<< endl;
 
               for( vector <int> :: iterator it = equivalenceClassVector.begin(); it < equivalenceClassVector.end(); ++it)
               {
@@ -515,7 +564,6 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
                 }
                 else if( currentclass == equivalenceClassVector[tempLabel])
                 {
-                  // cout << currentclass<<" == "<<equivalenceClassVector[tempLabel]<< endl;
 
                   int temp = equivalenceClassVector[currentclass];
 
@@ -549,12 +597,7 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
 
           label++;
 
-          // cout << "Nuova label! Al pixel "<<i<<" viene assegnata la label: " << label;
-
-          equivalenceClassVector.push_back(label);  //equivalenceClassVector[label] = label;
-
-          // cout << ", equivalenceClassVector["<<label<<"] = " << label << endl;
-          // cout << ", equivalenceClassVector["<<label<<"] = " << equivalenceClassVector[label] << endl;
+          equivalenceClassVector.push_back(label);
 
           labeledMap[i]=label;
 
@@ -572,53 +615,21 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
     }
   }
 
-  // cout << "Trovati " << label << " labels" << endl;
 
-  // cout <<"Dopo prima scansione abbiamo: " << endl;
-  // std::map<int,int> cntLabel;
-  // vector <std::map<int,int>> connectedComponent;
-  //
-  //
-  //
-  // // Iterate over the vector and store the frequency of each element in map
-	// for (auto & elem : equivalenceClassVector)
-	// {
-	// 	auto result = cntLabel.insert(std::pair<int, int>(elem, 1));
-	// 	if (result.second == false)
-	// 		result.first->second++;
-	// }
-  //
-  // // Iterate over the map
-  // for (auto & elem : cntLabel)
-  // {
-  //   // If frequency count is greater than 1 then its a duplicate element
-  //   // if (elem.second > 1)
-  //   // std::map<int,int> tempMap;
-  //   // tempMap.first = elem.first;
-  //   // tempMap.second = elem.second;
-  //   std::cout << elem.first << " :: " << elem.second << std::endl;
-  //   // connectedComponent.push_back(elem);
-  //   // }
-  // }
+  for( int i = 0; i < nPix; i ++ )
+  {
 
-
-  for(int i=0;i<nPix;i++) {
-
-    if(labeledMap[i]>0) {
+    if( labeledMap[i] > 0)
+    {
 
       // cout << "labeledMap[i]: " << labeledMap[i] << endl;
       labeledMap[i] = equivalenceClassVector[labeledMap[i]];
       // cout << "Il pixel " << i << " viene labellizzato come: " << equivalenceClassVector[labeledMap[i]]<< endl;
+      // getchar();
 
     }
 
   }
-
-  fitshandle handleC3 = fitshandle() ;
- handleC3.create("./labelelled_map.fits");
- write_Healpix_map_to_fits(handleC3,labeledMap,PLANCK_INT32);
- handleC3.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
-
 
   vector <pair<int,int>> connectedComponent;
   int id = 0;
@@ -635,14 +646,134 @@ vector <pair<int,int>> HealPixCountMapsBlobsFinder :: findConnectedComponent(Hea
   }
   std::cout << "\n";
 
-  // for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
+  for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
+  {
+    pair<int,int> current = *it;
+    cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
+  }
+
+  return labeledMap;
+
+}
+
+
+// int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound){
+// vector < pair <int, pair < int, vector<int> > > > HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > allBlobs){
+int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > * allBlobs){
+
+  Healpix_Map <int> labeledWorkingMap = labeledMap;
+  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
+
+  for(int i= 0; i < contourToPrintMap.Npix(); i++)
+  {
+    contourToPrintMap[i]=0;
+  }
+
+  // vector < pair <int, pair < int, vector<int> > > > allBlobs;
+  pair <int, pair < int, vector<int> > > pixelAndContourBlob;
+  pair < int, vector < int > > pixelAndContour;
+  vector<int> contour;
+  int idLabel = 0;
+
+  int countPixel = 0;
+
+
+
+  fix_arr<int,8> neighbors; //holds temporary neighbors
+  vector < pair <int,int> > blobPixel;
+  pair<int,int> count;
+  bool foundPixelContour;
+
+  for( int i = 0; i < labeledWorkingMap.Npix(); i++ )
+  {
+    if( labeledWorkingMap[i] > 0)
+    {
+      foundPixelContour = false;
+      countPixel=0;
+      count.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
+      // idLabel = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
+      pixelAndContourBlob.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
+      cout << "\nIl blob "<<labeledWorkingMap[i]<<" ha come contorno i pixel: "<<endl;
+
+      for( int j = 0; j < labeledWorkingMap.Npix(); j++ )
+      {
+        if(labeledWorkingMap[j] == count.first)
+        {
+          countPixel ++;
+          labeledWorkingMap.neighbors(j,neighbors);
+
+          for(int k = 1; k < (int)neighbors.size(); k=k+2)
+          {
+
+            if( foundPixelContour == false && labeledWorkingMap[neighbors[k]] == 0)
+            {
+              foundPixelContour = true;
+              contourToPrintMap[j]=1;
+              contour.push_back(j);
+              cout <<j<<" ";
+            }
+            pixelAndContour.second= contour;
+            // getchar();
+          }
+          labeledWorkingMap[j] = -100; // Qui setto a -100 il pixel per non riconsiderarlo negli step successivi
+          foundPixelContour = false;
+        }
+      }
+      // cout<<"\n";
+      // getchar();
+
+      // count.second = countPixel;
+      pixelAndContour.first = countPixel;
+
+      // pixelAndContour.make_pair(countPixel, contour );
+      // pixelAndContourBlob.insert(idLabel, pixelAndContour);
+      // pixelAndContourBlob.first = idLabel;
+      pixelAndContourBlob.second = pixelAndContour;
+      allBlobs->push_back(pixelAndContourBlob);
+      // pixelAndContourBlob.insert( pair < int, vector < int > >(idLabel, pixelAndContour) );
+      blobPixel.push_back(count);
+
+    }
+
+  }
+
+  // cout << "La dimensione di blobPixel è: " << blobPixel.size()<< endl;
+  //
+  // for ( vector<pair<int,int>> ::iterator it = blobPixel.begin(); it < blobPixel.end(); it ++)
   // {
   //   pair<int,int> current = *it;
-  //   cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
+  //   cout << "Il blob "<< current.first<< " ha "<< current.second << " pixels."<<endl;
   // }
 
+  saveHealpixINTImage("./contour.fits",contourToPrintMap);
 
-  return connectedComponent;
+  cout <<"Inside function allBlobs size is: "<<allBlobs->size()<<endl;
+
+  return 0;
 
 
+}
+
+int HealPixCountMapsBlobsFinder :: saveHealpixINTImage( string imageName, Healpix_Map<int> map){
+
+  if( remove( imageName.c_str() ) == 0 )
+		cout << "Deleted old file: " << imageName << endl;
+
+   fitshandle handleC = fitshandle() ;
+   handleC.create(imageName.c_str());
+   write_Healpix_map_to_fits(handleC,map,PLANCK_INT32);
+   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+}
+
+
+
+int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Healpix_Map<float> map){
+
+  if( remove( imageName.c_str() ) == 0 )
+		cout << "Deleted old file: " << imageName << endl;
+
+   fitshandle handleC = fitshandle() ;
+   handleC.create(imageName.c_str());
+   write_Healpix_map_to_fits(handleC,map,PLANCK_FLOAT32);
+   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
 }
