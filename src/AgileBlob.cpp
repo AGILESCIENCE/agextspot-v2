@@ -120,8 +120,7 @@ double AgileBlob::get_spherical_distance_from_centroid(MapCoords photon)
 	return distance;
 }
 
-
-void AgileBlob::build_json_encoding(string filepath)
+string AgileBlob::to_json_str(string filepath)
 {
   // take these from the parent
   rapidjson::Value& json_meta = get_json_meta();
@@ -153,18 +152,9 @@ void AgileBlob::build_json_encoding(string filepath)
 	json_meta.AddMember("pixel_centroid", pix_centr, allocator);
 
 
-
-
   // adding custom features
 	rapidjson::Value p_clos(photons_closeness);
 	json_features.AddMember("photons_closeness", p_clos, allocator);
 
-
-
-
-
-  // add these to the json document
-  json_blob.AddMember("meta", json_meta, allocator);
-  json_blob.AddMember("features", json_features, allocator);
-
+  return _to_json_str();
 }

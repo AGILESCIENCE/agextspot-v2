@@ -37,11 +37,13 @@ class AgileBlob : public Blob {
   public:
     AgileBlob(string filepath, float cdelt1, float cdelt2, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
 
-    void build_json_encoding(string filepath);
+    // implementation of virtual method
+    string to_json_str(string filepath);
 
     // getters
     inline MapCoords get_img_centroid() { return img_centroid; }
     inline float get_photons_closeness() { return photons_closeness; }
+
     // additional methods
     bool is_centered();
 

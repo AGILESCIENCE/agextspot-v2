@@ -72,11 +72,9 @@ class Blob
 		// constructor
 		Blob(vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
 
-		// to json
-		string to_json_str();
 
     // virtual
-    virtual void build_json_encoding(string filepath) = 0; // Subclasses must implement this
+    virtual string to_json_str(string filepath) = 0; // Subclasses must implement this
 
 		// getters
 		inline vector<MapCoords > get_contour() { return blob_contour_points; }
@@ -132,5 +130,7 @@ class Blob
 		rapidjson::Value& get_json_meta();
 		rapidjson::Value& get_json_features();
 
+    // to json
+		string _to_json_str();
 };
 #endif // BLOB_H

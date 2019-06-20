@@ -153,8 +153,14 @@ rapidjson::Value & Blob::get_json_features()
 }
 
 
-string Blob::to_json_str()
+string Blob::_to_json_str()
 {
+
+	// add meta e features to the json document
+	json_blob.AddMember("meta", json_meta, allocator);
+	json_blob.AddMember("features", json_features, allocator);
+
+
 	rapidjson::StringBuffer strbuf;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
 	json_blob.Accept(writer);

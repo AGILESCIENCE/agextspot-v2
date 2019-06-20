@@ -56,9 +56,7 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
     for(vector<Blob *>::iterator blob_it = blobs.begin() ; blob_it < blobs.end(); blob_it++){
 
-      (*blob_it)->build_json_encoding(fits_file_path);
-
-      string json_string = (*blob_it)->to_json_str();
+      string json_string = (*blob_it)->to_json_str(fits_file_path);
 
       cout << json_string << endl;
 
