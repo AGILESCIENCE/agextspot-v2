@@ -1,5 +1,5 @@
 counts_map_folder_path,s,ql,"/default/location",,,"The path to the folder that contains the dataset."
-map_format,b,ql,agile,,,"'agile','healpix'"
+map_format,s,ql,agile,,,"'agile','healpix'"
 cdelt1,r,ql,0.5,,,"Degree pixel size (width)"
 cdelt2,r,ql,0.5,,,"Degree pixel size (height))"
 psf,r,ql,7.5,,,"The telescope's spread point function (degree)"

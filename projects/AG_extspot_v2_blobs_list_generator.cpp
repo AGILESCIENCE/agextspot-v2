@@ -32,7 +32,7 @@ int main(int argc, char*argv[]){
 
 	const PilDescription paramsDescr[] = {
 		{ PilString, "counts_map_folder_path", "The path to the folder that contains the dataset."},
-		{ PilBool,   "map_format", "'agile','healpix'"},
+		{ PilString,   "map_format", "'agile','healpix'"},
 		{ PilReal,   "cdelt1", "Degree pixel size (width)"},
 		{ PilReal,   "cdelt2", "Degree pixel size (height)"},
 		{ PilReal, 	 "psf", "The telescope's spread point function (degree)"},

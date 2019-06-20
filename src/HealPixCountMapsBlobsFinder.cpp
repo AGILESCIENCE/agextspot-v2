@@ -48,7 +48,7 @@ string HealPixCountMapsBlobsFinder::get_format()
 //		Extraction of blobs from FITS HEALPix images
 //
 
-vector<Blob*> HealPixCountMapsBlobsFinder::findBlobs(string fitsfilePath, bool debug){
+vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug){
 
   double mres;
   int mresRound;
@@ -70,35 +70,23 @@ vector<Blob*> HealPixCountMapsBlobsFinder::findBlobs(string fitsfilePath, bool d
 	read_Healpix_map_from_fits(fitsfilePath.c_str(), map);
   long int nPix = map.Npix();
 
-    // Smoothing NEW NEW VERSION
   Healpix_Map<float> convolved_map;
   convolved_map = gassusianSmoothing(map, nPix, mresRound, psf, cdelt1, cdelt2, debug);
 
   saveHealpixFLOATImage("./convolved_map.fits",convolved_map);
 
 
-  // NEW VERSION Thresholding
   Healpix_Map<float> thresholded_map;
   thresholded_map = thresholding(convolved_map, nPix, mresRound);
 
   saveHealpixFLOATImage("./thresholded_map.fits",thresholded_map);
 
 
-  // New version Find ConnectedComponent
   Healpix_Map <int> labeledMap;
   labeledMap= findConnectedComponent(thresholded_map, mresRound);
 
 
   saveHealpixINTImage("./labelelled_map.fits",labeledMap);
-
-
-  // DEBUGGING PRINT
-  // for(vector <pair<int,int>> :: iterator it=connectedComponent.begin(); it < connectedComponent.end(); it ++ )
-  // {
-  //   pair<int,int> current = *it;
-  //   cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
-  //
-  // }
 
   //Find contours
   // int status = 0;
@@ -108,22 +96,22 @@ vector<Blob*> HealPixCountMapsBlobsFinder::findBlobs(string fitsfilePath, bool d
   cout << "all Blobs size: "<<allBlobs.size()<<endl;
 
 
-  for ( vector < pair <int, pair < int, vector<int> > > > :: iterator it = allBlobs.begin(); it < allBlobs.end(); it ++)
-  {
-    pair <int, pair < int, vector<int> > > currentBlob = *it;
+  // for ( vector < pair <int, pair < int, vector<int> > > > :: iterator it = allBlobs.begin(); it < allBlobs.end(); it ++)
+  // {
+  //   pair <int, pair < int, vector<int> > > currentBlob = *it;
+  //
+  //   pair < int, vector<int> > pixelAndContour = currentBlob.second;
+  //
+  //   vector<int> contour = pixelAndContour.second;
 
-    pair < int, vector<int> > pixelAndContour = currentBlob.second;
-
-    vector<int> contour = pixelAndContour.second;
-
-    cout << "Il blob "<<currentBlob.first<< " possiede: " << pixelAndContour.first << " pixel e "<<contour.size()<<" sono di contorno.\n";
+    // cout << "Il blob "<<currentBlob.first<< " possiede: " << pixelAndContour.first << " pixel e "<<contour.size()<<" sono di contorno.\n";
     // for (vector<int> :: iterator ii = contour.begin(); ii < contour.end(); ii++ )
     // {
     //   int pixel = *ii;
     //   cout <<pixel<< ", ";
     // }
     // cout <<"\n";
-  }
+  // }
 
 
 
@@ -369,13 +357,6 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
     convolved_map[i]= convolved_data[i];
   }
 
-  // if( remove( "./convolved_mapInsideGaussian.fits" ) == 0 )
-	// 	cout << "Deleted old file: " << "././convolved_mapInsideGaussian.fits" << endl;
-  //
-  // fitshandle handleC = fitshandle() ;
-	// handleC.create("./convolved_mapInsideGaussian.fits");
-	// write_Healpix_map_to_fits(handleC,convolved_map,PLANCK_FLOAT32);
-  // handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
 
   return convolved_map;
 
@@ -693,7 +674,7 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
       count.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
       // idLabel = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
       pixelAndContourBlob.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
-      cout << "\nIl blob "<<labeledWorkingMap[i]<<" ha come contorno i pixel: "<<endl;
+      // cout << "\nIl blob "<<labeledWorkingMap[i]<<" ha come contorno i pixel: "<<endl;
 
       for( int j = 0; j < labeledWorkingMap.Npix(); j++ )
       {
@@ -710,7 +691,7 @@ int HealPixCountMapsBlobsFinder :: computePixelsAndCountourBlob(Healpix_Map <int
               foundPixelContour = true;
               contourToPrintMap[j]=1;
               contour.push_back(j);
-              cout <<j<<" ";
+              // cout <<j<<" ";
             }
             pixelAndContour.second= contour;
             // getchar();

@@ -2,10 +2,16 @@
 
 BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cdelt2, float psf)
 {
+
   if ( map_format == "agile" )
   {
     cout << "[BlobsListGenerator] "<< map_format <<" map format selected." <<endl;
     blobs_finder = new AgileCountMapsBlobsFinder(cdelt1, cdelt2, psf);
+  }
+  else if ( map_format == "healpix")
+  {
+    cout << "[BlobsListGenerator] "<< map_format <<" map format selected." <<endl;
+    blobs_finder = new HealPixCountMapsBlobsFinder(cdelt1, cdelt2, psf);
   }
   else
   {
