@@ -270,7 +270,7 @@ void AgileCountMapsBlobsFinder::compute_pixels_and_photons_of_blob(
 				pixelsOfBlobs.push_back(make_pair(cp,(int)padded_smoothed_and_thresholded_image.at<uchar>(y,x)));
 
 				/* check if pixel is a photon */
-				int greyLevel = int_matrix_map_original->image[cp.y][cp.x];
+				int greyLevel = int_matrix_map_original->image[(int)cp.y][(int)cp.x];
 				if ( greyLevel > 0 )
 				{
 					photonsOfBlobs.push_back(make_pair(cp, greyLevel));
@@ -342,12 +342,12 @@ void AgileCountMapsBlobsFinder::reportError(vector<MapCoords>& photonsOfBlobs, v
 
 	for(vector<pair<MapCoords,int> >::iterator i = pixelsOfBlobs.begin(); i != pixelsOfBlobs.end(); i++){
 		pair<MapCoords,int> p = *i;
-		cout << "*(" << p.first.y << "," << p.first.x <<")"<<" gl: "<<p.second<<" photon:" <<int_matrix_map->image[p.first.y][p.first.x]<<endl;
+		cout << "*(" << p.first.y << "," << p.first.x <<")"<<" gl: "<<p.second<<" photon:" <<int_matrix_map->image[(int)p.first.y][(int)p.first.x]<<endl;
 	}
 	cout <<"\n*Contorno:" << endl;
 	for(vector<MapCoords>::iterator i = contour.begin(); i != contour.end(); i++){
 		MapCoords p = *i;
-		cout << "*(" << p.y << "," << p.x <<")"<<" photon:" <<int_matrix_map->image[p.y][p.x]<<endl;
+		cout << "*(" << p.y << "," << p.x <<")"<<" photon:" <<int_matrix_map->image[(int)p.y][(int)p.x]<<endl;
 	}
 
 

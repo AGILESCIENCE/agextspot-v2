@@ -58,11 +58,11 @@ enum f_class
 
 
 struct MapCoords{
-	int y;
-	int x;
+	double y;
+	double x;
 	string type; // gal , pix
  	MapCoords(){ y = 0; x = 0; }
-	MapCoords(int _y, int _x, string _t){ y = _y; x = _x; type = _t; }
+	MapCoords(double _y, double _x, string _t){ y = _y; x = _x; type = _t; }
 };
 
 class Blob
