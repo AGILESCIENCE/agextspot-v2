@@ -35,7 +35,9 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
-// #include <cmath>
+#include <Eval.h> // DEG2RAD
+
+
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -44,7 +46,7 @@
 #include <healpix_base.h>
 #include <healpix_map_fitsio.h>
 
-#include "Blob.h"
+#include "HealpixBlob.h"
 #include "BlobsFinder.h"
 #include "MapConverter.h"
 
@@ -73,7 +75,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound);
 
-    Healpix_Map <int> findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound);
+    Healpix_Map <int> findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound, vector <pair<int,int>> * connectedComponent);
 
     int computePixelsAndPhotonsOfBlob(Healpix_Map <int> labeledMap);
 
@@ -81,8 +83,11 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     int saveHealpixFLOATImage( string imageName, Healpix_Map<float> map);
 
-    // pair <int, pair < int, vector<int> > > computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > allBlobs);
-    int computePixelsAndCountourBlob(Healpix_Map <int> labeledMap, int mresRound, vector < pair <int, pair < int, vector<int> > > > * allBlobs);
+    int healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_points);
+
+    //new
+    int computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int mresRound, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs);
+
 
 
 };

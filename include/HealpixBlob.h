@@ -29,8 +29,40 @@
 #ifndef HEALPIX_BLOB_H
 #define HEALPIX_BLOB_H
 
-class HealpixBlob {
+#include <Eval.h> // DEG2RAD
 
-}
+#include "Blob.h"
+
+class HealpixBlob : public Blob {
+
+public:
+
+  HealpixBlob(string filepath, float cdelt1, float cdelt2, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
+
+  // implementation of virtual method
+  string to_json_str(string filepath);
+
+  // getters
+  inline MapCoords get_img_centroid() { return img_centroid; }
+  inline float get_photons_closeness() { return photons_closeness; }
+
+private:
+
+  float cdelt1, cdelt2;
+
+  // additional features
+  float photons_closeness;
+  MapCoords img_centroid;
+
+  // implementation of virtual methods
+  MapCoords compute_centroid();
+  float compute_blobs_area_degrees();
+  //
+  // // additional methods
+  // float compute_photons_closeness();
+  // MapCoords compute_img_centroid();
+  // double get_spherical_distance_from_centroid(MapCoords photon);
+
+};
 
 #endif
