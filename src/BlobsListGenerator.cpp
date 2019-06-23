@@ -26,6 +26,8 @@ BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cd
 void BlobsListGenerator::generate(string counts_map_folder_path, string output_filename, string output_folder, bool shuffle_dataset, bool save_cv_steps)
 {
 
+
+
   string output_filepath = output_folder+"/"+output_filename;
   cout << "[BlobsListGenerator] Output file: " << output_filepath << endl;
 
@@ -44,19 +46,20 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
   for(vector<string>::iterator filename_it = filenames.begin() ; filename_it < filenames.end(); filename_it++){
 
-		string fits_file_path = counts_map_folder_path + "/" + (*filename_it);
+    string filename = *filename_it;
+		string fits_file_path = counts_map_folder_path + "/" + filename;
 
     cout << "[BlobsListGenerator] Extracting blobs from: "<< fits_file_path << endl;
 
     cout << "[BlobsListGenerator] Format: " << blobs_finder->get_format() << endl;
 
-    vector<Blob*> blobs = blobs_finder->find_blobs(fits_file_path, false, save_cv_steps, counts_map_folder_path);
+    vector<Blob*> blobs = blobs_finder->find_blobs(filename, counts_map_folder_path, false, save_cv_steps, output_folder);
 
-    cout << "Format: " << blobs_finder->get_format() << endl;
+    cout << "NO JSON IS WRITTEN ON FILE => TO BE UPDATED" << endl;
 
-    //cout << "\n\n ==> QUITTING FOR DEBUGGING PURPOSES" << endl;
-    //exit(0);
+    //cout << "Format: " << blobs_finder->get_format() << endl;
 
+    /*
     for(vector<Blob *>::iterator blob_it = blobs.begin() ; blob_it < blobs.end(); blob_it++){
 
       string json_string = (*blob_it)->to_json_str(fits_file_path);
@@ -66,8 +69,9 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
       FileWriter::write2File(output_filepath, json_string+",\n", true);
 
     }
+    */
 
   }
-
-  FileWriter::write2File(output_filepath, "]", true);
+  cout << "GENERATE is TERMINATED! " << endl;
+  //FileWriter::write2File(output_filepath, "]", true);
 }

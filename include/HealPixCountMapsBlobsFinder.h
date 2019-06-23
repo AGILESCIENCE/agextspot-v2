@@ -63,7 +63,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     HealPixCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
 
-    vector<Blob*> find_blobs(string fitsfilePath, bool debug, bool save_cv_steps, string output_folder);
+    vector<Blob*> find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder);
 
     string get_format();
 
@@ -83,7 +83,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     int saveHealpixFLOATImage( string imageName, Healpix_Map<float> map);
 
-    int healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_points);
+    Healpix_Map <int> healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_points);
 
     //new
     int computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int mresRound, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs);

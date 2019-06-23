@@ -48,7 +48,9 @@ string HealPixCountMapsBlobsFinder::get_format()
 //		Extraction of blobs from FITS HEALPix images
 //
 
-vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug, bool save_cv_steps, string output_folder){
+vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder){
+
+  string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
 
   double mres;
   int mresRound;
@@ -73,23 +75,31 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool 
   Healpix_Map<float> convolved_map;
   convolved_map = gassusianSmoothing(map, nPix, mresRound, psf, cdelt1, cdelt2, debug);
 
-  saveHealpixFLOATImage("./convolved_map.fits",convolved_map);
+  if(save_cv_steps)
+    saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
 
 
   Healpix_Map<float> thresholded_map;
   thresholded_map = thresholding(convolved_map, nPix, mresRound);
 
-  saveHealpixFLOATImage("./thresholded_map.fits",thresholded_map);
+  if(save_cv_steps)
+    saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"thresholded_map.fits",thresholded_map);
 
 
   Healpix_Map <int> labeledMap;
   vector <pair<int,int>> connectedComponent;
-  labeledMap= findConnectedComponent(thresholded_map, mresRound, &connectedComponent);
+  labeledMap = findConnectedComponent(thresholded_map, mresRound, &connectedComponent);
 
-  saveHealpixINTImage("./labelelled_map.fits",labeledMap);
+  if(save_cv_steps)
+    saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeledMap);
+
 
   vector < vector<MapCoords> > contour_image;
-  healpixFindContour(labeledMap, mresRound, &contour_image);
+  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
+  contourToPrintMap = healpixFindContour(labeledMap, mresRound, &contour_image);
+
+  if(save_cv_steps)
+    saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"contour.fits",contourToPrintMap);
 
 
   //Compute number of pixels and contours of Blobs
@@ -137,6 +147,8 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool 
     // cout << endl;
 
   }
+
+  return blobs;
 
 }
 
@@ -789,13 +801,13 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
 }
 
 
-int HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_image)
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_image)
 {
   cout << "HealPixCountMapsBlobsFinder"<<endl;
+  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
   vector<MapCoords>  corrent_contour;
-  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
 
   for(int i= 0; i < contourToPrintMap.Npix(); i++)
   {
@@ -849,7 +861,6 @@ int HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledM
 
   }
 
-  saveHealpixINTImage("./contour.fits",contourToPrintMap);
-  return 0;
+  return contourToPrintMap;
 
 }
