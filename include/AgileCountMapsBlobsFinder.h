@@ -58,7 +58,7 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 
       AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
 
-      vector<Blob * > find_blobs(string fitsfilePath, bool debug);
+      vector<Blob * > find_blobs(string fitsfilePath, bool debug, bool save_cv_steps, string output_folder);
 
       string get_format();
 

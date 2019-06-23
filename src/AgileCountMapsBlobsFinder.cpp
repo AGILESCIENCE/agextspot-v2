@@ -39,7 +39,7 @@ string AgileCountMapsBlobsFinder::get_format()
 		return file_format;
 }
 
-vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug) {
+vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug, bool save_cv_steps, string output_folder) {
 
 
 	vector<Blob * > blobs;

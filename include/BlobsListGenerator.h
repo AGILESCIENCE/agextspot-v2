@@ -46,7 +46,7 @@ class BlobsListGenerator
 
     BlobsListGenerator(string map_format, float cdelt1, float cdelt2, float psf);
 
-    void generate(string counts_map_folder_path, string output_filepath, bool shuffle_dataset);
+    void generate(string counts_map_folder_path, string output_filename, string output_folder, bool shuffle_dataset, bool save_cv_steps);
 
   private:
 

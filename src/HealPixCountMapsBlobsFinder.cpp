@@ -48,7 +48,7 @@ string HealPixCountMapsBlobsFinder::get_format()
 //		Extraction of blobs from FITS HEALPix images
 //
 
-vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug){
+vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilePath, bool debug, bool save_cv_steps, string output_folder){
 
   double mres;
   int mresRound;
