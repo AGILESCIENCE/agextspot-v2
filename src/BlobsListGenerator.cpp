@@ -55,23 +55,22 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
     vector<Blob*> blobs = blobs_finder->find_blobs(filename, counts_map_folder_path, false, save_cv_steps, output_folder);
 
-    cout << "NO JSON IS WRITTEN ON FILE => TO BE UPDATED" << endl;
+    cout << "Format: " << blobs_finder->get_format() << endl;
 
-    //cout << "Format: " << blobs_finder->get_format() << endl;
 
-    /*
     for(vector<Blob *>::iterator blob_it = blobs.begin() ; blob_it < blobs.end(); blob_it++){
 
       string json_string = (*blob_it)->to_json_str(fits_file_path);
 
-      cout << json_string << endl;
+      // cout << json_string << endl;
 
       FileWriter::write2File(output_filepath, json_string+",\n", true);
 
     }
-    */
+
+
 
   }
+  FileWriter::write2File(output_filepath, "]", true);
   cout << "GENERATE is TERMINATED! " << endl;
-  //FileWriter::write2File(output_filepath, "]", true);
 }

@@ -37,7 +37,7 @@ class HealpixBlob : public Blob {
 
 public:
 
-  HealpixBlob(string filepath, float cdelt1, float cdelt2, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
+  HealpixBlob(string filepath, float cdelt1, float cdelt2, int mresRound, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
 
   // implementation of virtual method
   string to_json_str(string filepath);
@@ -49,6 +49,7 @@ public:
 private:
 
   float cdelt1, cdelt2;
+  int mresRound;
 
   // additional features
   float photons_closeness;
@@ -59,9 +60,10 @@ private:
   float compute_blobs_area_degrees();
   //
   // // additional methods
-  // float compute_photons_closeness();
+  float compute_photons_closeness();
+  double get_spherical_distance_from_centroid(MapCoords photon);
   // MapCoords compute_img_centroid();
-  // double get_spherical_distance_from_centroid(MapCoords photon);
+
 
 };
 

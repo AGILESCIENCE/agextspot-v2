@@ -33,7 +33,7 @@
 
 HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf) : BlobsFinder(_cdelt1, _cdelt2, _psf){
 
-  cout << "HealPixCountMapsBlobsFinder" << endl;
+  // cout << "HealPixCountMapsBlobsFinder" << endl;
   file_format = "HEALPIX COUNT MAP";
 
 }
@@ -62,8 +62,8 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   mres = log2( 90 / ( sqrt(2) * cdelt1 ));
 
 	mresRound = round(mres);
-  cout << "mres value: " << mres << endl;
-  cout << "mres round value: " << mresRound << endl;
+  // cout << "mres value: " << mres << endl;
+  cout << "mres value: " << mresRound << endl;
 
   int status = 0;
 	/*Create a grey-scale image from the counting just done*/
@@ -94,19 +94,19 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeledMap);
 
 
-  vector < vector<MapCoords> > contour_image;
-  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
-  contourToPrintMap = healpixFindContour(labeledMap, mresRound, &contour_image);
-
-  if(save_cv_steps)
+  if(save_cv_steps){
+    vector < vector<MapCoords> > contour_image;
+    Healpix_Map <int> contourToPrintMap(mresRound,NEST);
+    contourToPrintMap = healpixFindContour(labeledMap, mresRound, &contour_image);
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"contour.fits",contourToPrintMap);
+  }
 
 
-  //Compute number of pixels and contours of Blobs
+  //Compute number of pixels, number of photons, contours and centroid of Blobs
   vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > allBlobs;
 
-  computeBlobFeatures(map, thresholded_map,labeledMap, mresRound, &allBlobs);//pixelsOfBlobs, photonsInBlobs, contour_points,
-  //
+  computeBlobFeatures(map, thresholded_map,labeledMap, mresRound, &allBlobs);
+
 
   // Blobs extraction
   vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > :: iterator it;
@@ -132,7 +132,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
     if( photon_points.size() >= 2) {
       // cout << "Il blob con la label "<<currentBlob.first<< ": ";
 
-      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, contour_points, points, photon_points);
+      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, mresRound, contour_points, points, photon_points);
       blobs.push_back(b);
     }
 
@@ -180,12 +180,12 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
 			convolved_data[i]=0;
 	}
 
-	float kernel_side = 19;
-  // int kernel_side = round((2 * psf/cdelt1) + 1);
+	// float kernel_side = 19;
+  int kernel_side = round( (2 * psf/cdelt1) + 1);
   cout << "Kernel size: " << kernel_side << endl;
 
   float ** kernel_generated;
-  kernel_generated = filterCreation(19);
+  kernel_generated = filterCreation(kernel_side);
 
   float kernel_reordered_Array[MAX_NEIGHBOORS][8*MAX_NEIGHBOORS];
 
@@ -396,6 +396,58 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
 
 }
 
+float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
+
+  // float GKernel[kernel_side][kernel_side];
+  // float ** GKernel = new
+
+  float ** GKernel = new float*[kernel_side];
+
+  for(int i = 0; i < kernel_side; ++i){
+
+    GKernel[i] = new float[kernel_side];
+
+  }
+
+  // intialising standard deviation to 1.0
+    double sigma = 3.0;
+    double r, s = 2.0 * sigma * sigma;
+
+    // sum is for normalization
+    double sum = 0.0;
+
+    int x , y;
+
+
+    x = y = (kernel_side/2);
+
+    // cout << "X and Y value is: " << x << endl;
+
+    // generating kernel_side x kernel_side kernel
+    for (int i = -x; i <= x; i++) {
+
+        for (int j = -y; j <= y; j++) {
+
+            r = sqrt(i * i + j * j);
+
+            GKernel[i + x][j + y] = (exp(-(r * r) / s)) / (M_PI * s);
+
+            // cout << GKernel[i + x][j + y] << " ";
+
+            sum += GKernel[i + x][j + y];
+        }
+        // cout << "\n";
+    }
+
+    // normalising the Kernel
+    for (int i = 0; i < 5; ++i)
+        for (int j = 0; j < 5; ++j)
+            GKernel[i][j] /= sum;
+
+    return GKernel;
+
+}
+
 
 Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound){
 
@@ -452,58 +504,6 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
 
 
   return thresholded_map;
-
-}
-
-float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
-
-  // float GKernel[kernel_side][kernel_side];
-  // float ** GKernel = new
-
-  float ** GKernel = new float*[kernel_side];
-
-  for(int i = 0; i < kernel_side; ++i){
-
-    GKernel[i] = new float[kernel_side];
-
-  }
-
-  // intialising standard deviation to 1.0
-    double sigma = 3.0;
-    double r, s = 2.0 * sigma * sigma;
-
-    // sum is for normalization
-    double sum = 0.0;
-
-    int x , y;
-
-
-    x = y = (kernel_side/2);
-
-    // cout << "X and Y value is: " << x << endl;
-
-    // generating kernel_side x kernel_side kernel
-    for (int i = -x; i <= x; i++) {
-
-        for (int j = -y; j <= y; j++) {
-
-            r = sqrt(i * i + j * j);
-
-            GKernel[i + x][j + y] = (exp(-(r * r) / s)) / (M_PI * s);
-
-            // cout << GKernel[i + x][j + y] << " ";
-
-            sum += GKernel[i + x][j + y];
-        }
-        // cout << "\n";
-    }
-
-    // normalising the Kernel
-    for (int i = 0; i < 5; ++i)
-        for (int j = 0; j < 5; ++j)
-            GKernel[i][j] /= sum;
-
-    return GKernel;
 
 }
 
@@ -649,18 +649,18 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_
   // ***** FOR DEBUG *****
 
   // vector <pair<int,int>> connectedComponent;
-  int id = 0;
-
-  std::sort(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  auto last = std::unique(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  equivalenceClassVector.erase(last, equivalenceClassVector.end());
-  equivalenceClassVector.erase(equivalenceClassVector.begin());
-  for (const auto& i : equivalenceClassVector)
-  {
-    id++;
-    connectedComponent->push_back(std::make_pair(id,i));
-    // std::cout << i << " ";
-  }
+  // int id = 0;
+  //
+  // std::sort(equivalenceClassVector.begin(), equivalenceClassVector.end());
+  // auto last = std::unique(equivalenceClassVector.begin(), equivalenceClassVector.end());
+  // equivalenceClassVector.erase(last, equivalenceClassVector.end());
+  // equivalenceClassVector.erase(equivalenceClassVector.begin());
+  // for (const auto& i : equivalenceClassVector)
+  // {
+  //   id++;
+  //   connectedComponent->push_back(std::make_pair(id,i));
+  //   // std::cout << i << " ";
+  // }
 
   //
   // for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
@@ -712,20 +712,11 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
 
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
-  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
-
-  for(int i= 0; i < contourToPrintMap.Npix(); i++)
-  {
-    contourToPrintMap[i]=0;
-  }
 
 
   pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > labelNpixelAndContourBlob;
   pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > pixelPhotonsAndContour;
   pair < vector < pair < MapCoords, int > >, vector < pair < MapCoords, int> > >  pixelAndPhotons;
-
-
-  int idLabel = 0;
 
   double l, b;
 
@@ -772,8 +763,6 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
             if( foundPixelContour == false && labeledWorkingMap[neighbors[k]] == 0)
             {
               foundPixelContour = true;
-              contourToPrintMap[j]=1;
-
 
               pointing pointContour = labeledWorkingMap.pix2ang(j);
               double l = pointContour.phi*RAD2DEG;
