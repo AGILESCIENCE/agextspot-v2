@@ -84,6 +84,14 @@ endif
 
 CXXFLAGS = -g -std=c++11 -O2 -pipe -I $(INCLUDE_DIR)
 
+
+ifeq ($(DEBUG),1)
+$(info >> DEBUG configuration set )
+CXXFLAGS += -DDEBUG
+endif
+
+
+
 LIBS += -lm
 
 ifneq (, $(findstring agile, $(LINKERENV)))
