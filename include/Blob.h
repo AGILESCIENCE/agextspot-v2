@@ -85,7 +85,6 @@ class Blob
 		inline double get_galactic_centroid_b() { return centroid.x; }
 		inline int get_number_of_photons() { return number_of_photons; }
 		inline float get_blob_area_deg() { return blob_area_deg; }
-
 	protected: //attributes
 
 		// Blob data

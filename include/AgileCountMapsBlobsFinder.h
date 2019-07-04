@@ -56,17 +56,19 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 
     public:
 
-      AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
+      AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf, bool interactive_extraction);
 
-      vector<Blob * > find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder);
+      vector<Blob * > find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder);
 
       string get_format();
 
     private:
 
-        Mat gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float PSF, float CDELT1, float CDELT2, bool debug);
+        bool interactive_extraction;
 
-        Mat thresholding(Mat image, bool debug);
+        Mat gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float PSF, float CDELT1, float CDELT2);
+
+        Mat thresholding(Mat image);
 
         Mat add_padding_to_image(Mat image8U);
 
@@ -76,6 +78,11 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
                                     							vector<pair<MapCoords,int> >& pixelsOfBlobs,
                                     							vector<pair<MapCoords,int> >&  photonsOfBlobs
                                                 );
+
+        void write_contours_and_centroid_on_file(string output_filepath, int rows, int cols, vector<Blob *>& blobs);
+
+
+
 
         // DEBUGGING
         float sumImagePixels();

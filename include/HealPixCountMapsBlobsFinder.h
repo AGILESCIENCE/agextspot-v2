@@ -63,13 +63,13 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     HealPixCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
 
-    vector<Blob*> find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder);
+    vector<Blob*> find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder);
 
     string get_format();
 
   private:
 
-    Healpix_Map<float> gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2, bool debug);
+    Healpix_Map<float> gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2);
 
     float ** filterCreation(int kernel_side);
 

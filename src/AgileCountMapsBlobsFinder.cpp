@@ -29,7 +29,9 @@
 
 #include "AgileCountMapsBlobsFinder.h"
 
-AgileCountMapsBlobsFinder::AgileCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf) : BlobsFinder(_cdelt1, _cdelt2, _psf)
+AgileCountMapsBlobsFinder::AgileCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf, bool _interactive_extraction)
+		: BlobsFinder(_cdelt1, _cdelt2, _psf),
+			interactive_extraction(_interactive_extraction)
 {
 	file_format = "AGILE COUNT MAP";
 }
@@ -39,14 +41,14 @@ string AgileCountMapsBlobsFinder::get_format()
 		return file_format;
 }
 
-vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder) {
+vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fits_filename, string fitsfile_folder, bool save_cv_steps, string output_folder) {
 
-	string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
+	string fits_file_path = fitsfile_folder + "/" + fits_filename;
 
 	vector<Blob * > blobs;
 
 	// int ** data, int rows, int cols
-	IntMatrixCustomMap * int_matrix_map = MapConverter::fitsMapToIntMatrix(fitsfilePath.c_str());
+	IntMatrixCustomMap * int_matrix_map = MapConverter::fitsMapToIntMatrix(fits_file_path.c_str());
 
 
 	int rows = int_matrix_map->rows;
@@ -54,7 +56,7 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
 
 
-	if(debug){
+	if(interactive_extraction){
 		//Conversion IntMatrixCustomMap -> Mat8U (opencv)
 		Mat photonsMap(rows, cols, CV_8UC1, Scalar(0));
 		for(int y = 0; y < rows; y++){
@@ -70,17 +72,40 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
 
 	/* Smoothing */
-	Mat workingImage8U = gassusian_smoothing(int_matrix_map, psf, cdelt1, cdelt2, debug);
+	Mat workingImage8U = gassusian_smoothing(int_matrix_map, psf, cdelt1, cdelt2);
 
 
+	#ifdef DEBUG
+		cout << "Smoothing ended" << endl;
+	#endif
+
+
+	if(save_cv_steps)
+		imwrite( output_folder+"/"+fits_filename+"_"+"smootherd_map.jpeg", workingImage8U);
+
+	#ifdef DEBUG
+		cout << "Map saved" << endl;
+	#endif
 
 	/* Thresholding */
-	workingImage8U = thresholding(workingImage8U, debug);
+	workingImage8U = thresholding(workingImage8U);
+
+	if(save_cv_steps)
+		imwrite( output_folder+"/"+fits_filename+"_"+"thresholded_map.jpeg", workingImage8U);
+
+
 
 
 
 	/* Add padding to image */
 	Mat workingImage8UWithPadding = add_padding_to_image(workingImage8U);
+
+	#ifdef DEBUG
+	cout << "Padded added" << endl;
+	#endif
+
+	if(save_cv_steps)
+		imwrite( output_folder+"/"+fits_filename+"_"+"padded_map.jpeg", workingImage8UWithPadding);
 
 
 
@@ -89,6 +114,14 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   vector<Vec4i> hierarchy;
 	findContours(workingImage8UWithPadding, contoursImage8UWithPadding, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
+	#ifdef DEBUG
+	cout << "Contours found" << endl;
+	#endif
+
+
+	#ifdef DEBUG
+	cout << "Map saved" << endl;
+	#endif
 
 	/* Blobs extraction */
 	int indexx=0;
@@ -130,19 +163,22 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 			if( photonsInBlobs.size() >= 2) {
 				//cout << "DEBUG: " << cdelt1 << cdelt2 << psf << rows << cols << endl;
 
-				Blob* b = new AgileBlob(fitsfilePath, cdelt1, cdelt2, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs);
+				Blob * b = new AgileBlob(fits_file_path, cdelt1, cdelt2, currentCustomContuorNoPadding, pixelsOfBlobsNoPadding, photonsInBlobs);
 				blobs.push_back(b);
 			}
 			/* Handling errors
 			else if(photonsInBlobs.size() == 0){
-				reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,fitsfilePath,int_matrix_map);
+				reportError(photonsInBlobs,pixelsOfBlobsNoPadding,currentCustomContuorNoPadding,fits_file_path,int_matrix_map);
 				exit(EXIT_FAILURE);
 			}*/
 		}
   	indexx++;
 	}
 
- 	if(debug){
+	if(save_cv_steps)
+		write_contours_and_centroid_on_file(output_folder+"/"+fits_filename+"_"+"contour_map.jpeg", rows, cols, blobs);
+
+ 	if(interactive_extraction){
 		waitKey();
 	}
 
@@ -153,7 +189,7 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
 
 
-Mat AgileCountMapsBlobsFinder::gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float psf, float cdelt1, float cdelt2, bool debug){
+Mat AgileCountMapsBlobsFinder::gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float psf, float cdelt1, float cdelt2){
 
 	int rows = int_matrix_map->rows;
 	int cols = int_matrix_map->cols;
@@ -181,14 +217,14 @@ Mat AgileCountMapsBlobsFinder::gassusian_smoothing(IntMatrixCustomMap * int_matr
 	workingImage32FSmoothed.convertTo(workingImage8U, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 
 
-	if(debug){
+	if(interactive_extraction){
 		printImage(workingImage32FSmoothed, "gaussianBlur32F", "32F");
 	}
 
 	return workingImage8U;
 }
 
-Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U, bool debug){
+Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U){
 
 	int rows = workingImage8U.rows;
 	int cols = workingImage8U.cols;
@@ -220,7 +256,7 @@ Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U, bool debug){
 
 		}
 	}
-	if(debug){
+	if(interactive_extraction){
 		//drawImageHistogram(hist,histSize);
 		printImage(workingImageThresholded8U, "workingImageThresholded8U Thresholded", "8U");
   	calcHist(&workingImageThresholded8U, nimages, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate );
@@ -284,6 +320,41 @@ void AgileCountMapsBlobsFinder::compute_pixels_and_photons_of_blob(
 
 
 
+
+
+void AgileCountMapsBlobsFinder::write_contours_and_centroid_on_file(string output_filepath, int rows, int cols, vector<Blob *>& blobs)
+{
+	Mat rbg_image(rows, cols, CV_8UC3, Scalar(0,0,0));
+	cout << "rows and cols: " << rows << " " << cols;
+	for(vector<Blob *>::iterator i = blobs.begin(); i != blobs.end(); i++)
+	{
+		Blob * blob = *i;
+		Vec3b color( rand()&255, rand()&255, rand()&255 );
+
+		cout << "\n >>  blob " << endl;
+
+		// draw contour
+		vector<MapCoords> contour = blob->get_contour();
+		for(vector<MapCoords>::iterator i = contour.begin(); i != contour.end(); i++)
+		{
+			MapCoords p = *i;
+			rbg_image.at<Vec3b>(p.y,p.x) = color;
+			cout << "(" <<p.y << "," << p.x << "), ";
+		}
+		cout << endl;
+
+
+		// draw centroid
+		AgileBlob * agile_blob = static_cast<AgileBlob *>(*i);
+		MapCoords centroid = agile_blob->get_img_centroid();
+		rbg_image.at<Vec3b>(centroid.y, centroid.x) = color;
+
+		cout << "centroid: " << centroid.y << "," << centroid.x << endl;
+
+		// resize(rbg_image, rbg_image, Size(0, 0), 3, 3, INTER_LINEAR);
+		imwrite(output_filepath, rbg_image);
+	}
+}
 
 
 
@@ -371,8 +442,6 @@ void AgileCountMapsBlobsFinder::reportError(vector<MapCoords>& photonsOfBlobs, v
 
 
 
-
-
 void AgileCountMapsBlobsFinder::printImageInConsole(Mat& image, string type){
 	cout << "\n\n" << endl;
 	for(int i = 0; i < image.rows; i++){
@@ -415,6 +484,7 @@ void AgileCountMapsBlobsFinder::printImage(Mat& image, string windowName, string
 
 }
 
+
 void AgileCountMapsBlobsFinder::printImageBlobs(int rows,int cols, vector<Blob>& blobs, string windowName){
 	Mat temp3ChannelImage(rows,cols, CV_32FC3, Scalar(0,0,0));
 	for(vector<Blob>::iterator i = blobs.begin(); i != blobs.end(); i++){
@@ -448,7 +518,8 @@ void AgileCountMapsBlobsFinder::printImageBlob(Mat& inputImage, Blob& b, string 
 }
 
 
-void AgileCountMapsBlobsFinder::drawImageHistogram(Mat& hist, int histSize){
+void AgileCountMapsBlobsFinder::drawImageHistogram(Mat& hist, int histSize)
+{
 
 	int hist_w = 512;
 	int hist_h = 400;

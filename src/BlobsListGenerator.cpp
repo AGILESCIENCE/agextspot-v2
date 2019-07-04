@@ -6,7 +6,8 @@ BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cd
   if ( map_format == "agile" )
   {
     cout << "[BlobsListGenerator] "<< map_format <<" map format selected." <<endl;
-    blobs_finder = new AgileCountMapsBlobsFinder(cdelt1, cdelt2, psf);
+    bool interactive_extraction = false;
+    blobs_finder = new AgileCountMapsBlobsFinder(cdelt1, cdelt2, psf, interactive_extraction);
   }
   else if ( map_format == "healpix")
   {
@@ -53,7 +54,7 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
     cout << "[BlobsListGenerator] Format: " << blobs_finder->get_format() << endl;
 
-    vector<Blob*> blobs = blobs_finder->find_blobs(filename, counts_map_folder_path, false, save_cv_steps, output_folder);
+    vector<Blob*> blobs = blobs_finder->find_blobs(filename, counts_map_folder_path, save_cv_steps, output_folder);
 
     cout << "Format: " << blobs_finder->get_format() << endl;
 

@@ -48,39 +48,37 @@ string HealPixCountMapsBlobsFinder::get_format()
 //		Extraction of blobs from FITS HEALPix images
 //
 
-vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool debug, bool save_cv_steps, string output_folder){
-
-  string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
-
-  double mres;
-  int mresRound;
+vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder){
 
   cout << "[HealPixCountMapsBlobsFinder] FIND BLOBS FUNCTION" << endl;
 
+  string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
+
+
+  double mres = log2( 90 / ( sqrt(2) * cdelt1 ));
+
+  int	healpix_order = round(mres);
+  cout << "Healpix order value (rounded): " << healpix_order << endl;
+
+
   vector<Blob*> blobs;
-
-  mres = log2( 90 / ( sqrt(2) * cdelt1 ));
-
-	mresRound = round(mres);
-  // cout << "mres value: " << mres << endl;
-  cout << "mres value: " << mresRound << endl;
 
   int status = 0;
 	/*Create a grey-scale image from the counting just done*/
-  Healpix_Map<int> map(mresRound,NEST); // NEST is chosen for seek of efficency
+  Healpix_Map<int> map(healpix_order,NEST); // NEST is chosen for seek of efficency
 
 	read_Healpix_map_from_fits(fitsfilePath.c_str(), map);
   long int nPix = map.Npix();
 
   Healpix_Map<float> convolved_map;
-  convolved_map = gassusianSmoothing(map, nPix, mresRound, psf, cdelt1, cdelt2, debug);
+  convolved_map = gassusianSmoothing(map, nPix, healpix_order, psf, cdelt1, cdelt2);
 
   if(save_cv_steps)
     saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
 
 
   Healpix_Map<float> thresholded_map;
-  thresholded_map = thresholding(convolved_map, nPix, mresRound);
+  thresholded_map = thresholding(convolved_map, nPix, healpix_order);
 
   if(save_cv_steps)
     saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"thresholded_map.fits",thresholded_map);
@@ -88,7 +86,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   Healpix_Map <int> labeledMap;
   vector <pair<int,int>> connectedComponent;
-  labeledMap = findConnectedComponent(thresholded_map, mresRound, &connectedComponent);
+  labeledMap = findConnectedComponent(thresholded_map, healpix_order, &connectedComponent);
 
   if(save_cv_steps)
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeledMap);
@@ -96,8 +94,8 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   if(save_cv_steps){
     vector < vector<MapCoords> > contour_image;
-    Healpix_Map <int> contourToPrintMap(mresRound,NEST);
-    contourToPrintMap = healpixFindContour(labeledMap, mresRound, &contour_image);
+    Healpix_Map <int> contourToPrintMap(healpix_order,NEST);
+    contourToPrintMap = healpixFindContour(labeledMap, healpix_order, &contour_image);
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"contour.fits",contourToPrintMap);
   }
 
@@ -105,7 +103,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   //Compute number of pixels, number of photons, contours and centroid of Blobs
   vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > allBlobs;
 
-  computeBlobFeatures(map, thresholded_map,labeledMap, mresRound, &allBlobs);
+  computeBlobFeatures(map, thresholded_map,labeledMap, healpix_order, &allBlobs);
 
 
   // Blobs extraction
@@ -132,7 +130,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
     if( photon_points.size() >= 2) {
       // cout << "Il blob con la label "<<currentBlob.first<< ": ";
 
-      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, mresRound, contour_points, points, photon_points);
+      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, healpix_order, contour_points, points, photon_points);
       blobs.push_back(b);
     }
 
@@ -153,7 +151,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 }
 
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2, bool debug)
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map<int> map, int nPix, int healpix_order, float psf, float cdelt1, float cdelt2)
 {
 
   float convolved_data[nPix];
@@ -383,7 +381,7 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
 	}
 
 
-  Healpix_Map<float> convolved_map(mresRound,NEST); /* copies the data into the Healpix map */
+  Healpix_Map<float> convolved_map(healpix_order,NEST); /* copies the data into the Healpix map */
 
 
   for(int i=0;i<nPix;i++){
@@ -449,7 +447,7 @@ float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
 }
 
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound){
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int healpix_order){
 
   float thresh=0.98;
   float convolved_data[nPix];
@@ -484,9 +482,6 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
     }
   }
 
-  #ifdef DEBUG
-      cout << "Ending evaluation" << endl;
-  #endif
 
 
   for(int i=0;i<nPix;i++){ /* Suppress the pixel how's intensities are under the threshold  */
@@ -495,7 +490,7 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
     }
   }
 
-  Healpix_Map<float> thresholded_map(mresRound,NEST); /* copies the data into the Healpix map */
+  Healpix_Map<float> thresholded_map(healpix_order,NEST); /* copies the data into the Healpix map */
 
   for(int i=0;i<nPix;i++){
     // cout << "i: " << i;
@@ -508,11 +503,11 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
 }
 
 
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound, vector <pair<int,int>> * connectedComponent) {
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_Map<float> thresholded_map, int healpix_order, vector <pair<int,int>> * connectedComponent) {
 
   long int nPix = thresholded_map.Npix();
 
-  Healpix_Map<int> labeledMap(mresRound,NEST);
+  Healpix_Map<int> labeledMap(healpix_order,NEST);
 
   for( int i = 0; i < nPix; i++ )
   {
@@ -708,7 +703,7 @@ int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Heal
 
 /// NEW ALGORITHMS
 
-int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int mresRound, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs){
+int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int healpix_order, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs){
 
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
@@ -790,10 +785,10 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
 }
 
 
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_image)
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int healpix_order, vector < vector<MapCoords> > * contour_image)
 {
   cout << "HealPixCountMapsBlobsFinder"<<endl;
-  Healpix_Map <int> contourToPrintMap(mresRound,NEST);
+  Healpix_Map <int> contourToPrintMap(healpix_order,NEST);
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
   vector<MapCoords>  corrent_contour;
