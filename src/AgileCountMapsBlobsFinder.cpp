@@ -325,13 +325,13 @@ void AgileCountMapsBlobsFinder::compute_pixels_and_photons_of_blob(
 void AgileCountMapsBlobsFinder::write_contours_and_centroid_on_file(string output_filepath, int rows, int cols, vector<Blob *>& blobs)
 {
 	Mat rbg_image(rows, cols, CV_8UC3, Scalar(0,0,0));
-	cout << "rows and cols: " << rows << " " << cols;
+
 	for(vector<Blob *>::iterator i = blobs.begin(); i != blobs.end(); i++)
 	{
 		Blob * blob = *i;
 		Vec3b color( rand()&255, rand()&255, rand()&255 );
 
-		cout << "\n >>  blob " << endl;
+
 
 		// draw contour
 		vector<MapCoords> contour = blob->get_contour();
@@ -339,7 +339,6 @@ void AgileCountMapsBlobsFinder::write_contours_and_centroid_on_file(string outpu
 		{
 			MapCoords p = *i;
 			rbg_image.at<Vec3b>(p.y,p.x) = color;
-			cout << "(" <<p.y << "," << p.x << "), ";
 		}
 		cout << endl;
 
@@ -348,8 +347,6 @@ void AgileCountMapsBlobsFinder::write_contours_and_centroid_on_file(string outpu
 		AgileBlob * agile_blob = static_cast<AgileBlob *>(*i);
 		MapCoords centroid = agile_blob->get_img_centroid();
 		rbg_image.at<Vec3b>(centroid.y, centroid.x) = color;
-
-		cout << "centroid: " << centroid.y << "," << centroid.x << endl;
 
 		// resize(rbg_image, rbg_image, Size(0, 0), 3, 3, INTER_LINEAR);
 		imwrite(output_filepath, rbg_image);

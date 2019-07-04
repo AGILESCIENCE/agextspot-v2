@@ -33,6 +33,8 @@
 #include <fstream>
 #include <sstream>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 using std::string;
 using std::ofstream;
@@ -46,6 +48,10 @@ class FileWriter
       static string convertToString(float number);
       static string convertToString(double number);
       static bool is_empty(string filename);
+      inline static bool file_exists (const std::string& name) {
+        struct stat buffer;
+        return (stat (name.c_str(), &buffer) == 0);
+      }
 
     private:
       FileWriter();

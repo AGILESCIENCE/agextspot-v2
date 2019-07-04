@@ -122,7 +122,7 @@ class Blob
 
 		float compute_grey_levels_mean();
 		float compute_rectangularity();
-		float compute_circulary_ratio();
+		float compute_circularity_ratio();
 		float compute_eccentricity();
 
 

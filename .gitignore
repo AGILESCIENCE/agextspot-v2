@@ -67,3 +67,4 @@ version
 models/
 logs/
 json_blobs_data/
+agextspot_output/

@@ -49,19 +49,15 @@ Blob::Blob(vector<MapCoords > & _blob_contour_points, vector<pair<MapCoords,int>
 
 	grey_level_mean = compute_grey_levels_mean();
 
-	circulary_ratio = compute_circulary_ratio();
-
-	rectangularity = compute_rectangularity();
-
-	eccentricity = compute_eccentricity();
-
 }
 
 
-
 // features
-float Blob::compute_circulary_ratio()
+float Blob::compute_circularity_ratio()
 {
+	#ifdef DEBUG
+	cout << "[compute_circularity_ratio] \nblob_area_deg = "<<blob_area_deg<<"\ncontour_size = "<<contour_size<<"\ncircularity = "<<blob_area_deg/(contour_size*contour_size)<<endl;
+	#endif
 	// Area (pixel^2) / perimetro alla seconda (pixel)
 	return blob_area_deg/(contour_size*contour_size);
 }
@@ -141,7 +137,7 @@ rapidjson::Value & Blob::get_json_features()
 	json_features.AddMember("contour_size", c_size, allocator);
 
 	rapidjson::Value circ_r(circulary_ratio);
-	json_features.AddMember("circulary_ratio", circ_r, allocator);
+	json_features.AddMember("circularity", circ_r, allocator);
 
 	rapidjson::Value rect(rectangularity);
 	json_features.AddMember("rectangularity", rect, allocator);

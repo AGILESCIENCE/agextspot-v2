@@ -27,23 +27,27 @@ BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cd
 void BlobsListGenerator::generate(string counts_map_folder_path, string output_filename, string output_folder, bool shuffle_dataset, bool save_cv_steps)
 {
 
-
-
-  string output_filepath = output_folder+"/"+output_filename;
-  cout << "[BlobsListGenerator] Output file: " << output_filepath << endl;
-
   if(blobs_finder == NULL)
   {
     cout << "[BlobsListGenerator] No blobs-finder exists. Quitting." <<endl;
     exit(EXIT_FAILURE);
   }
 
-  if( FileWriter::is_empty(output_filepath) )
-  {
-    FileWriter::write2File(output_filepath, "[\n", false);
-  }
+  cout << "[BlobsListGenerator] Format: " << blobs_finder->get_format() << endl;
+
+
+  string json_output_filepath = output_folder+"/"+output_filename+".json";
+  cout << "[BlobsListGenerator] Output JSON file: " << json_output_filepath << endl;
+
+  if( FileWriter::file_exists(json_output_filepath) )
+    FileWriter::write2File(json_output_filepath, "[\n", false);
+
+
+
 
 	vector<string> filenames = FolderManager::getFileNamesFromFolder(counts_map_folder_path);
+
+  // opening json list
 
   for(vector<string>::iterator filename_it = filenames.begin() ; filename_it < filenames.end(); filename_it++){
 
@@ -52,11 +56,8 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
     cout << "[BlobsListGenerator] Extracting blobs from: "<< fits_file_path << endl;
 
-    cout << "[BlobsListGenerator] Format: " << blobs_finder->get_format() << endl;
-
     vector<Blob*> blobs = blobs_finder->find_blobs(filename, counts_map_folder_path, save_cv_steps, output_folder);
 
-    cout << "Format: " << blobs_finder->get_format() << endl;
 
 
     for(vector<Blob *>::iterator blob_it = blobs.begin() ; blob_it < blobs.end(); blob_it++){
@@ -65,13 +66,13 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
 
       // cout << json_string << endl;
 
-      FileWriter::write2File(output_filepath, json_string+",\n", true);
+      FileWriter::write2File(json_output_filepath, json_string+",\n", true);
 
     }
-
-
-
   }
-  FileWriter::write2File(output_filepath, "]", true);
-  cout << "GENERATE is TERMINATED! " << endl;
+
+  // closing json list
+  FileWriter::write2File(json_output_filepath, "]", true);
+
+
 }
