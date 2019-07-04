@@ -55,7 +55,7 @@ enum f_class
 		UNKOWN = -1
 };
 
-
+#define _USE_MATH_DEFINES
 
 struct MapCoords{
 	double y;
@@ -100,9 +100,10 @@ class Blob
 		float grey_level_mean; // the sum of all the grey levels of the pixels of the blob divided by the number of those pixels.
 		int number_of_photons; // the number of gamma photons inside the Blob
 		int contour_size; // the number of points that belong to the contour of the Blob
-		float circulary_ratio; // Area (pixel^2) / perimetro alla seconda (pixel)
-		float rectangularity; // Area / area rettangolo che contiene la shape
-		float eccentricity; // asse maggiore / asse minore (or of the bounding rectangle)
+		float circularity; // perimeter of circle (with the same area of the blob) / perimeter of blob
+    float compactness; //  = circularity ^ 2
+		//float rectangularity; // Area / area rettangolo che contiene la shape
+		//float eccentricity; // asse maggiore / asse minore (or of the bounding rectangle)
 
 		// Json document
 		rapidjson::Document json_blob;
@@ -119,11 +120,15 @@ class Blob
 		virtual float compute_blobs_area_degrees() = 0;  // Subclasses must implement this
 
 
+    float compute_grey_levels_mean();
 
-		float compute_grey_levels_mean();
-		float compute_rectangularity();
-		float compute_circularity_ratio();
-		float compute_eccentricity();
+    void compute_morphology_measures();
+    float compute_circularity();
+    float compute_sphericity();
+    float compute_compactness();
+
+		//float compute_rectangularity();
+		//float compute_eccentricity();
 
 
 		rapidjson::Value& get_json_meta();

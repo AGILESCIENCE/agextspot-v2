@@ -39,9 +39,9 @@ AgileBlob::AgileBlob(string filepath, float _cdelt1, float _cdelt2, vector<MapCo
   img_centroid = compute_img_centroid();
   photons_closeness = compute_photons_closeness();
   blob_area_deg = compute_blobs_area_degrees();
-  circulary_ratio = compute_circularity_ratio();
-	rectangularity = compute_rectangularity();
-	eccentricity = compute_eccentricity();
+
+  compute_morphology_measures();
+
 
 }
 

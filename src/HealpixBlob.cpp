@@ -42,9 +42,9 @@ HealpixBlob :: HealpixBlob(string filepath, float _cdelt1, float _cdelt2, int _m
   centroid = compute_centroid();
   photons_closeness = compute_photons_closeness();
   blob_area_deg = compute_blobs_area_degrees();
-  circulary_ratio = compute_circularity_ratio();
-  rectangularity = compute_rectangularity();
-  eccentricity = compute_eccentricity();
+
+  compute_morphology_measures();
+
 }
 
 string HealpixBlob::to_json_str(string filepath)

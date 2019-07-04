@@ -51,27 +51,44 @@ Blob::Blob(vector<MapCoords > & _blob_contour_points, vector<pair<MapCoords,int>
 
 }
 
+void Blob::compute_morphology_measures()
+{
+	circularity = compute_circularity();
+	compactness = compute_compactness();
+	//rectangularity = compute_rectangularity();
+	//eccentricity = compute_eccentricity();
+}
 
 // features
-float Blob::compute_circularity_ratio()
+float Blob::compute_circularity()
 {
+
+	float cirle_perimeter = sqrt(4*M_PI*blob_area_deg);
+	float circularity = cirle_perimeter/contour_size;
+
 	#ifdef DEBUG
-	cout << "[compute_circularity_ratio] \nblob_area_deg = "<<blob_area_deg<<"\ncontour_size = "<<contour_size<<"\ncircularity = "<<blob_area_deg/(contour_size*contour_size)<<endl;
+	cout << "[compute_circularity] \nblob_area_deg = "<<blob_area_deg<<"\ncontour_size = "<<contour_size<<"\ncircularity = "<<circularity<<endl;
 	#endif
-	// Area (pixel^2) / perimetro alla seconda (pixel)
-	return blob_area_deg/(contour_size*contour_size);
+
+	return circularity;
 }
 
-float Blob::compute_rectangularity()
+float Blob::compute_compactness()
 {
-	return 0;
+	// compactness = circularity^2
+
+	float cirle_perimeter_2 = 4*M_PI*blob_area_deg;
+	float sphericity = cirle_perimeter_2/pow(contour_size,2);
+
+	#ifdef DEBUG
+	cout << "[sphericity] \nblob_area_deg = "<<blob_area_deg<<"\ncontour_size = "<<contour_size<<"\nsphericity = "<<sphericity<<endl;
+	#endif
+
+	return sphericity;
 }
 
-float Blob::compute_eccentricity()
-{
-	return 0;
-}
 
+ 
 float Blob::compute_grey_levels_mean()
 {
 	float grey_level_count = 0;
@@ -136,14 +153,17 @@ rapidjson::Value & Blob::get_json_features()
 	rapidjson::Value c_size(contour_size);
 	json_features.AddMember("contour_size", c_size, allocator);
 
-	rapidjson::Value circ_r(circulary_ratio);
+	rapidjson::Value circ_r(circularity);
 	json_features.AddMember("circularity", circ_r, allocator);
 
-	rapidjson::Value rect(rectangularity);
-	json_features.AddMember("rectangularity", rect, allocator);
+	rapidjson::Value compact_r(compactness);
+	json_features.AddMember("compactness", compact_r, allocator);
 
-	rapidjson::Value ecc(eccentricity);
-	json_features.AddMember("eccentricity", ecc, allocator);
+	//rapidjson::Value rect(rectangularity);
+	//json_features.AddMember("rectangularity", rect, allocator);
+
+	//rapidjson::Value ecc(eccentricity);
+	//json_features.AddMember("eccentricity", ecc, allocator);
 
 	return json_features;
 }
