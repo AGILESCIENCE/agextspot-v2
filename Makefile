@@ -136,7 +136,8 @@ ifneq (, $(findstring healpix, $(LINKERENV)))
     ifeq (,$(findstring -I $(HEALPIX_INCDIR), $(CXXFLAGS)))
         CXXFLAGS += -I $(HEALPIX_INCDIR)
     endif
-    LIBS += -L$(HEALPIX_LIBDIR) -lhealpix_cxx -lcxxsupport -lsharp -lfftpack -lc_utils -lcfitsio#-lsharp -lfftpack -lcxxsupport -lc_utils
+		#-lfftpack
+    LIBS += -L$(HEALPIX_LIBDIR) -lhealpix_cxx -lcxxsupport -lsharp  -lc_utils -lcfitsio#-lsharp -lfftpack -lcxxsupport -lc_utils
 endif
 
 CXXFLAGS += -I rapidjson

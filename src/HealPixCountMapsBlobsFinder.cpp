@@ -26,12 +26,15 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 ////////////////////////////////////////////////////////////////////////////////////
+#include <algorithm>
 
 #include "HealPixCountMapsBlobsFinder.h"
 
 #define MAX_NEIGHBOORS 20
 
-HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf) : BlobsFinder(_cdelt1, _cdelt2, _psf){
+HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf)
+   : BlobsFinder(_cdelt1, _cdelt2, _psf)
+{
 
   // cout << "HealPixCountMapsBlobsFinder" << endl;
   file_format = "HEALPIX COUNT MAP";
@@ -46,47 +49,55 @@ string HealPixCountMapsBlobsFinder::get_format()
 ///////////////////////////////////////////////////////////////////////////////
 //
 //		Extraction of blobs from FITS HEALPix images
-//
 
-vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder){
+/*
+double mres = log2( 90 / ( sqrt(2) * cdelt1 ));
+int	map_resolution = round(mres);
+*/
+vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder)
+{
 
-  cout << "[HealPixCountMapsBlobsFinder] FIND BLOBS FUNCTION" << endl;
-
-  string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
-
-
-  double mres = log2( 90 / ( sqrt(2) * cdelt1 ));
-
-  int	healpix_order = round(mres);
-  cout << "Healpix order value (rounded): " << healpix_order << endl;
-
+  cout << "[HealPixCountMapsBlobsFinder] Finding blobs.." << endl;
 
   vector<Blob*> blobs;
 
-  int status = 0;
-	/*Create a grey-scale image from the counting just done*/
-  Healpix_Map<int> map(healpix_order,NEST); // NEST is chosen for seek of efficency
 
-	read_Healpix_map_from_fits(fitsfilePath.c_str(), map);
+
+  const string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
+
+
+  Healpix_Map<int> map = read_Healpix_map_from_fits<int>(fitsfilePath);
+
+  int map_resolution = map.Order();
   long int nPix = map.Npix();
 
+  cout << "Map npix: " << nPix << endl;
+  cout << "Map order: " << map_resolution << endl;
+  cout << "Map schema: " << map.Scheme() << endl;
+
+  // TO TEST !!!!
+  if (map.Scheme() == RING)
+    map.Set(map_resolution, NEST);
+
+
   Healpix_Map<float> convolved_map;
-  convolved_map = gassusianSmoothing(map, nPix, healpix_order, psf, cdelt1, cdelt2);
+  convolved_map = gassusian_smoothing(map, nPix, map_resolution, psf, cdelt1, cdelt2);
 
   if(save_cv_steps)
     saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
 
 
   Healpix_Map<float> thresholded_map;
-  thresholded_map = thresholding(convolved_map, nPix, healpix_order);
+  thresholded_map = thresholding(convolved_map, nPix, map_resolution);
 
   if(save_cv_steps)
     saveHealpixFLOATImage(output_folder+"/"+fitsfilename+"_"+"thresholded_map.fits",thresholded_map);
 
 
   Healpix_Map <int> labeledMap;
-  vector <pair<int,int>> connectedComponent;
-  labeledMap = findConnectedComponent(thresholded_map, healpix_order, &connectedComponent);
+  //vector <pair<int,int > > connectedComponent;
+  vector < vector <int> > connected_components;
+  labeledMap = find_connected_components(thresholded_map, map_resolution, connected_components);
 
   if(save_cv_steps)
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeledMap);
@@ -94,43 +105,51 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   if(save_cv_steps){
     vector < vector<MapCoords> > contour_image;
-    Healpix_Map <int> contourToPrintMap(healpix_order,NEST);
-    contourToPrintMap = healpixFindContour(labeledMap, healpix_order, &contour_image);
+    Healpix_Map <int> contourToPrintMap(map_resolution,NEST);
+    contourToPrintMap = healpixFindContour(labeledMap, map_resolution, &contour_image);
     saveHealpixINTImage(output_folder+"/"+fitsfilename+"_"+"contour.fits",contourToPrintMap);
   }
 
 
-  //Compute number of pixels, number of photons, contours and centroid of Blobs
-  vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > allBlobs;
+  //Compute number of pixels, number of photons, contours
+  // vector < IDENTIFIER,
+  /*
+  vector <
+        pair < int, pair <
+                            pair < vector < pair < MapCoords, int > >, vector < pair < MapCoords, int > > > , vector<MapCoords > >
 
-  computeBlobFeatures(map, thresholded_map,labeledMap, healpix_order, &allBlobs);
+        > > allBlobs;
 
+  computeBlobFeatures(map, thresholded_map, labeledMap, map_resolution, allBlobs);
 
   // Blobs extraction
   vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > :: iterator it;
+  */
 
-  for( it = allBlobs.begin(); it < allBlobs.end(); it ++ ){
 
-    pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > >  currentBlob = *it;
+  for(vector < vector <int> >:: iterator it = connected_components.begin(); it < connected_components.end(); ++it){
 
-    vector<pair<MapCoords,int> > photon_points = currentBlob.second.first.first; // PIXEL
+    vector<pair<MapCoords,int> > points;
+    vector<pair<MapCoords,int> > photon_points;
+    vector<MapCoords > contour_points;
 
-    vector<pair<MapCoords,int> > points = currentBlob.second.first.second; //PHOTONS
+    computeBlobFeatures( map_resolution, *it, map, thresholded_map, labeledMap, points, photon_points, contour_points);
 
-    vector<MapCoords > contour_points = currentBlob.second.second; //CONTORNO
 
-    /* Creating a Blob
-      The following condition (photonsInBlobs.size() >= 2) is needed
-      to avoid the photon closeness problem:
-      a blob made by 1 photon has a photonCloseness = 1 (the minimum).
-      In this context, both a background blob and a flux blob has the
-      same feature. In addition, there are a lot of background blobs
-      made by only 1 photon and this can alter the photon closeness distribution.
-    */
+
+
+      // Creating a Blob
+      // The following condition (photonsInBlobs.size() >= 2) is needed
+      // to avoid the photon closeness problem:
+      // a blob made by 1 photon has a photonCloseness = 1 (the minimum).
+      // In this context, both a background blob and a flux blob has the
+      // same feature. In addition, there are a lot of background blobs
+      // made by only 1 photon and this can alter the photon closeness distribution.
+
     if( photon_points.size() >= 2) {
       // cout << "Il blob con la label "<<currentBlob.first<< ": ";
 
-      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, healpix_order, contour_points, points, photon_points);
+      Blob* b = new HealpixBlob(fitsfilePath, cdelt1, cdelt2, map_resolution, contour_points, points, photon_points);
       blobs.push_back(b);
     }
 
@@ -151,7 +170,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 }
 
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map<int> map, int nPix, int healpix_order, float psf, float cdelt1, float cdelt2)
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2)
 {
 
   float convolved_data[nPix];
@@ -381,7 +400,7 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
 	}
 
 
-  Healpix_Map<float> convolved_map(healpix_order,NEST); /* copies the data into the Healpix map */
+  Healpix_Map<float> convolved_map(map_resolution,NEST); /* copies the data into the Healpix map */
 
 
   for(int i=0;i<nPix;i++){
@@ -394,7 +413,8 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusianSmoothing(Healpix_Map
 
 }
 
-float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
+float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side)
+{
 
   // float GKernel[kernel_side][kernel_side];
   // float ** GKernel = new
@@ -447,9 +467,10 @@ float ** HealPixCountMapsBlobsFinder :: filterCreation(int kernel_side) {
 }
 
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int healpix_order){
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution)
+{
 
-  float thresh=0.98;
+  float thresh=0.999;
   float convolved_data[nPix];
 
   for( int i = 0; i < nPix; i ++ )
@@ -490,7 +511,7 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
     }
   }
 
-  Healpix_Map<float> thresholded_map(healpix_order,NEST); /* copies the data into the Healpix map */
+  Healpix_Map<float> thresholded_map(map_resolution,NEST); /* copies the data into the Healpix map */
 
   for(int i=0;i<nPix;i++){
     // cout << "i: " << i;
@@ -503,11 +524,12 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
 }
 
 
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_Map<float> thresholded_map, int healpix_order, vector <pair<int,int>> * connectedComponent) {
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes)
+{
 
   long int nPix = thresholded_map.Npix();
 
-  Healpix_Map<int> labeledMap(healpix_order,NEST);
+  Healpix_Map<int> labeledMap(map_resolution,NEST);
 
   for( int i = 0; i < nPix; i++ )
   {
@@ -515,164 +537,258 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: findConnectedComponent(Healpix_
   }
 
 
-  fix_arr<int,8> neighbors; //holds temporary neighbors
+
+
 
   int label = 0;
-  bool found_label = false;
-
-
-  /*   NEW ALGORITHM */
-
-  vector<int> equivalenceClassVector;
-  equivalenceClassVector.push_back(0);
-  // cout << "equivalenceClassVector["<<0<<"] = " << equivalenceClassVector[0] << endl;
-
-
+  fix_arr<int,8> neighbors; //holds temporary neighbors
+  vector<int> equivalence_class_vector;
+  equivalence_class_vector.push_back(0);
   for(int i=0;i<nPix;i++)
   {
-
-    if(thresholded_map[i] > 0) // Check if the pixel i is labeled
+    //cout << "Labeling pixel = " << i << endl;
+    // check if the pixel i is not background and is not yet labelled
+    if(thresholded_map[i] > 0 && labeledMap[i] == 0)
     {
 
-      thresholded_map.neighbors(i,neighbors);//extract the 8-neighborood of the i-th pixel
+      // extract the 8-neighborood of the i-th pixel
+      thresholded_map.neighbors(i,neighbors);
 
-      if(labeledMap[i]==0)
+      // searching for a label in the neighbourhood
+      vector<int> neighbor_labels;
+      vector<int> current_neighbors;
+
+      for(int j=0; j < (int)neighbors.size(); j++)
       {
-
-        // cout <<"Guardo i suoi " << neighbors.size() << " vicini: ";
-        // for(int j=0;j<neighbors.size();j++)
-        // {
-        //   cout << neighbors[j] << ", ";
-        // }
-        // cout << endl;
-
-        found_label = false;
-
-        int tempLabel=0;
-        for(int j=0; j<(int)neighbors.size(); j++)
+        int neighbor = neighbors[j];
+        if(labeledMap[neighbor] > 0)
         {
-
-          if(labeledMap[neighbors[j]]>0) {
-
-            // cout << "Pixel: "<<i<<", la label del pixel vicino: "<<neighbors[j]<< " vale : "<<labeledMap[neighbors[j]]<<endl;
-
-            found_label = true;
-
-            if(equivalenceClassVector[tempLabel]!=equivalenceClassVector[labeledMap[neighbors[j]]] && tempLabel>0)
-            {
-
-              for( vector <int> :: iterator it = equivalenceClassVector.begin(); it < equivalenceClassVector.end(); ++it)
-              {
-
-                int currentclass = *it;
-
-                if(currentclass == 0)
-                {
-
-                  // DO NOTHING
-
-                }
-                else if( currentclass == equivalenceClassVector[tempLabel])
-                {
-
-                  int temp = equivalenceClassVector[currentclass];
-
-                  equivalenceClassVector[currentclass] = equivalenceClassVector[labeledMap[neighbors[j]]];
-
-                  // Iterazione utilizzata al fine di implementare proprietà transitiva
-                  for( vector <int> :: iterator it = equivalenceClassVector.begin(); it < equivalenceClassVector.end(); ++it)
-                  {
-                    if(*it==temp){
-                      *it=equivalenceClassVector[labeledMap[neighbors[j]]];
-                    }
-                  }
-
-                  labeledMap[i] = labeledMap[neighbors[j]];
-                  tempLabel=labeledMap[neighbors[j]];
+          neighbor_labels.push_back(labeledMap[neighbor]);
+          current_neighbors.push_back(neighbor);
+        }
+      }
 
 
-                }
+      /*
+      cout << "Neighbours: ";
+      for(const auto& i : current_neighbors)
+        cout << i << " ";
+      cout << endl;
 
-              }
+      cout << "Neighbours labels: ";
+      for(const auto& i : neighbor_labels)
+        cout << i << " ";
+      cout << endl;
+      */
 
+      // if there is at least one labelled neighbor
+      if(neighbor_labels.size() > 0)
+      {
+        // search for minimum label
+        int min_l = 100000;
+        for(const auto& i : neighbor_labels)
+          if( i < min_l )
+              min_l = i;
+
+        // assign label to pixel i
+        labeledMap[i] = min_l;
+
+        // remove min element
+        neighbor_labels.erase(std::find(neighbor_labels.begin(),neighbor_labels.end(),min_l));
+
+        /*
+        cout << "Neighbours labels without minimum: ";
+        for(const auto& i : neighbor_labels)
+          cout << i << " ";
+        cout << endl;
+
+
+        if ( std::adjacent_find( neighbor_labels.begin(), neighbor_labels.end(), std::not_equal_to<int>() ) == neighbor_labels.end() )
+        {
+        //    std::cout << "All elements are equal each other" << std::endl;
+        }
+        else{
+          //getchar();
+        }
+
+
+        int ccount = 0;
+        cout << "Equivalence class vector:" <<endl;
+        for(const auto& ecv : equivalence_class_vector)
+        {
+          cout << "vector["<<ccount<<"]="<<ecv<<endl;
+          ccount++;
+        }
+        cout << endl;
+        */
+
+        // gestire equivalenze => class 'c' must become 'min_l'
+        // optimization => dont compare labels that are equals
+        for(const auto& nl : neighbor_labels)
+        {
+          equivalence_class_vector[nl] = min_l;
+
+          for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
+          {
+            if( *it == nl ){
+              *it = equivalence_class_vector[min_l];
             }
-
-            tempLabel=labeledMap[neighbors[j]];
-            labeledMap[i] = labeledMap[neighbors[j]];
           }
         }
 
-        if(!found_label)
+
+        /*
+        ccount = 0;
+        cout << "Equivalence class vector:" <<endl;
+        for(const auto& ecv : equivalence_class_vector)
         {
-
-          label++;
-
-          equivalenceClassVector.push_back(label);
-
-          labeledMap[i]=label;
-
+          cout << "vector["<<ccount<<"]="<<ecv<<endl;
+          ccount++;
         }
+        cout << endl;
 
+        if ( std::adjacent_find( neighbor_labels.begin(), neighbor_labels.end(), std::not_equal_to<int>() ) == neighbor_labels.end() )
+        {
+        //    std::cout << "All elements are equal each other" << std::endl;
+        }
+        else{
+          //getchar();
+        }
+        */
 
       }
       else
       {
-
-        // cout <<"Il pixel " << i << " è labellizzato" << endl;
+        // Creating a new label
+        label++;
+        equivalence_class_vector.push_back(label);
+        labeledMap[i]=label;
+        cout << "No labels exist in the neighborhood, new label = " << label << endl;
+          //getchar();
 
       }
-
     }
   }
 
+  /*
+  int count = 0;
+  for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
+  {
+    cout << "class["<<count<<"] = "<<*it << endl;
+    count ++;
+  }
+  */
+  int count = 0;
+  vector<int> no_duplicates;
+  for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
+  {
+    int label = *it;
+    if(std::find(no_duplicates.begin(), no_duplicates.end(), label) != no_duplicates.end()) {
+      /* v contains x */
+    } else {
+      count ++ ;
+      no_duplicates.push_back(label);
+    }
+  }
+  cout << "Count: " << count - 1 << endl;
 
+
+
+
+  // Resolution of the equivalances
   for( int i = 0; i < nPix; i ++ )
   {
-
-    if( labeledMap[i] > 0)
+    if( labeledMap[i] > 0 )
     {
-
       // cout << "labeledMap[i]: " << labeledMap[i] << endl;
-      labeledMap[i] = equivalenceClassVector[labeledMap[i]];
-      // cout << "Il pixel " << i << " viene labellizzato come: " << equivalenceClassVector[labeledMap[i]]<< endl;
-      // getchar();
-
+      labeledMap[i] = equivalence_class_vector[ labeledMap[i] ];
+      // cout << "Il pixel " << i << " viene labellizzato come: " << equivalence_class_vector[labeledMap[i]]<< endl;
     }
-
   }
 
-  // ***** FOR DEBUG *****
 
-  // vector <pair<int,int>> connectedComponent;
-  // int id = 0;
-  //
-  // std::sort(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  // auto last = std::unique(equivalenceClassVector.begin(), equivalenceClassVector.end());
-  // equivalenceClassVector.erase(last, equivalenceClassVector.end());
-  // equivalenceClassVector.erase(equivalenceClassVector.begin());
-  // for (const auto& i : equivalenceClassVector)
-  // {
-  //   id++;
-  //   connectedComponent->push_back(std::make_pair(id,i));
-  //   // std::cout << i << " ";
-  // }
 
-  //
-  // for(vector <pair<int,int>> ::iterator it = connectedComponent.begin(); it<connectedComponent.end(); it++)
-  // {
-  //   pair<int,int> current = *it;
-  //   cout << "Il blob " << current.first<< " ha una label " << current.second<< endl;
-  // }
-  // getchar();
 
-  // ***** ***** ***** *****
+  int c = 0;
+  for(const auto& ecv : equivalence_class_vector)
+  {
+    cout << "equivalence_class_vector["<<c<<"]= "<<ecv << endl;
+    c++;
+  }
+
+  std::sort(equivalence_class_vector.begin(), equivalence_class_vector.end());
+  auto last = std::unique(equivalence_class_vector.begin(), equivalence_class_vector.end());
+  equivalence_class_vector.erase(last, equivalence_class_vector.end());
+  equivalence_class_vector.erase(equivalence_class_vector.begin());
+
+  c = 0;
+  for(const auto& ecv : equivalence_class_vector)
+  {
+    cout << "(erased) equivalence_class_vector["<<c<<"]= "<<ecv << endl;
+    c++;
+  }
+
+
+  int max = 0;
+  for(const auto& ecv : equivalence_class_vector)
+  {
+    if(ecv>max)
+      max = ecv;
+  }
+  vector<int> equivalence_classes_incremental_mapping(max, 0);
+
+
+
+
+  int index = 0;
+  for(const auto& ecv : equivalence_class_vector)
+  {
+    equivalence_classes_incremental_mapping[ecv] = index;
+    index ++;
+  }
+
+  c = 0;
+  for(const auto& ecv : equivalence_classes_incremental_mapping)
+  {
+    cout << "equivalence_classes_incremental_mapping["<<c<<"]= "<<ecv << endl;
+    c++;
+  }
+
+
+
+
+
+  connected_component_indexes.resize(equivalence_class_vector.size());
+
+  index = 0;
+  for( int i = 0; i < nPix; i ++ )
+  {
+    if (labeledMap[i] > 0)
+      connected_component_indexes[equivalence_classes_incremental_mapping[labeledMap[i]]].push_back(i);
+  }
+
+
+  /*
+  c = 0;
+  for(const auto& cci : connected_component_indexes)
+  {
+    cout << "Blob "<<c << endl;
+    for(const auto& ccii : cci)
+      cout << ccii << " ";
+    cout << endl;
+    c++;
+  }
+  */
+  cout << labeledMap[21326] << endl;
+
+
 
   return labeledMap;
-
 }
 
 
-int HealPixCountMapsBlobsFinder :: saveHealpixINTImage( string imageName, Healpix_Map<int> map){
+int HealPixCountMapsBlobsFinder :: saveHealpixINTImage( string imageName, Healpix_Map<int> map)
+{
 
   if( remove( imageName.c_str() ) == 0 )
 		cout << "Deleted old file: " << imageName << endl;
@@ -686,7 +802,8 @@ int HealPixCountMapsBlobsFinder :: saveHealpixINTImage( string imageName, Healpi
 
 
 
-int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Healpix_Map<float> map){
+int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Healpix_Map<float> map)
+{
 
   if( remove( imageName.c_str() ) == 0 )
 		cout << "Deleted old file: " << imageName << endl;
@@ -703,14 +820,32 @@ int HealPixCountMapsBlobsFinder :: saveHealpixFLOATImage( string imageName, Heal
 
 /// NEW ALGORITHMS
 
-int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int healpix_order, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs){
+int HealPixCountMapsBlobsFinder :: computeBlobFeatures(
+                                                        int map_resolution,
+                                                        vector <int> & connected_component_indexes,
+                                                        Healpix_Map<int>& map,
+                                                        Healpix_Map<float>& thresholded_map,
+                                                        Healpix_Map <int>& labeledMap,
+                                                        vector<pair<MapCoords,int> > & points,
+                                                        vector<pair<MapCoords,int> > & photon_points,
+                                                        vector<MapCoords > & contour_points
+                                                       )
+{
 
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
 
 
-  pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > labelNpixelAndContourBlob;
+  pair < int,  // id
+         pair < pair < vector <pair < MapCoords, int > >,       // points
+                       vector < pair < MapCoords, int> > > ,    // photons
+                vector<MapCoords > > // contour
+  > labelNpixelAndContourBlob_tmp;
+
+
+
   pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > pixelPhotonsAndContour;
+
   pair < vector < pair < MapCoords, int > >, vector < pair < MapCoords, int> > >  pixelAndPhotons;
 
   double l, b;
@@ -726,11 +861,11 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
       pixelAndPhotons.first.clear();
       pixelAndPhotons.second.clear();
       pixelPhotonsAndContour.second.clear();
-      labelNpixelAndContourBlob.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
+      labelNpixelAndContourBlob_tmp.first = labeledWorkingMap[i]; // la label del blob diventa l'ID del blob
 
       for( int j = 0; j < labeledWorkingMap.Npix(); j++ )
       {
-        if(labeledWorkingMap[j] == labelNpixelAndContourBlob.first )
+        if(labeledWorkingMap[j] == labelNpixelAndContourBlob_tmp.first )
         {
 
           pointing point = labeledWorkingMap.pix2ang(j);
@@ -738,7 +873,7 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
           double b = point.theta*RAD2DEG;
 
 
-          MapCoords cp( l, 90-b, "gal");
+          MapCoords cp( l, 90 - b, "gal");
 
           pixelAndPhotons.first.push_back(make_pair(cp, (int)thresholded_map[j]));
 
@@ -776,8 +911,8 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
       pixelPhotonsAndContour.first = pixelAndPhotons;
 
 
-      labelNpixelAndContourBlob.second = pixelPhotonsAndContour;
-      allBlobs->push_back(labelNpixelAndContourBlob);
+      labelNpixelAndContourBlob_tmp.second = pixelPhotonsAndContour;
+      //allBlobs.push_back(labelNpixelAndContourBlob_tmp);
 
     }
 
@@ -785,10 +920,10 @@ int HealPixCountMapsBlobsFinder :: computeBlobFeatures(Healpix_Map<int> map, Hea
 }
 
 
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int healpix_order, vector < vector<MapCoords> > * contour_image)
+Healpix_Map <int> HealPixCountMapsBlobsFinder :: healpixFindContour(Healpix_Map <int> labeledMap, int map_resolution, vector < vector<MapCoords> > * contour_image)
 {
   cout << "HealPixCountMapsBlobsFinder"<<endl;
-  Healpix_Map <int> contourToPrintMap(healpix_order,NEST);
+  Healpix_Map <int> contourToPrintMap(map_resolution,NEST);
 
   Healpix_Map <int> labeledWorkingMap = labeledMap;
   vector<MapCoords>  corrent_contour;

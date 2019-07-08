@@ -69,13 +69,13 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
   private:
 
-    Healpix_Map<float> gassusianSmoothing(Healpix_Map<int> map, int nPix, int mresRound, float psf, float cdelt1, float cdelt2);
+    Healpix_Map<float> gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2);
 
     float ** filterCreation(int kernel_side);
 
-    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int mresRound);
+    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution);
 
-    Healpix_Map <int> findConnectedComponent(Healpix_Map<float> thresholded_map, int mresRound, vector <pair<int,int>> * connectedComponent);
+    Healpix_Map <int> find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes);
 
     int computePixelsAndPhotonsOfBlob(Healpix_Map <int> labeledMap);
 
@@ -83,10 +83,18 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     int saveHealpixFLOATImage( string imageName, Healpix_Map<float> map);
 
-    Healpix_Map <int> healpixFindContour(Healpix_Map <int> labeledMap, int mresRound, vector < vector<MapCoords> > * contour_points);
+    Healpix_Map <int> healpixFindContour(Healpix_Map <int> labeledMap, int map_resolution, vector < vector<MapCoords> > * contour_points);
 
     //new
-    int computeBlobFeatures(Healpix_Map<int> map, Healpix_Map<float> thresholded_map, Healpix_Map <int> labeledMap, int mresRound, vector < pair < int, pair < pair < vector <pair < MapCoords, int > >, vector < pair < MapCoords, int> > > , vector<MapCoords > > > > * allBlobs);
+    int computeBlobFeatures(  int map_resolution,
+                              vector <int> & connected_component_indexes,
+                              Healpix_Map<int> & map,
+                              Healpix_Map<float> & thresholded_map,
+                              Healpix_Map <int> & labeledMap,
+                              vector<pair<MapCoords,int> > & points,
+                              vector<pair<MapCoords,int> > & photon_points,
+                              vector<MapCoords > & contour_points
+                            );
 
 
 

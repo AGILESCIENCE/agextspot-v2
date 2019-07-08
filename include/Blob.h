@@ -90,7 +90,7 @@ class Blob
 		// Blob data
 		MapCoords centroid; // not computed
 		vector<MapCoords> blob_contour_points;
-		vector<pair<MapCoords,int> > blob_points;
+		vector<pair<MapCoords,int> > blob_points; // IT SHOULD BE FLOAT !!!
 		vector<pair<MapCoords,int> > blob_photon_points;
 
 		// Blob features
