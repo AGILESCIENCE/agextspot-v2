@@ -523,7 +523,6 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
   equivalence_class_vector.push_back(0);
   for(int i=0;i<nPix;i++)
   {
-    //cout << "Labeling pixel = " << i << endl;
     // check if the pixel i is not background and is not yet labelled
     if(thresholded_map[i] > 0 && labeledMap[i] == 0)
     {
@@ -545,25 +544,26 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
         }
       }
 
+      vector<int> neighbor_labels_no_dulpicates;
+      int count = 0;
+      for( vector <int> :: iterator it = neighbor_labels.begin(); it < neighbor_labels.end(); ++it)
+      {
+        int label = *it;
+        if(std::find(neighbor_labels_no_dulpicates.begin(), neighbor_labels_no_dulpicates.end(), label) != neighbor_labels_no_dulpicates.end()) {
+          /* v contains x */
+        } else {
+          count ++ ;
+          neighbor_labels_no_dulpicates.push_back(label);
+        }
+      }
 
-      /*
-      cout << "Neighbours: ";
-      for(const auto& i : current_neighbors)
-        cout << i << " ";
-      cout << endl;
-
-      cout << "Neighbours labels: ";
-      for(const auto& i : neighbor_labels)
-        cout << i << " ";
-      cout << endl;
-      */
 
       // if there is at least one labelled neighbor
-      if(neighbor_labels.size() > 0)
+      if(neighbor_labels_no_dulpicates.size() > 0)
       {
         // search for minimum label
         int min_l = 999999;
-        for(const auto& i : neighbor_labels)
+        for(const auto& i : neighbor_labels_no_dulpicates)
           if( i < min_l )
               min_l = i;
 
@@ -571,68 +571,23 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
         labeledMap[i] = min_l;
 
         // remove min element
-        neighbor_labels.erase(std::find(neighbor_labels.begin(),neighbor_labels.end(),min_l));
-
-        /*
-        cout << "Neighbours labels without minimum: ";
-        for(const auto& i : neighbor_labels)
-          cout << i << " ";
-        cout << endl;
+        neighbor_labels_no_dulpicates.erase(std::find(neighbor_labels_no_dulpicates.begin(),neighbor_labels_no_dulpicates.end(),min_l));
 
 
-        if ( std::adjacent_find( neighbor_labels.begin(), neighbor_labels.end(), std::not_equal_to<int>() ) == neighbor_labels.end() )
-        {
-        //    std::cout << "All elements are equal each other" << std::endl;
-        }
-        else{
-          //getchar();
-        }
-
-
-        int ccount = 0;
-        cout << "Equivalence class vector:" <<endl;
-        for(const auto& ecv : equivalence_class_vector)
-        {
-          cout << "vector["<<ccount<<"]="<<ecv<<endl;
-          ccount++;
-        }
-        cout << endl;
-        */
-
-        // gestire equivalenze => class 'c' must become 'min_l'
-        // optimization => dont compare labels that are equals
-        for(const auto& nl : neighbor_labels)
+        // equivalence classes management
+        for(const auto& nl : neighbor_labels_no_dulpicates)
         {
           equivalence_class_vector[nl] = min_l;
 
+          // transitive property implementation
           for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
           {
-            if( *it == nl ){
+            if( *it == nl )
+            {
               *it = equivalence_class_vector[min_l];
             }
           }
         }
-
-
-        /*
-        ccount = 0;
-        cout << "Equivalence class vector:" <<endl;
-        for(const auto& ecv : equivalence_class_vector)
-        {
-          cout << "vector["<<ccount<<"]="<<ecv<<endl;
-          ccount++;
-        }
-        cout << endl;
-
-        if ( std::adjacent_find( neighbor_labels.begin(), neighbor_labels.end(), std::not_equal_to<int>() ) == neighbor_labels.end() )
-        {
-        //    std::cout << "All elements are equal each other" << std::endl;
-        }
-        else{
-          //getchar();
-        }
-        */
-
       }
       else
       {
@@ -640,72 +595,29 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
         label++;
         equivalence_class_vector.push_back(label);
         labeledMap[i]=label;
-
-
-        // cout << "No labels exist in the neighborhood, new label = " << label << endl;
-
-
-          //getchar();
-
       }
     }
   }
-
-  /*
-  int count = 0;
-  for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
-  {
-    cout << "class["<<count<<"] = "<<*it << endl;
-    count ++;
-  }
-  */
-  int count = 0;
-  vector<int> no_duplicates;
-  for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
-  {
-    int label = *it;
-    if(std::find(no_duplicates.begin(), no_duplicates.end(), label) != no_duplicates.end()) {
-      /* v contains x */
-    } else {
-      count ++ ;
-      no_duplicates.push_back(label);
-    }
-  }
-  // cout << "Count: " << count - 1 << endl;
-
-
-
 
   // Resolution of the equivalances
   for( int i = 0; i < nPix; i ++ )
   {
     if( labeledMap[i] > 0 )
     {
-      // cout << "labeledMap[i]: " << labeledMap[i] << endl;
       labeledMap[i] = equivalence_class_vector[ labeledMap[i] ];
       // cout << "Il pixel " << i << " viene labellizzato come: " << equivalence_class_vector[labeledMap[i]]<< endl;
     }
   }
-
-
-
-
-  // int c = 0;
-  // for(const auto& ecv : equivalence_class_vector)
-  // {
-  //   cout << "equivalence_class_vector["<<c<<"]= "<<ecv << endl;
-  //   c++;
-  // }
 
   std::sort(equivalence_class_vector.begin(), equivalence_class_vector.end());
   auto last = std::unique(equivalence_class_vector.begin(), equivalence_class_vector.end());
   equivalence_class_vector.erase(last, equivalence_class_vector.end());
   equivalence_class_vector.erase(equivalence_class_vector.begin());
 
-  // c = 0;
+  // int c = 0;
   // for(const auto& ecv : equivalence_class_vector)
   // {
-  //   cout << "(erased) equivalence_class_vector["<<c<<"]= "<<ecv << endl;
+  //   cout << "equivalence_class_vector["<<c<<"]= "<<ecv << endl;
   //   c++;
   // }
 
@@ -718,9 +630,6 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
   }
   vector<int> equivalence_classes_incremental_mapping(max, 0);
 
-
-
-
   int index = 0;
   for(const auto& ecv : equivalence_class_vector)
   {
@@ -728,40 +637,13 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
     index ++;
   }
 
-  // c = 0;
-  // for(const auto& ecv : equivalence_classes_incremental_mapping)
-  // {
-  //   cout << "equivalence_classes_incremental_mapping["<<c<<"]= "<<ecv << endl;
-  //   c++;
-  // }
-
-
-
-
-
   connected_component_indexes.resize(equivalence_class_vector.size());
 
-  index = 0;
   for( int i = 0; i < nPix; i ++ )
   {
     if (labeledMap[i] > 0)
       connected_component_indexes[equivalence_classes_incremental_mapping[labeledMap[i]]].push_back(i);
   }
-
-
-  /*
-  c = 0;
-  for(const auto& cci : connected_component_indexes)
-  {
-    cout << "Blob "<<c << endl;
-    for(const auto& ccii : cci)
-      cout << ccii << " ";
-    cout << endl;
-    c++;
-  }
-  */
-  // cout << labeledMap[21326] << endl;
-
 
 
   return labeledMap;
