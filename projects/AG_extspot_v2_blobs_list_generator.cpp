@@ -10,6 +10,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <PilParams.h>
+#include <chrono>
 
 #include <bits/stdc++.h>
 #include <sys/stat.h>
@@ -72,9 +73,18 @@ int main(int argc, char*argv[]){
 	int kernelSize = (2 * psf/cdelt2) + 1;
 	cout << "* Smoothing with:\n * kernel size: ["<<kernelSize<<"x"<<kernelSize<<"] (formula: 2 * psf/cdelt2 + 1)\n * sigma (psf): "<<psf<<endl;
 
+	auto start = std::chrono::system_clock::now();
+
   BlobsListGenerator blg(map_format, cdelt1, cdelt2, psf);
 
   blg.generate(counts_map_folder_path, output_filename, output_folder, shuffle_dataset, save_cv_steps);
+
+	auto stop = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> diff;
+
+  diff = stop-start;
+	cout << "Execution time: " << diff.count() << " s" << endl;
 
 	cout << endString << endl;
 

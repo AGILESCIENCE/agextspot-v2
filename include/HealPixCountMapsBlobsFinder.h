@@ -85,8 +85,8 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     Healpix_Map <int> healpixFindContour(Healpix_Map <int> labeledMap, int map_resolution, vector < vector<MapCoords> > * contour_points);
 
-    //new
-    int computeBlobFeatures(  int map_resolution,
+    //new 
+    int compute_blob_features(int map_resolution,
                               vector <int> & connected_component_indexes,
                               Healpix_Map<int> & map,
                               Healpix_Map<float> & thresholded_map,
