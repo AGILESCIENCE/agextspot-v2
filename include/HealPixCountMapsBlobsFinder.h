@@ -81,7 +81,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
     int save_healpix_INT_image( string imageName, Healpix_Map<int> map);
 
     int save_healpix_FLOAT_image( string imageName, Healpix_Map<float> map);
- 
+
     //new
     int compute_blob_features(int map_resolution,
                               vector <int> & connected_component_indexes,
@@ -94,6 +94,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
                             );
     Healpix_Map <int> compute_blobs_map(int map_resolution, vector<Blob *> blobs);
 
+    void print_vector_int(string name, vector<int>& v_int, bool print_vertical);
 
 
 };
