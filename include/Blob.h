@@ -58,8 +58,8 @@ enum f_class
 #define _USE_MATH_DEFINES
 
 struct MapCoords{
-	double y;
-	double x;
+	double y; //l
+	double x; //b
 	string type; // gal , pix
  	MapCoords(){ y = 0; x = 0; }
 	MapCoords(double _y, double _x, string _t){ y = _y; x = _x; type = _t; }

@@ -36,6 +36,7 @@
 #include <iostream>
 #include <vector>
 #include <Eval.h> // DEG2RAD
+#include <chrono>
 
 
 
@@ -71,21 +72,17 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     Healpix_Map<float> gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2);
 
-    float ** filterCreation(int kernel_side);
+    float ** filter_creation(int kernel_side);
 
     Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution);
 
     Healpix_Map <int> find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes);
 
-    int computePixelsAndPhotonsOfBlob(Healpix_Map <int> labeledMap);
+    int save_healpix_INT_image( string imageName, Healpix_Map<int> map);
 
-    int saveHealpixINTImage( string imageName, Healpix_Map<int> map);
-
-    int saveHealpixFLOATImage( string imageName, Healpix_Map<float> map);
-
-    Healpix_Map <int> healpixFindContour(Healpix_Map <int> labeledMap, int map_resolution, vector < vector<MapCoords> > * contour_points);
-
-    //new 
+    int save_healpix_FLOAT_image( string imageName, Healpix_Map<float> map);
+ 
+    //new
     int compute_blob_features(int map_resolution,
                               vector <int> & connected_component_indexes,
                               Healpix_Map<int> & map,
@@ -95,6 +92,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
                               vector<pair<MapCoords,int> > & photon_points,
                               vector<MapCoords > & contour_points
                             );
+    Healpix_Map <int> compute_blobs_map(int map_resolution, vector<Blob *> blobs);
 
 
 

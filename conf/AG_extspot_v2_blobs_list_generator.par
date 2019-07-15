@@ -1,4 +1,4 @@
-output_filename,s,ql,blobs.json,,,"The name of the output file"
+output_filename,s,ql,blobs,,,"The name of the output file"
 output_folder,s,ql,json_blobs_data,,,"The name of the output folder"
 counts_map_folder_path,s,ql,"/default/location",,,"The path to the folder that contains the dataset."
 map_format,s,ql,agile,,,"'agile','healpix'"

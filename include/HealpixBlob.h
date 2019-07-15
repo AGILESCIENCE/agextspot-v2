@@ -37,7 +37,7 @@ class HealpixBlob : public Blob {
 
 public:
 
-  HealpixBlob(string filepath, float cdelt1, float cdelt2, int mresRound, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
+  HealpixBlob(string filepath, float cdelt1, float cdelt2, int map_resolution, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points);
 
   // implementation of virtual method
   string to_json_str(string filepath);
@@ -49,7 +49,7 @@ public:
 private:
 
   float cdelt1, cdelt2;
-  int mresRound;
+  int map_resolution;
 
   // additional features
   float photons_closeness;

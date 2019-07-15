@@ -84,7 +84,7 @@ int main(int argc, char*argv[]){
   std::chrono::duration<double> diff;
 
   diff = stop-start;
-	cout << "Execution time: " << diff.count() << " s" << endl;
+	cout << "Total execution time: " << diff.count() << " s" << endl;
 
 	cout << endString << endl;
 

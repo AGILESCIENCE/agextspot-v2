@@ -31,11 +31,11 @@
 #include "HealpixBlob.h"
 
 
-HealpixBlob :: HealpixBlob(string filepath, float _cdelt1, float _cdelt2, int _mresRound, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points)
+HealpixBlob :: HealpixBlob(string filepath, float _cdelt1, float _cdelt2, int _map_resolution, vector<MapCoords > & contour_points, vector<pair<MapCoords,int> > & points, vector<pair<MapCoords,int> > & photon_points)
                           : Blob(contour_points, points, photon_points)
                           , cdelt1(_cdelt1)
                           , cdelt2(_cdelt2)
-                          , mresRound(_mresRound)
+                          , map_resolution(_map_resolution)
 {
 
   // additional features
@@ -63,7 +63,7 @@ string HealpixBlob::to_json_str(string filepath)
 	rapidjson::Value cd_2(cdelt2);
 	json_meta.AddMember("cdelt2", cd_2, allocator);
 
-  rapidjson::Value mres(mresRound);
+  rapidjson::Value mres(map_resolution);
 	json_meta.AddMember("mres", mres, allocator);
 
 	// rapidjson::Value p(psf);
@@ -111,7 +111,10 @@ MapCoords HealpixBlob :: compute_centroid()
 
 float HealpixBlob :: compute_blobs_area_degrees(){
 
-  float pixarea = ( ( 4 * M_PI / 12 * pow(mresRound,2) )*RAD2DEG )*RAD2DEG;  //def nside2pixarea(nside, degrees=False) https://github.com/healpy/healpy/blob/master/healpy/pixelfunc.py
+  float pixarea = ( ( 4 * M_PI / 12 * pow(map_resolution,2) )*RAD2DEG )*RAD2DEG;  //def nside2pixarea(nside, degrees=False) https://github.com/healpy/healpy/blob/master/healpy/pixelfunc.py
+  // float pixarea2 = pow(90 / ( pow(2,map_resolution) * pow(2,0.5) ), 2);
+  // cout << "Area pixel con formula: "<<pixarea<<endl;
+  // cout << "Area pixel con formula cdelt: "<<pixarea2<<endl;
 
   // cout << "Area of Blob: "<<pixarea*number_of_pixels<<endl; // number_of_pixels ?????????
   return pixarea*number_of_pixels;
