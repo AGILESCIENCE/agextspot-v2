@@ -492,8 +492,11 @@ float ** HealPixCountMapsBlobsFinder :: filter_creation(int kernel_side)
 
   }
 
-  // intialising standard deviation to 1.0
-    double sigma = 3.0;
+    // intialising standard deviation to 1.0
+    // Best kernel_side size is kernel_side = 2*k + 1
+    // k = 3*sigma -> sigma =  ( kernel_side - 1 )/6
+    double sigma = ( kernel_side - 1 )/6;
+    cout <<"Sigma: "<<sigma<<endl;
     double r, s = 2.0 * sigma * sigma;
 
     // sum is for normalization
@@ -690,7 +693,7 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
     if( labeled_map[i] > 0 )
     {
       labeled_map[i] = equivalence_class_vector[ labeled_map[i] ];
-      cout << "Il pixel " << i << " di classe "<<labeled_map[i]<<" viene labellizzato come: " << equivalence_class_vector[labeled_map[i]] << endl;
+      // cout << "Il pixel " << i << " di classe "<<labeled_map[i]<<" viene labellizzato come: " << equivalence_class_vector[labeled_map[i]] << endl;
     }
   }
 

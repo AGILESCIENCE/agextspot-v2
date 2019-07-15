@@ -39,8 +39,8 @@ void BlobsListGenerator::generate(string counts_map_folder_path, string output_f
   string json_output_filepath = output_folder+"/"+output_filename+".json";
   cout << "[BlobsListGenerator] Output JSON file: " << json_output_filepath << endl;
 
-  if( FileWriter::file_exists(json_output_filepath) )
-    FileWriter::write2File(json_output_filepath, "[\n", false);
+  // if( FileWriter::file_exists(json_output_filepath) )
+  FileWriter::write2File(json_output_filepath, "[\n", false);
 
 
 

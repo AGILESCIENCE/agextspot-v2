@@ -112,10 +112,11 @@ MapCoords HealpixBlob :: compute_centroid()
 float HealpixBlob :: compute_blobs_area_degrees(){
 
   // Area sfera unitaria / numero di pixel (12*2^k)
-  float pixareaRAD =  4 * M_PI / ( 12 * pow(4, map_resolution) );  //def nside2pixarea(nside, degrees=False) https://github.com/healpy/healpy/blob/master/healpy/pixelfunc.py
+  float pixareaRAD =  4 * M_PI / ( 12 * pow( pow(2, map_resolution),2) );  //def nside2pixarea(nside, degrees=False) https://github.com/healpy/healpy/blob/master/healpy/pixelfunc.py
   float pixareaDEG =  (pixareaRAD*RAD2DEG)*RAD2DEG;
 
-  // cout << "Area of Blob: "<<pixarea*number_of_pixels<<endl; // number_of_pixels ?????????
+
+  // cout << "Pixel area: "<<pixareaDEG<<endl; // number_of_pixels ?????????
   return pixareaDEG*number_of_pixels;
 }
 
