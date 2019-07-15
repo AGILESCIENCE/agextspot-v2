@@ -46,6 +46,21 @@ string HealPixCountMapsBlobsFinder::get_format()
 		return file_format;
 }
 
+void HealPixCountMapsBlobsFinder::print_vector_int(string name, vector<int>& v_int, bool print_vertical)
+{
+  cout << "Vector " << name << ": [";
+  int count = 0;
+  for (const auto & i : v_int)
+  {
+    if(print_vertical)
+      cout <<"\nv["<<count<<"] = "<< i << " ";
+    else
+      cout << i << " ";
+    count ++;
+  }
+  cout << "]" << endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //		Extraction of blobs from FITS HEALPix images
@@ -110,12 +125,12 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
 
   vector < vector <int> > connected_components;
-  Healpix_Map <int> labeledMap = find_connected_components(thresholded_map, map_resolution, connected_components);
+  Healpix_Map <int> labeled_map = find_connected_components(thresholded_map, map_resolution, connected_components);
 
   // cout << "Trovati "<< connected_components.size() << " connected components."<< endl;
 
   if(save_cv_steps)
-    save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeledMap);
+    save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"labelelled_map.fits",labeled_map);
 
 
 
@@ -128,7 +143,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
     vector<pair<MapCoords,int> > photon_points;
     vector<MapCoords > contour_points;
 
-    compute_blob_features( map_resolution, pixels, map, thresholded_map, labeledMap, points, photon_points, contour_points);
+    compute_blob_features( map_resolution, pixels, map, thresholded_map, labeled_map, points, photon_points, contour_points);
 
 
     // DEBUG print
@@ -583,12 +598,12 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
 {
   auto start = std::chrono::system_clock::now();
 
-  Healpix_Map<int> labeledMap(map_resolution, NEST);
+  Healpix_Map<int> labeled_map(map_resolution, NEST);
 
-  long int nPix = labeledMap.Npix();
+  long int nPix = labeled_map.Npix();
   for( int i = 0; i < nPix; i++ )
   {
-    labeledMap[i] = 0;
+    labeled_map[i] = 0;
   }
 
   int label = 0;
@@ -598,7 +613,7 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
   for(int i=0;i<nPix;i++)
   {
     // check if the pixel i is not background and is not yet labelled
-    if(thresholded_map[i] > 0 && labeledMap[i] == 0)
+    if(thresholded_map[i] > 0 && labeled_map[i] == 0)
     {
 
       // extract the 8-neighborood of the i-th pixel
@@ -606,31 +621,26 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
 
       // searching for a label in the neighbourhood
       vector<int> neighbor_labels;
-      // vector<int> current_neighbors;
+
 
       for(int j=0; j < (int)neighbors.size(); j++)  //  8-connecctivity: j++ ( DON'T WORK WITH 4-connecctivity )
       {
         int neighbor = neighbors[j];
-        if(labeledMap[neighbor] > 0)
-        {
-          neighbor_labels.push_back(labeledMap[neighbor]);
-          // current_neighbors.push_back(neighbor);
-        }
+        if(labeled_map[neighbor] > 0)
+          neighbor_labels.push_back(labeled_map[neighbor]);
       }
+      //print_vector_int("neighbor_labels", neighbor_labels);
 
       vector<int> neighbor_labels_no_dulpicates;
-      int count = 0;
       for( vector <int> :: iterator it = neighbor_labels.begin(); it < neighbor_labels.end(); ++it)
       {
         int label = *it;
         if(std::find(neighbor_labels_no_dulpicates.begin(), neighbor_labels_no_dulpicates.end(), label) != neighbor_labels_no_dulpicates.end())
-        {
-          /* v contains x */
-        } else {
-          count ++ ;
+        {}else
           neighbor_labels_no_dulpicates.push_back(label);
-        }
       }
+      //print_vector_int("neighbor_labels_no_dulpicates", neighbor_labels_no_dulpicates);
+
 
 
       // if there is at least one labelled neighbor
@@ -643,7 +653,7 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
               min_l = i;
 
         // assign label to pixel i
-        labeledMap[i] = min_l;
+        labeled_map[i] = min_l;
 
         // remove min element
         neighbor_labels_no_dulpicates.erase(std::find(neighbor_labels_no_dulpicates.begin(),neighbor_labels_no_dulpicates.end(),min_l));
@@ -652,37 +662,47 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
         // equivalence classes management
         for(const auto& nl : neighbor_labels_no_dulpicates)
         {
-          equivalence_class_vector[nl] = min_l;
+          equivalence_class_vector[nl] = equivalence_class_vector[min_l];
 
           // transitive property implementation
           for( vector <int> :: iterator it = equivalence_class_vector.begin(); it < equivalence_class_vector.end(); ++it)
-          {
             if( *it == nl )
-            {
-              *it = equivalence_class_vector[min_l];
-            }
-          }
+              *it = equivalence_class_vector[nl];
         }
+
       }
       else
       {
         // Creating a new label
         label++;
         equivalence_class_vector.push_back(label);
-        labeledMap[i]=label;
+        labeled_map[i]=label;
       }
     }
   }
 
+
+
   // Resolution of the equivalances
+
   for( int i = 0; i < nPix; i ++ )
   {
-    if( labeledMap[i] > 0 )
+    if( labeled_map[i] > 0 )
     {
-      labeledMap[i] = equivalence_class_vector[ labeledMap[i] ];
-      // cout << "Il pixel " << i << " viene labellizzato come: " << equivalence_class_vector[labeledMap[i]]<< endl;
+      labeled_map[i] = equivalence_class_vector[ labeled_map[i] ];
+      cout << "Il pixel " << i << " di classe "<<labeled_map[i]<<" viene labellizzato come: " << equivalence_class_vector[labeled_map[i]] << endl;
     }
   }
+
+
+
+
+
+
+
+
+
+  // Creating vector < vector > > connected_component_indexes -> for each blob , a list of blobs pixels (healpix pixels)
 
   std::sort(equivalence_class_vector.begin(), equivalence_class_vector.end());
   auto last = std::unique(equivalence_class_vector.begin(), equivalence_class_vector.end());
@@ -716,8 +736,8 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
 
   for( int i = 0; i < nPix; i ++ )
   {
-    if (labeledMap[i] > 0)
-      connected_component_indexes[equivalence_classes_incremental_mapping[labeledMap[i]]].push_back(i);
+    if (labeled_map[i] > 0)
+      connected_component_indexes[equivalence_classes_incremental_mapping[labeled_map[i]]].push_back(i);
   }
 
 
@@ -725,7 +745,7 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
   std::chrono::duration<double> diff = stop-start;
   cout << "Connected components execution time: " << diff.count() << " s" << endl;
 
-  return labeledMap;
+  return labeled_map;
 }
 
 
@@ -768,13 +788,13 @@ int HealPixCountMapsBlobsFinder :: compute_blob_features(
                                                         vector <int> & connected_component_indexes,
                                                         Healpix_Map<int>& map,
                                                         Healpix_Map<float>& thresholded_map,
-                                                        Healpix_Map <int>& labeledMap,
+                                                        Healpix_Map <int>& labeled_map,
                                                         vector<pair<MapCoords,int> > & points,
                                                         vector<pair<MapCoords,int> > & photon_points,
                                                         vector<MapCoords > & contour_points
                                                        )
 {
-  Healpix_Map <int> labeledWorkingMap = labeledMap;
+  Healpix_Map <int> labeledWorkingMap = labeled_map;
   double l, b;
 
   fix_arr<int,8> neighbors; //holds temporary neighbors
