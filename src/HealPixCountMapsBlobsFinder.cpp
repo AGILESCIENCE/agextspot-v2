@@ -61,6 +61,19 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   Healpix_Map<int> map = read_Healpix_map_from_fits<int>(fitsfilePath);
 
+  int countPix=0;
+  for( int i = 0; i <map.Npix(); i ++)
+  {
+    if(map[i]==0)
+      countPix++;
+  }
+
+  if(countPix==map.Npix())
+  {
+    cout<<"ERROR: Input map empty!"<<endl;
+    exit(-1);
+  }
+
   int map_resolution = map.Order();
   long int nPix = map.Npix();
 
