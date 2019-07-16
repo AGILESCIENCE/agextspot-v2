@@ -82,7 +82,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   cout << "Data quality -> sum of map pixel values = " << countPix << endl;
   if(countPix == 0)
   {
-    cout<<"ERROR: Input map empty!"<<endl;
+    cout<<"[HealPixCountMapsBlobsFinder] ERROR: Input map empty!"<<endl;
     exit(1);
   }
 
@@ -227,8 +227,6 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: compute_blobs_map(int map_resol
 Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2)
 {
   auto start = std::chrono::system_clock::now();
-
-  // cout <<"Npix: " <<nPix<<endl;
 
   float convolved_data[nPix];
   int max = -1;
@@ -496,6 +494,11 @@ float ** HealPixCountMapsBlobsFinder :: filter_creation(int kernel_side)
     // Best kernel_side size is kernel_side = 2*k + 1
     // k = 3*sigma -> sigma =  ( kernel_side - 1 )/6
     double sigma = ( kernel_side - 1 )/6;
+    if(sigma==0)
+    {
+      cout<<"[HealPixCountMapsBlobsFinder] ERROR: gaussian sigma value!\nCheck PSF and CDELTn values\nkernel size: ["<<kernel_side<<"x"<<kernel_side<<"] (formula: 2 * psf/cdelt2 + 1)\n"<<endl;
+      exit(1);
+    }
     cout <<"Sigma: "<<sigma<<endl;
     double r, s = 2.0 * sigma * sigma;
 
