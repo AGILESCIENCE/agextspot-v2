@@ -56,7 +56,7 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 
     public:
 
-      AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf, bool interactive_extraction);
+      AgileCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf, double classification_threshold, bool interactive_extraction);
 
       vector<Blob * > find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder);
 
@@ -68,7 +68,7 @@ class AgileCountMapsBlobsFinder : public BlobsFinder
 
         Mat gassusian_smoothing(IntMatrixCustomMap * int_matrix_map, float PSF, float CDELT1, float CDELT2);
 
-        Mat thresholding(Mat image);
+        Mat thresholding(Mat image, double classification_threshold);
 
         Mat add_padding_to_image(Mat image8U);
 

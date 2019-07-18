@@ -39,7 +39,7 @@ class BlobsFinder {
 
   public:
 
-    BlobsFinder(float _cdelt1, float _cdelt2, float _psf): cdelt1(_cdelt1), cdelt2(_cdelt2), psf(_psf) {}
+    BlobsFinder(float _cdelt1, float _cdelt2, float _psf, double _classification_threshold): cdelt1(_cdelt1), cdelt2(_cdelt2), psf(_psf), classification_threshold(_classification_threshold) {}
 
     virtual vector<Blob *> find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder) = 0;
 
@@ -47,6 +47,7 @@ class BlobsFinder {
 
   protected:
 
+    double classification_threshold;
     float cdelt1;
     float cdelt2;
     float psf;

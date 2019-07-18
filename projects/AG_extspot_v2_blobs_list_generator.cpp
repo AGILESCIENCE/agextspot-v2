@@ -40,6 +40,7 @@ int main(int argc, char*argv[]){
 		{ PilString, "output_folder", "The name of the output folder."},
 		{ PilString, "counts_map_folder_path", "The path to the folder that contains the dataset."},
 		{ PilString, "map_format", "'agile','healpix'"},
+		{ PilReal, 	 "classification_threshold", "Classification threshold"},
 		{ PilReal, "cdelt1", "Degree pixel size (width)"},
 		{ PilReal, "cdelt2", "Degree pixel size (height)"},
 		{ PilReal, "psf", "The telescope's spread point function (degree)"},
@@ -56,6 +57,7 @@ int main(int argc, char*argv[]){
 	string output_filename  = string(params["output_filename"]);
 	string output_folder  = string(params["output_folder"]);
 	string counts_map_folder_path	= string(params["counts_map_folder_path"]);
+	double classification_threshold 	= params["classification_threshold"];
 	string map_format  = string(params["map_format"]);
 	double cdelt1 = params["cdelt1"];
 	double cdelt2 = params["cdelt2"];
@@ -75,7 +77,7 @@ int main(int argc, char*argv[]){
 
 	auto start = std::chrono::system_clock::now();
 
-  BlobsListGenerator blg(map_format, cdelt1, cdelt2, psf);
+  BlobsListGenerator blg(map_format, cdelt1, cdelt2, psf, classification_threshold);
 
   blg.generate(counts_map_folder_path, output_filename, output_folder, shuffle_dataset, save_cv_steps);
 

@@ -32,8 +32,8 @@
 
 // #define MAX_NEIGHBOORS 60
 
-HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf)
-   : BlobsFinder(_cdelt1, _cdelt2, _psf)
+HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf, double _classification_threshold)
+   : BlobsFinder(_cdelt1, _cdelt2, _psf, _classification_threshold)
 {
 
   // cout << "HealPixCountMapsBlobsFinder" << endl;
@@ -92,25 +92,9 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   cout << "Map nPix: " << nPix << endl;
   cout << "Map order: " << map_resolution << endl;
   cout << "Map schema: " << map.Scheme() << endl;
+  cout << "classification_threshold: " <<classification_threshold<<endl;
 
-  if (map.Scheme() == RING){
-
-    Healpix_Map<int> mapTemp(map_resolution, NEST);
-    int index;
-
-    for( int i = 0; i <map.Npix(); i ++)
-    {
-      index = map.ring2nest(i);
-      mapTemp[index] = map[i];
-    }
-    map.Set(map_resolution, NEST);
-    map = mapTemp;
-    // if(save_cv_steps)
-    //   save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"converted_map.fits",map);
-    // cout << "HealpiMap RING converted in HealpixMap NEST"<<endl;
-
-  }
-
+  if (map.Scheme() == RING) map.swap_scheme();
 
   Healpix_Map<float> convolved_map = gassusian_smoothing(map, nPix, map_resolution, psf, cdelt1, cdelt2);
 
@@ -118,7 +102,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
     save_healpix_FLOAT_image(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
 
 
-  Healpix_Map<float> thresholded_map = thresholding(convolved_map, nPix, map_resolution);
+  Healpix_Map<float> thresholded_map = thresholding(convolved_map, nPix, map_resolution, classification_threshold);
 
   if(save_cv_steps)
     save_healpix_FLOAT_image(output_folder+"/"+fitsfilename+"_"+"thresholded_map.fits",thresholded_map);
@@ -538,12 +522,12 @@ float ** HealPixCountMapsBlobsFinder :: filter_creation(int kernel_side)
 }
 
 
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution)
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution, double classification_threshold)
 {
 
   auto start = std::chrono::system_clock::now();
 
-  float thresh=0.995;
+  cout<<"[HealPixCountMapsBlobsFinder] threshold: "<< classification_threshold<<endl;
   float convolved_data[nPix];
 
   for( int i = 0; i < nPix; i ++ )
@@ -566,12 +550,12 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
   int index=-1;
   float treshold = -1;
 
-   /* calcolate the treshold as thresh% of all pixels*/
+   /* calcolate the treshold as classification_threshold% of all pixels*/
   for(int i=0;i<256;i++){
     mass_prob= (float)histogram[i]/(float)nPix;
 
     percent_acc+=mass_prob;
-    if(percent_acc>=thresh){
+    if(percent_acc>=classification_threshold){
       treshold= i;
       break;
     }

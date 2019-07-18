@@ -29,8 +29,8 @@
 
 #include "AgileCountMapsBlobsFinder.h"
 
-AgileCountMapsBlobsFinder::AgileCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf, bool _interactive_extraction)
-		: BlobsFinder(_cdelt1, _cdelt2, _psf),
+AgileCountMapsBlobsFinder::AgileCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf, double _classification_threshold, bool _interactive_extraction)
+		: BlobsFinder(_cdelt1, _cdelt2, _psf, _classification_threshold),
 			interactive_extraction(_interactive_extraction)
 {
 	file_format = "AGILE COUNT MAP";
@@ -88,7 +88,7 @@ vector<Blob * > AgileCountMapsBlobsFinder::find_blobs(string fits_filename, stri
 	#endif
 
 	/* Thresholding */
-	workingImage8U = thresholding(workingImage8U);
+	workingImage8U = thresholding(workingImage8U, classification_threshold);
 
 	if(save_cv_steps)
 		imwrite( output_folder+"/"+fits_filename+"_"+"thresholded_map.jpeg", workingImage8U);
@@ -224,7 +224,7 @@ Mat AgileCountMapsBlobsFinder::gassusian_smoothing(IntMatrixCustomMap * int_matr
 	return workingImage8U;
 }
 
-Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U){
+Mat AgileCountMapsBlobsFinder::thresholding(Mat workingImage8U, double classification_threshold){
 
 	int rows = workingImage8U.rows;
 	int cols = workingImage8U.cols;

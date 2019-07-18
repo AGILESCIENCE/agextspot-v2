@@ -30,7 +30,7 @@
 #define BLOBSLISTGENERATOR_H
 
 #include <string>
- 
+
 #include "AgileCountMapsBlobsFinder.h"
 #include "HealPixCountMapsBlobsFinder.h"
 #include "FolderManager.h"
@@ -44,7 +44,7 @@ class BlobsListGenerator
 
   public:
 
-    BlobsListGenerator(string map_format, float cdelt1, float cdelt2, float psf);
+    BlobsListGenerator(string map_format, float cdelt1, float cdelt2, float psf, double classification_threshold);
 
     void generate(string counts_map_folder_path, string output_filename, string output_folder, bool shuffle_dataset, bool save_cv_steps);
 

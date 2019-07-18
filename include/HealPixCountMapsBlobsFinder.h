@@ -62,7 +62,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
   public:
 
-    HealPixCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf);
+    HealPixCountMapsBlobsFinder(float cdelt1, float cdelt2, float psf, double classification_threshold);
 
     vector<Blob*> find_blobs(string fitsfilename, string fitsfile_folder, bool save_cv_steps, string output_folder);
 
@@ -74,7 +74,7 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
     float ** filter_creation(int kernel_side);
 
-    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution);
+    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution, double classification_threshold);
 
     Healpix_Map <int> find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes);
 

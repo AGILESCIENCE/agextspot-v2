@@ -1,7 +1,7 @@
 outputLogName,s,ql,"log.txt",,,"Output log file name"
 psf,r,ql,7.5,,,"Telescope's Point Spread Function value (degree)"
 imageCtsPath,s,ql,"maps/SCAN1000_430651900.0_430652900.0_308.377257_39.293747.cts.gz",,,"Input ctsMap file path"
-classificationThreshold,r,ql,95,,, "Classification threshold"
+classificationThreshold,r,ql,0.995,,, "Classification threshold"
 visualizationMode,b,ql,no,,,"If 'yes' (or 'y') each blob extraction step will be visualized in a graphic window (interactive mode). Insert 'no' (or 'n') instead"
 imageExpPath,s,ql,"maps/SCAN1000_430651900.0_430652900.0_308.377257_39.293747.exp.gz",,,"Input expMap file path"
 isExpMapNormalized,b,h,no,,,"If 'yes' (or 'y') you assert that the exp-map is already normalized. Insert 'no' (or 'n') instead"
