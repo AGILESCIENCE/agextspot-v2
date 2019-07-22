@@ -37,15 +37,27 @@
 #include <vector>
 #include <Eval.h> // DEG2RAD
 #include <chrono>
+#include <memory>
+#include <algorithm>
 
-
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <healpix_map.h>
 #include <healpix_base.h>
 #include <healpix_map_fitsio.h>
+
+// to use healpix gaussian_smoothing
+#include "xcomplex.h"
+#include "paramfile.h"
+#include "healpix_data_io.h"
+#include "alm.h"
+#include "healpix_map.h"
+#include "healpix_map_fitsio.h"
+#include "alm_healpix_tools.h"
+#include "alm_powspec_tools.h"
+// #include "weight_utils.h"
+#include "fitshandle.h"
+#include "levels_facilities.h"
+#include "lsconstants.h"
+#include "announce.h"
 
 #include "HealpixBlob.h"
 #include "BlobsFinder.h"
@@ -55,7 +67,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
-using namespace cv;
+
 
 
 class HealPixCountMapsBlobsFinder : public BlobsFinder{
@@ -70,29 +82,26 @@ class HealPixCountMapsBlobsFinder : public BlobsFinder{
 
   private:
 
-    Healpix_Map<float> gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2);
+    template<typename T> Healpix_Map<T> gaussian_smoothing(double fwhm, Healpix_Map<double> map,string outfile);
 
-    float ** filter_creation(int kernel_side);
+    Healpix_Map<float> thresholding(Healpix_Map<double> convolved_map, long int nPix, int map_resolution, double classification_threshold);
 
-    Healpix_Map<float> thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution, double classification_threshold);
+    Healpix_Map <double> find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes);
 
-    Healpix_Map <int> find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes);
-
-    int save_healpix_INT_image( string imageName, Healpix_Map<int> map);
+    int save_healpix_INT_image( string imageName, Healpix_Map<double> map);
 
     int save_healpix_FLOAT_image( string imageName, Healpix_Map<float> map);
 
-    //new
     int compute_blob_features(int map_resolution,
                               vector <int> & connected_component_indexes,
-                              Healpix_Map<int> & map,
+                              Healpix_Map<double> & map,
                               Healpix_Map<float> & thresholded_map,
-                              Healpix_Map <int> & labeledMap,
+                              Healpix_Map <double> & labeledMap,
                               vector<pair<MapCoords,int> > & points,
                               vector<pair<MapCoords,int> > & photon_points,
                               vector<MapCoords > & contour_points
                             );
-    Healpix_Map <int> compute_blobs_map(int map_resolution, vector<Blob *> blobs);
+    Healpix_Map <double> compute_blobs_map(int map_resolution, vector<Blob *> blobs);
 
     void print_vector_int(string name, vector<int>& v_int, bool print_vertical);
 

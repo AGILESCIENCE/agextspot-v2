@@ -82,7 +82,7 @@ else
 CXX = g++
 endif
 
-CXXFLAGS = -g -std=c++11 -O2 -pipe -I $(INCLUDE_DIR)
+CXXFLAGS = -g -std=c++11 -fopenmp -O2 -pipe -I $(INCLUDE_DIR)
 
 
 ifeq ($(DEBUG),1)
@@ -137,7 +137,7 @@ ifneq (, $(findstring healpix, $(LINKERENV)))
         CXXFLAGS += -I $(HEALPIX_INCDIR)
     endif
 		#-lfftpack
-    LIBS += -L$(HEALPIX_LIBDIR) -lhealpix_cxx -lcxxsupport -lsharp  -lc_utils -lcfitsio#-lsharp -lfftpack -lcxxsupport -lc_utils
+    LIBS += -L$(HEALPIX_LIBDIR) -lhealpix_cxx -lcxxsupport -lsharp -lfftpack -lc_utils -lcfitsio#-lsharp -lfftpack -lcxxsupport -lc_utils
 endif
 
 CXXFLAGS += -I rapidjson

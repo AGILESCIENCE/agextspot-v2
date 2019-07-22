@@ -26,11 +26,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 ////////////////////////////////////////////////////////////////////////////////////
-#include <algorithm>
-
 #include "HealPixCountMapsBlobsFinder.h"
-
-// #define MAX_NEIGHBOORS 60
 
 HealPixCountMapsBlobsFinder::HealPixCountMapsBlobsFinder(float _cdelt1, float _cdelt2, float _psf, double _classification_threshold)
    : BlobsFinder(_cdelt1, _cdelt2, _psf, _classification_threshold)
@@ -74,7 +70,11 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   const string fitsfilePath = fitsfile_folder + "/" + fitsfilename;
 
-  Healpix_Map<int> map = read_Healpix_map_from_fits<int>(fitsfilePath);
+  // Healpix_Map<int> map = read_Healpix_map_from_fits<int>(fitsfilePath);
+  Healpix_Map<double> map;
+	read_Healpix_map_from_fits (fitsfilePath, map,1,2);
+
+  if (map.Scheme()==NEST) map.swap_scheme();
 
   int countPix=0;
   for( int i = 0; i <map.Npix(); i ++)
@@ -92,14 +92,50 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   cout << "Map nPix: " << nPix << endl;
   cout << "Map order: " << map_resolution << endl;
   cout << "Map schema: " << map.Scheme() << endl;
-  cout << "classification_threshold: " <<classification_threshold<<endl;
 
-  if (map.Scheme() == RING) map.swap_scheme();
+  /*
+  The Input Healpix CTA count map and input Healpix AGILE count map
+  have a very different range of values.
+  The following code lines do the linear interpolation to uniform
+  the input maps values.
+  */
+  float maxInRange = -99999999;
+  float minInRange = 99999999;
+  for( int i = 0; i < nPix; i ++ )
+  {
+    if(map[i] > maxInRange)
+    {
+      maxInRange = map[i];
+    }
+    if(map[i] < minInRange)
+    {
+      minInRange = map[i];
+    }
+  }
 
-  Healpix_Map<float> convolved_map = gassusian_smoothing(map, nPix, map_resolution, psf, cdelt1, cdelt2);
+
+  float x = 0;
+  int minOutRange = 0;
+  int maxOutRange = 255;
+  for( int i = 0; i < nPix; i ++ )
+  {
+    x = (map[i] - minInRange) / (maxInRange - minInRange);
+    map[i] = minOutRange + (maxOutRange - minOutRange) * x;
+  }
 
   if(save_cv_steps)
-    save_healpix_FLOAT_image(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
+      save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"original_map.fits",map);
+
+
+  // fwhm (expressed in arcmin): full width at half maximum in arcmin is equal 2 times psf (expressed in degree)
+  double fwhm = (2*psf)*60;
+  string outfile = output_folder+"/"+fitsfilename+"_"+"convolved_map.fits";
+  Healpix_Map<double> convolved_map;
+  convolved_map = gaussian_smoothing<double>(fwhm, map, outfile);
+
+
+  if(save_cv_steps)
+    save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"convolved_map.fits",convolved_map);
 
 
   Healpix_Map<float> thresholded_map = thresholding(convolved_map, nPix, map_resolution, classification_threshold);
@@ -107,9 +143,8 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
   if(save_cv_steps)
     save_healpix_FLOAT_image(output_folder+"/"+fitsfilename+"_"+"thresholded_map.fits",thresholded_map);
 
-
   vector < vector <int> > connected_components;
-  Healpix_Map <int> labeled_map = find_connected_components(thresholded_map, map_resolution, connected_components);
+  Healpix_Map <double> labeled_map = find_connected_components(thresholded_map, map_resolution, connected_components);
 
   // cout << "Trovati "<< connected_components.size() << " connected components."<< endl;
 
@@ -165,7 +200,7 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 
   if(save_cv_steps)
   {
-    Healpix_Map <int> blobs_map = compute_blobs_map(map_resolution, blobs);
+    Healpix_Map <double> blobs_map = compute_blobs_map(map_resolution, blobs);
     save_healpix_INT_image(output_folder+"/"+fitsfilename+"_"+"blobs.fits",blobs_map);
   }
 
@@ -176,359 +211,52 @@ vector<Blob*> HealPixCountMapsBlobsFinder::find_blobs(string fitsfilename, strin
 }
 
 
-
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: compute_blobs_map(int map_resolution, vector<Blob *> blobs)
+template<typename T> Healpix_Map<T> HealPixCountMapsBlobsFinder::gaussian_smoothing (double fwhm, Healpix_Map<double> input_map, string outfile )
 {
-  Healpix_Map<int> blobs_map(map_resolution,NEST);
-  for( int i = 0; i < blobs_map.Npix(); i++ )
-  {
-    blobs_map[i] = 0;
-  }
 
-
-  for(const auto& b : blobs)
-  {
-    //cout << "Blob with centroid " << b->get_galactic_centroid_l() << " "<< b->get_galactic_centroid_b() << endl;
-    for(const auto& contour_point : b->get_contour())
-    {
-      //cout << "computing pointing.."<<endl;
-
-      pointing point = pointing((90-contour_point.x)*DEG2RAD, contour_point.y*DEG2RAD);
-      int healpix_map_index = blobs_map.ang2pix(point);
-      //cout << "y= " << contour_point.y << " x= " << contour_point.x << " index= " << healpix_map_index << endl;
-      blobs_map[healpix_map_index] = 1;
-    }
-    pointing point = pointing((90-b->get_galactic_centroid_b())*DEG2RAD, b->get_galactic_centroid_l()*DEG2RAD);
-    int healpix_map_index = blobs_map.ang2pix(point);
-    blobs_map[healpix_map_index] = 10;
-  }
-  return blobs_map;
-}
-
-
-
-
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: gassusian_smoothing(Healpix_Map<int> map, int nPix, int map_resolution, float psf, float cdelt1, float cdelt2)
-{
   auto start = std::chrono::system_clock::now();
 
-  float convolved_data[nPix];
-  int max = -1;
+  int nlmax = 64;
+  int num_iter = 0;
+  fwhm = arcmin2rad*fwhm;
+  if (fwhm<0)
+    cout << "NOTE: negative FWHM supplied, doing a deconvolution..." << endl;
 
+  Healpix_Map<T> map = input_map;
 
-  for( int i = 0; i < nPix; i++ )
-  {
-		if( map[i] >= max )
-    {
-			max = (int)map[i];
-		}
-	}
+  tsize nmod = map.replaceUndefWith0();
+  if (nmod!=0)
+  cout << "WARNING: replaced " << nmod <<
+         " undefined map pixels with a value of 0" << endl;
 
+  double avg=map.average();
+  map.Add(T(-avg));
 
-  float data[nPix];
-	for( int i = 0; i < nPix; i++ )
-  {
-		data[i] = ( (float)map[i] * 255.0) / (float)max;
-	}
+  arr<double> weight;
+  weight.alloc(2*map.Nside());
+  weight.fill(1);
 
-	for( int i = 0; i < nPix; i++ )
-  {
-			convolved_data[i]=0;
-	}
+  Alm<xcomplex<T> > alm(nlmax,nlmax);
 
-	// float kernel_side = 19;
-  // cout <<"Map resolution: "<<map_resolution<<endl;
-  float cdelt = 90 / ( pow(2,map_resolution) * pow(2,0.5) );
-  // cout<<"Computed cdelt :"<<cdelt<<endl;
-  int kernel_side = round( (2 * psf/cdelt) + 1);
-  cout << "Kernel size: " << kernel_side << endl;
+  map2alm_iter(map,alm,num_iter,weight);
+  smoothWithGauss (alm, fwhm);
+  alm2map(alm,map);
 
-  float ** kernel_generated;
-  kernel_generated = filter_creation(kernel_side);
-
-
-  int lim = ( kernel_side / 2.0 ) - 1; //counts how many neighborhoods must be extracted
-
-  // float kernel_reordered_Array[MAX_NEIGHBOORS][8*MAX_NEIGHBOORS];
-  float kernel_reordered_Array[lim][8*lim];
-  // cout <<"Neighbours to be extract: " << lim << endl;
-
-	/*Reorder the kernel according to neighborhoods representation */
-	int centre = kernel_side / 2.0;
-  // cout << "Kernel center: " << centre << endl;
-
-
-	float k_1 = kernel_generated[centre][centre]; // central element
-
-  for( int times = 0; times < centre; times++ )
-  {
-		int i=0;
-		int count=0;
-		int cursor_row = centre+(1*times)+2;
-		int cursor_column = centre-(times+1);
-
-    while( count < 3 + ( 2 * times ) )   // left side
-    {
-			cursor_row--;
-			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
-			i++;
-			count++;
-		}
-		count=0;
-
-    while( count < 2 + ( 2 * times ) )//up side
-    {
-			cursor_column++;
-			count++;
-			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
-			i++;
-		}
-		count=0;
-
-		while( count < 2 + ( 2 * times ) )   // right side
-    {
-			cursor_row++;
-			count++;
-			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
-			i++;
-		}
-		count=0;
-
-		while( count < 1 + ( 2 * times ) )   // down side
-    {
-			cursor_column--;
-			count++;
-			kernel_reordered_Array[times][i] = kernel_generated[cursor_row][cursor_column];
-			i++;
-		}
-
-	}
-
-
-
-	// fix_arr<int,81> arr[MAX_NEIGHBOORS]; // array for holding the (i+1)-neighborood
-  fix_arr<int,81> arr[2*lim]; // array for holding the (i+1)-neighborood
-	fix_arr<int,8> tempA; //holds temporary neighbors
-	float temp; // accumulator for convolution sums
-	for( int i = 0; i < nPix; i++ )
-  {
-		temp=0;
-		temp +=data[i]*k_1; // product of central elements
-
-		map.neighbors(i,tempA);//extract the 8-neighborood of the i-th pixel
-
-
-		for( int j = 0; j < 8; j++ )
-    {
-
-			arr[0][j]=tempA[j];
-      // cout << i << ", " << tempA[j] << endl;
-
-		}
-
-		int z = 0; //used to select neighbors
-		int separator; //indexing dividing arr[times][s] to reflect sides of neighborhood matrix
-
-		/* if necessary extract the other neighbors */
-		for( int times = 0; times < lim; times++)  //if kernel side is 3 there is no need to extract other neighbors
-    {
-			separator = 2*(times+1);
-			for( int s = 0; s < 8 + ( 8 * times ); s++)
-      {
-				if( s == 0 )  //bottom-left corner
-        {
-					if(arr[times][s]!= -1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborhood of arr[s]}
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-						arr[times+1][s+(15+(8*times))]= tempA[7]; // last neighbor pixel
-					}else{ //if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-						arr[times+1][s+(15+(8*times))]= -1;
-					}
-				}else if((s!=0) && (s<separator)){//left side
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+1]=tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+1]=-1;
-					}
-				}else if(s==separator){ // top-left corner
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-					}
-				}else if((s>separator)&& (s<separator*2)){//up-side
-					if(arr[times][s]!=0-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+3]=tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+(times+1)]=-1;
-					}
-				}else if(s==separator*2){ // top-right corner
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-					}
-				}else if((s>separator*2)&& (s<separator*3)){// right side
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+5]=tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+5]=-1;
-					}
-				}else if(s==separator*3){ //bottom-right corner
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+z]= tempA[z];
-						z++;
-						arr[times+1][s+z]= tempA[z];
-						z++;//z=7
-						arr[times+1][s+z]= tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+z]= -1;
-						z++;
-						arr[times+1][s+z]= -1;
-						z++;//z=7
-						arr[times+1][s+z]= -1;
-					}
-				}else if((s>separator*3)&& (s<separator*4)){ // bottom side
-					if(arr[times][s]!=-1){
-						map.neighbors(arr[times][s],tempA); // 8-neighborood of arr[s]
-						arr[times+1][s+7]=tempA[z];
-					}else{//if arr[times][s] does not exit also his neighbor does not exist
-						arr[times+1][s+7]=-1;
-					}
-				}
-			}
-			z=0;
-		}
-
-
-
-		/*Finally calculates the convolution sum */
-		for( int q = 0; q < lim+1 ; q++)
-    {
-			for( int k = 0; k < 8 *( q+1 ); k++)
-      {
-				if( arr[q][k] != -1 )
-        {
-					temp += data[arr[q][k]] * kernel_reordered_Array[q][(k+4*(q+1))%(8*(q+1))];
-				}
-			}
-		}
-		convolved_data[i] = temp;
-	}
-
-
-  Healpix_Map<float> convolved_map(map_resolution,NEST); /* copies the data into the Healpix map */
-
-
-  for(int i=0;i<nPix;i++){
-    // cout << "i: " << i;
-    convolved_map[i]= convolved_data[i];
-  }
+  map.Add(T(avg));
 
   auto stop = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = stop-start;
   cout << "Smoothing execution time: " << diff.count() << " s" << endl;
 
-  return convolved_map;
-}
-
-float ** HealPixCountMapsBlobsFinder :: filter_creation(int kernel_side)
-{
-
-  // float GKernel[kernel_side][kernel_side];
-  // float ** GKernel = new
-
-  float ** GKernel = new float*[kernel_side];
-
-  for(int i = 0; i < kernel_side; ++i){
-
-    GKernel[i] = new float[kernel_side];
-
-  }
-
-    // intialising standard deviation to 1.0
-    // Best kernel_side size is kernel_side = 2*k + 1
-    // k = 3*sigma -> sigma =  ( kernel_side - 1 )/6
-    double sigma = ( kernel_side - 1 )/6;
-    if(sigma==0)
-    {
-      cout<<"[HealPixCountMapsBlobsFinder] ERROR: gaussian sigma value!\nCheck PSF and CDELTn values\nkernel size: ["<<kernel_side<<"x"<<kernel_side<<"] (formula: 2 * psf/cdelt2 + 1)\n"<<endl;
-      exit(1);
-    }
-    cout <<"Sigma: "<<sigma<<endl;
-    double r, s = 2.0 * sigma * sigma;
-
-    // sum is for normalization
-    double sum = 0.0;
-
-    int x , y;
-
-
-    x = y = (kernel_side/2);
-
-    // cout << "X and Y value is: " << x << endl;
-
-    // generating kernel_side x kernel_side kernel
-    for (int i = -x; i <= x; i++) {
-
-        for (int j = -y; j <= y; j++) {
-
-            r = sqrt(i * i + j * j);
-
-            GKernel[i + x][j + y] = (exp(-(r * r) / s)) / (M_PI * s);
-
-            // cout << GKernel[i + x][j + y] << " ";
-
-            sum += GKernel[i + x][j + y];
-        }
-        // cout << "\n";
-    }
-
-    // normalising the Kernel
-    for (int i = 0; i < 5; ++i)
-        for (int j = 0; j < 5; ++j)
-            GKernel[i][j] /= sum;
-
-    return GKernel;
+  return map;
 
 }
 
-
-Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float> convolved_map, long int nPix, int map_resolution, double classification_threshold)
+Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<double> convolved_map, long int nPix, int map_resolution, double classification_threshold)
 {
-
   auto start = std::chrono::system_clock::now();
 
-  cout<<"[HealPixCountMapsBlobsFinder] threshold: "<< classification_threshold<<endl;
-  float convolved_data[nPix];
+  float * convolved_data = new float[nPix];
 
   for( int i = 0; i < nPix; i ++ )
   {
@@ -569,12 +297,13 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
     }
   }
 
-  Healpix_Map<float> thresholded_map(map_resolution,NEST); /* copies the data into the Healpix map */
+  Healpix_Map<float> thresholded_map(map_resolution,RING); /* copies the data into the Healpix map */
 
   for(int i=0;i<nPix;i++){
-    // cout << "i: " << i;
     thresholded_map[i] = convolved_data[i] ;
   }
+
+  delete[] convolved_data;
 
   auto stop = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = stop-start;
@@ -584,11 +313,26 @@ Healpix_Map<float> HealPixCountMapsBlobsFinder :: thresholding(Healpix_Map<float
 }
 
 
-Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes)
+Healpix_Map <double> HealPixCountMapsBlobsFinder :: find_connected_components(Healpix_Map<float> thresholded_map, int map_resolution, vector < vector <int> > & connected_component_indexes)
 {
   auto start = std::chrono::system_clock::now();
 
-  Healpix_Map<int> labeled_map(map_resolution, NEST);
+  /*
+  The following code lines suppress infinitesimal values produced
+  by gaussian_smoothing and not removed by the threshold process.
+  */
+
+  long int thresholded_map_nPix = thresholded_map.Npix();
+  for( int i = 0; i < thresholded_map_nPix; i ++ )
+  {
+    if(thresholded_map[i] < 0.1)
+    {
+      thresholded_map[i] = 0;
+    }
+  }
+
+
+  Healpix_Map<double> labeled_map(map_resolution, RING);
 
   long int nPix = labeled_map.Npix();
   for( int i = 0; i < nPix; i++ )
@@ -684,14 +428,6 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
     }
   }
 
-
-
-
-
-
-
-
-
   // Creating vector < vector > > connected_component_indexes -> for each blob , a list of blobs pixels (healpix pixels)
 
   std::sort(equivalence_class_vector.begin(), equivalence_class_vector.end());
@@ -739,52 +475,47 @@ Healpix_Map <int> HealPixCountMapsBlobsFinder :: find_connected_components(Healp
 }
 
 
-int HealPixCountMapsBlobsFinder :: save_healpix_INT_image( string imageName, Healpix_Map<int> map)
+Healpix_Map <double> HealPixCountMapsBlobsFinder :: compute_blobs_map(int map_resolution, vector<Blob *> blobs)
 {
+  Healpix_Map<double> blobs_map(map_resolution,RING);
+  for( int i = 0; i < blobs_map.Npix(); i++ )
+  {
+    blobs_map[i] = 0;
+  }
 
-  if( remove( imageName.c_str() ) == 0 )
-		cout << "Deleted old file: " << imageName << endl;
 
-   fitshandle handleC = fitshandle() ;
-   handleC.create(imageName.c_str());
-   write_Healpix_map_to_fits(handleC,map,PLANCK_INT32);
-   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
-   // cout << "Write new file: " << imageName << endl;
+  for(const auto& b : blobs)
+  {
+    //cout << "Blob with centroid " << b->get_galactic_centroid_l() << " "<< b->get_galactic_centroid_b() << endl;
+    for(const auto& contour_point : b->get_contour())
+    {
+      //cout << "computing pointing.."<<endl;
+
+      pointing point = pointing((90-contour_point.x)*DEG2RAD, contour_point.y*DEG2RAD);
+      int healpix_map_index = blobs_map.ang2pix(point);
+      //cout << "y= " << contour_point.y << " x= " << contour_point.x << " index= " << healpix_map_index << endl;
+      blobs_map[healpix_map_index] = 1;
+    }
+    pointing point = pointing((90-b->get_galactic_centroid_b())*DEG2RAD, b->get_galactic_centroid_l()*DEG2RAD);
+    int healpix_map_index = blobs_map.ang2pix(point);
+    blobs_map[healpix_map_index] = 10;
+  }
+  return blobs_map;
 }
-
-
-
-int HealPixCountMapsBlobsFinder :: save_healpix_FLOAT_image( string imageName, Healpix_Map<float> map)
-{
-
-  if( remove( imageName.c_str() ) == 0 )
-		cout << "Deleted old file: " << imageName << endl;
-
-   fitshandle handleC = fitshandle() ;
-   handleC.create(imageName.c_str());
-   write_Healpix_map_to_fits(handleC,map,PLANCK_FLOAT32);
-   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
-   // cout << "Write new file: " << imageName << endl;
-}
-
-
-
-
-/// NEW ALGORITHMS
 
 
 int HealPixCountMapsBlobsFinder :: compute_blob_features(
                                                         int map_resolution,
                                                         vector <int> & connected_component_indexes,
-                                                        Healpix_Map<int>& map,
+                                                        Healpix_Map<double>& map,
                                                         Healpix_Map<float>& thresholded_map,
-                                                        Healpix_Map <int>& labeled_map,
+                                                        Healpix_Map <double>& labeled_map,
                                                         vector<pair<MapCoords,int> > & points,
                                                         vector<pair<MapCoords,int> > & photon_points,
                                                         vector<MapCoords > & contour_points
                                                        )
 {
-  Healpix_Map <int> labeledWorkingMap = labeled_map;
+  Healpix_Map <double> labeledWorkingMap = labeled_map;
   double l, b;
 
   fix_arr<int,8> neighbors; //holds temporary neighbors
@@ -833,6 +564,35 @@ int HealPixCountMapsBlobsFinder :: compute_blob_features(
       }
     }
     labeledWorkingMap[pixel] = -100; // Qui setto a -100 il pixel per non riconsiderarlo negli step successivi
-    // foundPixelContour = false;
   }
+}
+
+
+
+int HealPixCountMapsBlobsFinder :: save_healpix_INT_image( string imageName, Healpix_Map<double> map)
+{
+
+  if( remove( imageName.c_str() ) == 0 )
+		cout << "Deleted old file: " << imageName << endl;
+
+   fitshandle handleC = fitshandle() ;
+   handleC.create(imageName.c_str());
+   write_Healpix_map_to_fits(handleC,map,PLANCK_INT32);
+   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+   // cout << "Write new file: " << imageName << endl;
+}
+
+
+
+int HealPixCountMapsBlobsFinder :: save_healpix_FLOAT_image( string imageName, Healpix_Map<float> map)
+{
+
+  if( remove( imageName.c_str() ) == 0 )
+		cout << "Deleted old file: " << imageName << endl;
+
+   fitshandle handleC = fitshandle() ;
+   handleC.create(imageName.c_str());
+   write_Healpix_map_to_fits(handleC,map,PLANCK_FLOAT32);
+   handleC.set_key("COORDSYS",string("G"),"Ecliptic, Galactic or Celestial (equatorial) ");
+   // cout << "Write new file: " << imageName << endl;
 }
