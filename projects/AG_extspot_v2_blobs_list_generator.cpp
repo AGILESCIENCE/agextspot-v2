@@ -39,7 +39,7 @@ int main(int argc, char*argv[]){
 		{ PilString, "output_filename", "The name of the output file."},
 		{ PilString, "output_folder", "The name of the output folder."},
 		{ PilString, "counts_map_folder_path", "The path to the folder that contains the dataset."},
-		{ PilString, "map_format", "'agile','healpix'"},
+		{ PilString, "map_format", "'normal','healpix'"},
 		{ PilReal, 	 "classification_threshold", "Classification threshold"},
 		{ PilReal, "cdelt1", "Degree pixel size (width)"},
 		{ PilReal, "cdelt2", "Degree pixel size (height)"},

@@ -3,7 +3,7 @@
 BlobsListGenerator::BlobsListGenerator(string map_format, float cdelt1, float cdelt2, float psf, double classification_threshold)
 {
 
-  if ( map_format == "agile" )
+  if ( map_format == "normal" )
   {
     cout << "[BlobsListGenerator] "<< map_format <<" map format selected." <<endl;
     bool interactive_extraction = false;
